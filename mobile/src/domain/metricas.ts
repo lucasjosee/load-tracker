@@ -129,3 +129,66 @@ export function contarAumentosDeCargaNoMes(eventos: readonly EventoDatado[], hoj
   return eventos.filter((evento) => evento.tipo === 'aumento_carga' && evento.data.startsWith(mes))
     .length;
 }
+
+// ---------- Aba Evolução (§3.6) ----------
+
+// Uma sessão de um exercício no histórico. O registro de onboarding entra
+// como ponto de partida da força, mas não conta como treino nas séries.
+export interface SessaoNoHistorico extends SessaoDoExercicio {
+  exercicioId: string;
+  doOnboarding: boolean;
+}
+
+export interface ExercicioDoResumo {
+  id: string;
+  grupoMuscular: GrupoMuscular;
+  pesoCorporal: boolean;
+}
+
+// Força de cada sessão, na ordem do histórico.
+export function pontosDeForca(sessoes: readonly SessaoDoExercicio[], pesoCorporal: boolean): PontoDeForca[] {
+  return sessoes.map((sessao) => ({ data: sessao.data, valor: forcaDaSessao(sessao, pesoCorporal) }));
+}
+
+export interface ResumoDoGrupo {
+  grupo: GrupoMuscular;
+  variacao: number | null; // média das variações dos exercícios do grupo
+  seriesNaSemana: number;
+  exercicios: number;
+}
+
+// Um resumo por grupo muscular que tem exercício, na ordem da §7.
+// `historico` em ordem cronológica.
+export function resumirGrupos(
+  exercicios: readonly ExercicioDoResumo[],
+  historico: readonly SessaoNoHistorico[],
+  hoje: string,
+): ResumoDoGrupo[] {
+  const series = seriesDaSemana(
+    historico
+      .filter((sessao) => !sessao.doOnboarding)
+      .flatMap((sessao) => {
+        const exercicio = exercicios.find((e) => e.id === sessao.exercicioId);
+        return exercicio === undefined
+          ? []
+          : [{ data: sessao.data, grupoMuscular: exercicio.grupoMuscular, series: sessao.reps.length }];
+      }),
+    hoje,
+  );
+
+  return GRUPOS_MUSCULARES.flatMap((grupo) => {
+    const doGrupo = exercicios.filter((e) => e.grupoMuscular === grupo);
+    if (doGrupo.length === 0) {
+      return [];
+    }
+    const variacoes = doGrupo.map((exercicio) =>
+      variacaoDoExercicio(
+        pontosDeForca(
+          historico.filter((s) => s.exercicioId === exercicio.id),
+          exercicio.pesoCorporal,
+        ),
+      ),
+    );
+    return [{ grupo, variacao: variacaoDoGrupo(variacoes), seriesNaSemana: series[grupo], exercicios: doGrupo.length }];
+  });
+}

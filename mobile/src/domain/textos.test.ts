@@ -9,6 +9,7 @@ import {
   seloDaMeta,
   textoEstagnacao,
   textoDoDia,
+  textoDoGrupo,
   textoMeta,
   textoProximoTreino,
   textoRealizado,
@@ -222,5 +223,12 @@ describe('textoResumoDaSessao', () => {
 describe('textoTreinoPerdido', () => {
   it('segue a §3.5', () => {
     expect(textoTreinoPerdido('Peito')).toBe('Você não registrou Peito ontem. Fazer hoje?');
+  });
+});
+
+describe('textoDoGrupo', () => {
+  it('variação e séries da semana', () => {
+    expect(textoDoGrupo(0.08, 14)).toBe('+8% em 4 semanas · 14 séries esta semana');
+    expect(textoDoGrupo(null, 1)).toBe('Sem histórico ainda · 1 série esta semana');
   });
 });

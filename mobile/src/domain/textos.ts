@@ -192,3 +192,9 @@ export function textoResumoDaSessao(tipos: readonly Evento[]): string {
 export function textoTreinoPerdido(nomeDoTreino: string): string {
   return `Você não registrou ${nomeDoTreino} ontem. Fazer hoje?`;
 }
+
+// Linha de um grupo na aba Evolução: "+8% em 4 semanas · 14 séries esta semana".
+export function textoDoGrupo(variacao: number | null, seriesNaSemana: number): string {
+  const forca = variacao === null ? 'Sem histórico ainda' : `${formatarPercentual(variacao)} em 4 semanas`;
+  return `${forca} · ${seriesNaSemana} ${plural(seriesNaSemana, 'série', 'séries')} esta semana`;
+}

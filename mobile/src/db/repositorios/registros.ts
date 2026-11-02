@@ -187,3 +187,32 @@ export async function contarRegistrosDaData(db: SQLiteDatabase, data: string): P
   );
   return linha?.total ?? 0;
 }
+
+export interface SessaoDoHistorico {
+  exercicioId: string;
+  data: string;
+  cargaKg: number;
+  reps: number[];
+  doOnboarding: boolean;
+}
+
+// Tudo o que foi feito (fora "Pulei"), do mais antigo ao mais recente, para
+// as métricas de evolução. O registro de onboarding não tem sessão: o dia
+// dele sai do horário de criação, no fuso do aparelho ('localtime').
+export async function listarHistorico(db: SQLiteDatabase): Promise<SessaoDoHistorico[]> {
+  const linhas = await db.getAllAsync<LinhaRegistro & { data: string }>(
+    `SELECT ${COLUNAS}, COALESCE(s.data, date(r.criado_em, 'localtime')) AS data
+       FROM registro r
+       LEFT JOIN sessao s ON s.id = r.sessao_id
+      WHERE r.resultado <> 'pulou'
+      ORDER BY r.criado_em, r.id`,
+  );
+  const registros = await comSeries(db, linhas, "r.resultado <> ?", 'pulou');
+  return registros.map((registro, indice) => ({
+    exercicioId: registro.exercicioId,
+    data: linhas[indice].data,
+    cargaKg: registro.cargaKg,
+    reps: registro.reps,
+    doOnboarding: registro.origem === 'onboarding',
+  }));
+}

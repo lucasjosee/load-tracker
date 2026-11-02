@@ -3,6 +3,8 @@ import {
   detectarEstagnacao,
   e1rm,
   forcaDaSessao,
+  pontosDeForca,
+  resumirGrupos,
   seriesDaSemana,
   variacaoDoExercicio,
   variacaoDoGrupo,
@@ -131,5 +133,41 @@ describe('contarAumentosDeCargaNoMes', () => {
       { data: '2026-11-04', tipo: 'aumento_carga' as const },
     ];
     expect(contarAumentosDeCargaNoMes(eventos, '2026-11-20')).toBe(2);
+  });
+});
+
+describe('pontosDeForca', () => {
+  it('calcula a força de cada sessão', () => {
+    expect(pontosDeForca([{ data: '2026-11-02', cargaKg: 0, reps: [10, 10] }], true)).toEqual([{ data: '2026-11-02', valor: 20 }]);
+  });
+});
+
+describe('resumirGrupos', () => {
+  const exercicios = [
+    { id: 'supino', grupoMuscular: 'peito' as const, pesoCorporal: false },
+    { id: 'crucifixo', grupoMuscular: 'peito' as const, pesoCorporal: false },
+    { id: 'barra', grupoMuscular: 'costas' as const, pesoCorporal: true },
+  ];
+  const historico = [
+    { exercicioId: 'supino', data: '2026-10-01', cargaKg: 20, reps: [10, 10, 10], doOnboarding: true },
+    { exercicioId: 'supino', data: '2026-11-03', cargaKg: 22, reps: [10, 10, 10], doOnboarding: false },
+    { exercicioId: 'barra', data: '2026-11-04', cargaKg: 0, reps: [8, 8, 8], doOnboarding: false },
+    { exercicioId: 'barra', data: '2026-11-05', cargaKg: 0, reps: [9, 9, 9], doOnboarding: false },
+  ];
+
+  it('um resumo por grupo com exercício, na ordem da §7', () => {
+    const resumo = resumirGrupos(exercicios, historico, '2026-11-05');
+    expect(resumo.map((r) => r.grupo)).toEqual(['peito', 'costas']);
+    expect(resumo[0]).toMatchObject({ exercicios: 2, seriesNaSemana: 3 });
+    // supino +10% (crucifixo sem histórico fica de fora da média)
+    expect(resumo[0]?.variacao).toBeCloseTo(0.1, 5);
+    // peso corporal: 24 → 27 reps no total = +12,5%
+    expect(resumo[1]).toMatchObject({ seriesNaSemana: 6 });
+    expect(resumo[1]?.variacao).toBeCloseTo(0.125, 5);
+  });
+
+  it('o registro de onboarding não conta como série da semana', () => {
+    const soOnboarding = [{ ...historico[0]!, data: '2026-11-03' }];
+    expect(resumirGrupos(exercicios, soOnboarding, '2026-11-05')[0]?.seriesNaSemana).toBe(0);
   });
 });

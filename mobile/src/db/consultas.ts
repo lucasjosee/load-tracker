@@ -4,15 +4,22 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
 import { proximoTreino, treinoPerdido, type ProximoTreino, type TreinoIdentificado } from '@/domain/hoje';
-import { seriesDaSemana } from '@/domain/metricas';
+import {
+  pontosDeForca,
+  resumirGrupos,
+  seriesDaSemana,
+  variacaoDoExercicio,
+  type ResumoDoGrupo,
+} from '@/domain/metricas';
 import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
 
 import { listarEstados } from './repositorios/estadoProgressao';
 import { listarTiposDaSessao, listarUltimasMudancas } from './repositorios/eventos';
-import { listarExerciciosDoTreino, type Exercicio } from './repositorios/exercicios';
+import { listarExercicios, listarExerciciosDoTreino, type Exercicio } from './repositorios/exercicios';
 import {
   contarRegistrosDaData,
   contarSessoesComRegistroDesde,
+  listarHistorico,
   listarRegistrosDaSessao,
   listarSeriesDesde,
   type Registro,
@@ -120,5 +127,42 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
         mudanca: mudancas.get(exercicio.id) ?? null,
         feitoHoje: feitoPorExercicio.get(exercicio.id) ?? null,
       })),
+  };
+}
+
+export interface ExercicioNaEvolucao {
+  exercicio: Exercicio;
+  estado: EstadoProgressao | null;
+  variacao: number | null; // ~4 semanas (§7)
+  sessoes: number; // quantas sessões no histórico (com o onboarding)
+}
+
+export interface Evolucao {
+  grupos: ResumoDoGrupo[];
+  exercicios: ExercicioNaEvolucao[];
+}
+
+// Tudo o que a aba Evolução e a tela do grupo mostram (§3.6). Só exercícios
+// ativos; o histórico dos arquivados continua guardado.
+export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promise<Evolucao> {
+  const [todos, historico, estados] = await Promise.all([listarExercicios(db), listarHistorico(db), listarEstados(db)]);
+  const exercicios = todos.filter((exercicio) => exercicio.ativo);
+  const pesoCorporal = (exercicio: Exercicio) => exercicio.equipamento === 'peso_corporal';
+
+  return {
+    grupos: resumirGrupos(
+      exercicios.map((e) => ({ id: e.id, grupoMuscular: e.grupoMuscular, pesoCorporal: pesoCorporal(e) })),
+      historico,
+      hoje,
+    ),
+    exercicios: exercicios.map((exercicio) => {
+      const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
+      return {
+        exercicio,
+        estado: estados.get(exercicio.id) ?? null,
+        variacao: variacaoDoExercicio(pontosDeForca(sessoes, pesoCorporal(exercicio))),
+        sessoes: sessoes.length,
+      };
+    }),
   };
 }

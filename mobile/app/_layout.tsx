@@ -45,6 +45,7 @@ function Navegacao() {
           <Stack.Screen name="treino/[id]" options={{ title: 'Treino', headerBackTitle: 'Divisão' }} />
           <Stack.Screen name="exercicio/novo" options={{ title: 'Novo exercício', presentation: 'modal' }} />
           <Stack.Screen name="exercicio/[id]" options={{ title: 'Exercício' }} />
+          <Stack.Screen name="grupo/[grupo]" options={{ title: 'Grupo', headerBackTitle: 'Evolução' }} />
           <Stack.Screen name="permissao" options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="registro" options={{ title: 'Registro rápido', presentation: 'modal' }} />
         </Stack.Protected>
