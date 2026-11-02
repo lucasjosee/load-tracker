@@ -3,6 +3,8 @@ import {
   diasEntre,
   formatarDiaMes,
   inicioDaSemana,
+  listarDiasPorExtenso,
+  ordenarDias,
   paraDataLocal,
   somarDias,
 } from './datas';
@@ -61,5 +63,20 @@ describe('diasEntre', () => {
 describe('formatarDiaMes', () => {
   it('mostra dia/mês', () => {
     expect(formatarDiaMes('2026-11-12')).toBe('12/11');
+  });
+});
+
+describe('ordenarDias', () => {
+  it('põe a segunda primeiro e o domingo por último', () => {
+    expect(ordenarDias([0, 3, 1, 6])).toEqual([1, 3, 6, 0]);
+  });
+});
+
+describe('listarDiasPorExtenso', () => {
+  it('junta com vírgula e "e", na ordem da semana', () => {
+    expect(listarDiasPorExtenso([5, 1, 3])).toBe('Segunda, quarta e sexta');
+    expect(listarDiasPorExtenso([0, 4])).toBe('Quinta e domingo');
+    expect(listarDiasPorExtenso([2])).toBe('Terça');
+    expect(listarDiasPorExtenso([])).toBe('');
   });
 });

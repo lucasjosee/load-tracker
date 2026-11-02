@@ -1,71 +1,63 @@
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { listarTreinosPorDia, type TreinoDoDia } from '@/db/repositorios/treinos';
+import { Botao } from '@/components/Botao';
+import { estilosComuns, Secao, Tela } from '@/components/Tela';
+import { cores } from '@/components/tema';
+import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
+import { listarDiasPorExtenso } from '@/domain/datas';
 
-// Índice = dia da semana (0 = domingo), igual a Date.getDay().
-const NOMES_DOS_DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-
-// Versão mínima: só lista os treinos gravados. A tela de edição é a tarefa 2.1.
 export default function TelaDivisao() {
   const db = useSQLiteContext();
-  const [treinos, setTreinos] = useState<TreinoDoDia[] | null>(null);
+  const [treinos, setTreinos] = useState<TreinoComDias[] | null>(null);
 
-  useEffect(() => {
-    listarTreinosPorDia(db).then(setTreinos);
-  }, [db]);
+  // useFocusEffect roda ao abrir a aba e toda vez que ela volta a aparecer
+  // (ex.: depois de editar um treino), então a lista nunca fica velha.
+  useFocusEffect(
+    useCallback(() => {
+      listarTreinos(db).then(setTreinos);
+    }, [db]),
+  );
+
+  if (treinos === null) {
+    return <Tela titulo="Divisão">{null}</Tela>;
+  }
+
+  const diasComTreino = treinos.flatMap((treino) => treino.dias);
+  const diasDeDescanso = [0, 1, 2, 3, 4, 5, 6].filter((dia) => !diasComTreino.includes(dia));
 
   return (
-    // `automatic` deixa o iOS calcular as margens da barra de status e da
-    // barra de abas, para o conteúdo não ficar escondido atrás delas.
-    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.conteudo}>
-      <Text style={styles.titulo} accessibilityRole="header">
-        Divisão
-      </Text>
+    <Tela titulo="Divisão">
+      <Secao titulo="Treinos">
+        {treinos.length === 0 && <Text style={estilosComuns.textoSecundario}>Nenhum treino cadastrado.</Text>}
 
-      {treinos !== null && treinos.length === 0 && (
-        <Text style={styles.vazio}>Nenhum treino cadastrado.</Text>
-      )}
+        {treinos.map((treino) => (
+          <Pressable
+            key={treino.id}
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: '/treino/[id]', params: { id: treino.id } })}
+            style={({ pressed }) => [estilosComuns.cartao, pressed && styles.pressionado]}
+          >
+            <Text style={styles.nome}>{treino.nome}</Text>
+            <Text style={estilosComuns.textoSecundario}>
+              {treino.dias.length > 0 ? listarDiasPorExtenso(treino.dias) : 'Sem dia definido'}
+            </Text>
+          </Pressable>
+        ))}
 
-      {treinos?.map(({ diaSemana, treino }) => (
-        <View key={diaSemana} style={styles.linha}>
-          <Text style={styles.dia}>{NOMES_DOS_DIAS[diaSemana]}</Text>
-          <Text style={styles.nomeTreino}>{treino.nome}</Text>
-        </View>
-      ))}
-    </ScrollView>
+        {diasDeDescanso.length > 0 && treinos.length > 0 && (
+          <Text style={estilosComuns.textoSecundario}>Descanso: {listarDiasPorExtenso(diasDeDescanso).toLowerCase()}</Text>
+        )}
+
+        <Botao titulo="Novo treino" variante="secundario" onPress={() => router.push('/treino/novo')} />
+      </Secao>
+    </Tela>
   );
 }
 
 const styles = StyleSheet.create({
-  conteudo: {
-    padding: 20,
-    gap: 12,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  vazio: {
-    fontSize: 16,
-    color: '#666',
-  },
-  linha: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#f2f2f7',
-  },
-  dia: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-  },
-  nomeTreino: {
-    fontSize: 17,
-    marginTop: 2,
-  },
+  nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
+  pressionado: { opacity: 0.6 },
 });
