@@ -1,3 +1,37 @@
+# Documentos de trabalho: ficam só na máquina, não vão para o GitHub.
+# Sem barra no início, valem em qualquer pasta (inclusive docs/).
 CLAUDE.md
 PLANO.md
 ESPECIFICACAO.md
+
+# Segredos: a chave da Anthropic e o token do app ficam nos .env.
+# O .env.example é a exceção, porque documenta as variáveis sem valores.
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+coverage/
+*.tsbuildinfo
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# Credenciais de assinatura (não devem existir no Expo Go, mas por garantia)
+*.p8
+*.p12
+*.key
+*.pem
+*.jks
+*.mobileprovision
+
+# Sistema e editor
+.DS_Store
+.idea/
+.vscode/
