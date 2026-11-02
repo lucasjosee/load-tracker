@@ -1,8 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { paraDataLocal } from '@/domain/datas';
+
 import { MIGRACOES, migracoesPendentes } from './migracoes';
-import { salvarEstado } from './repositorios/estadoProgressao';
-import { inserirExercicio, vincularExercicioAoTreino } from './repositorios/exercicios';
+import { gravarExercicioNovo } from './operacoes';
+import { proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
 import { definirTreinoDoDia, inserirTreino } from './repositorios/treinos';
 import { DIVISAO_SEED, type TreinoSeed } from './seed';
 import { emTransacao, PRAGMAS_DA_CONEXAO } from './transacao';
@@ -53,24 +55,26 @@ async function aplicarSeedSeBancoVazio(db: SQLiteDatabase): Promise<void> {
   await emTransacao(db, (txn) => gravarDivisao(txn, DIVISAO_SEED));
 }
 
-async function gravarDivisao(db: SQLiteDatabase, divisao: readonly TreinoSeed[]): Promise<void> {
+async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]): Promise<void> {
+  const hoje = paraDataLocal(new Date());
   // Exercício com o mesmo nome em dois treinos é gravado uma vez só.
   const idPorNome = new Map<string, string>();
 
   for (const treinoSeed of divisao) {
-    const treino = await inserirTreino(db, treinoSeed.nome);
-    await definirTreinoDoDia(db, treinoSeed.diaSemana, treino.id);
+    const treino = await inserirTreino(txn, treinoSeed.nome);
+    await definirTreinoDoDia(txn, treinoSeed.diaSemana, treino.id);
 
-    for (const [indice, exercicioSeed] of treinoSeed.exercicios.entries()) {
-      let exercicioId = idPorNome.get(exercicioSeed.nome);
-      if (exercicioId === undefined) {
-        const { cargaKg, repsAlvo, ...config } = exercicioSeed;
-        const exercicio = await inserirExercicio(db, config);
-        await salvarEstado(db, exercicio.id, { cargaKg, repsAlvo, falhas: 0 });
-        exercicioId = exercicio.id;
-        idPorNome.set(exercicioSeed.nome, exercicioId);
+    for (const exercicioSeed of treinoSeed.exercicios) {
+      const existente = idPorNome.get(exercicioSeed.nome);
+      if (existente !== undefined) {
+        await vincularExercicioAoTreino(txn, treino.id, existente, await proximaOrdem(txn, treino.id));
+        continue;
       }
-      await vincularExercicioAoTreino(db, treino.id, exercicioId, indice + 1);
+      // O mesmo caminho do formulário da Divisão: registro de onboarding e
+      // primeira meta pelo motor, para o estado ser recalculável (§9).
+      const { cargaKg, repsAtuais, ...novo } = exercicioSeed;
+      const exercicio = await gravarExercicioNovo(txn, treino.id, novo, { cargaKg, reps: repsAtuais }, hoje);
+      idPorNome.set(exercicio.nome, exercicio.id);
     }
   }
 }

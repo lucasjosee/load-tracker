@@ -73,6 +73,9 @@ export type Realizado = { cargaKg: number; reps: number[] } | 'PULOU';
 // Por que a meta mudou (§5.3).
 export type Evento = 'aumento_reps' | 'aumento_carga' | 'manteve' | 'deload' | 'sem_mudanca';
 
+// Como o registro é guardado no banco (coluna `registro.resultado`).
+export type Resultado = 'bateu' | 'nao_bateu' | 'pulou';
+
 // Uma mudança de meta, como fica gravada na tabela `evento`: a meta de antes
 // e a de depois. `De` é null no primeiro registro do exercício, quando ainda
 // não havia meta.

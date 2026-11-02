@@ -15,6 +15,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="treino/novo" options={{ title: 'Novo treino', presentation: 'modal' }} />
         <Stack.Screen name="treino/[id]" options={{ title: 'Treino', headerBackTitle: 'Divisão' }} />
+        <Stack.Screen name="exercicio/novo" options={{ title: 'Novo exercício', presentation: 'modal' }} />
+        <Stack.Screen name="exercicio/[id]" options={{ title: 'Exercício' }} />
       </Stack>
     </SQLiteProvider>
   );

@@ -5,7 +5,8 @@
 // quinta e no domingo, 4 séries de 8 a 12 em tudo. As cargas são as do bloco
 // de notas dele. Suposições feitas na tarefa 0.4, a confirmar na academia:
 // - Cargas anotadas com dois números ("28/63"): ficou o primeiro.
-// - Reps iniciais = 8 (início da faixa); o motor sobe a partir daí.
+// - Reps atuais = 8 (início da faixa). Como no onboarding (§3.1), essa carga
+//   vira a "última sessão" e o motor calcula a primeira meta: carga × 9.
 // - "por lado" = como ele anota (§5.2, regra de ouro: sempre igual naquele exercício).
 
 import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
@@ -18,9 +19,9 @@ export interface ExercicioSeed {
   repsMin: number;
   repsMax: number;
   seriesAlvo: number;
-  // Estado inicial da progressão: o ponto de onde o motor parte.
+  // O que ele faz hoje: vira o registro de onboarding.
   cargaKg: number;
-  repsAlvo: number;
+  repsAtuais: number;
 }
 
 export interface TreinoSeed {
@@ -41,7 +42,7 @@ const INCREMENTO = {
   pino: 5, // máquinas de pino: padrão da §5.2
 };
 
-const PADRAO = { repsMin: 8, repsMax: 12, seriesAlvo: 4, repsAlvo: 8 };
+const PADRAO = { repsMin: 8, repsMax: 12, seriesAlvo: 4, repsAtuais: 8 };
 
 // Legs e Lower usam os mesmos exercícios, então a progressão deles é uma só.
 const PERNAS: ExercicioSeed[] = [

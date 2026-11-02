@@ -16,8 +16,8 @@ describe('DIVISAO_SEED', () => {
   it.each(exercicios.map((e) => [e.nome, e] as const))(
     '%s começa com reps dentro da faixa e valores válidos',
     (_nome, exercicio) => {
-      expect(exercicio.repsMin).toBeLessThanOrEqual(exercicio.repsAlvo);
-      expect(exercicio.repsAlvo).toBeLessThanOrEqual(exercicio.repsMax);
+      expect(exercicio.repsMin).toBeLessThanOrEqual(exercicio.repsAtuais);
+      expect(exercicio.repsAtuais).toBeLessThanOrEqual(exercicio.repsMax);
       expect(exercicio.seriesAlvo).toBeGreaterThanOrEqual(1);
       expect(exercicio.cargaKg).toBeGreaterThanOrEqual(0);
       expect(exercicio.incrementoKg).toBeGreaterThanOrEqual(0);

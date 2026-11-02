@@ -115,3 +115,47 @@ export async function listarExerciciosDoTreino(
   );
   return linhas.map(paraExercicio);
 }
+
+// Todos os exercícios, em ordem alfabética.
+export async function listarExercicios(db: SQLiteDatabase): Promise<Exercicio[]> {
+  const linhas = await db.getAllAsync<LinhaExercicio>(
+    `SELECT ${COLUNAS} FROM exercicio e ORDER BY e.nome COLLATE NOCASE`,
+  );
+  return linhas.map(paraExercicio);
+}
+
+// Posição para um exercício que entra no fim do treino.
+export async function proximaOrdem(db: SQLiteDatabase, treinoId: string): Promise<number> {
+  const linha = await db.getFirstAsync<{ maior: number | null }>(
+    'SELECT MAX(ordem) AS maior FROM treino_exercicio WHERE treino_id = ?',
+    treinoId,
+  );
+  return (linha?.maior ?? 0) + 1;
+}
+
+export async function definirOrdem(
+  db: SQLiteDatabase,
+  treinoId: string,
+  exercicioId: string,
+  ordem: number,
+): Promise<void> {
+  await db.runAsync(
+    'UPDATE treino_exercicio SET ordem = ? WHERE treino_id = ? AND exercicio_id = ?',
+    ordem,
+    treinoId,
+    exercicioId,
+  );
+}
+
+// Tira o exercício do treino. O exercício e o histórico dele continuam.
+export async function desvincularExercicio(
+  db: SQLiteDatabase,
+  treinoId: string,
+  exercicioId: string,
+): Promise<void> {
+  await db.runAsync(
+    'DELETE FROM treino_exercicio WHERE treino_id = ? AND exercicio_id = ?',
+    treinoId,
+    exercicioId,
+  );
+}

@@ -1,4 +1,10 @@
-import { arredondarKg, arredondarParaBaixo, calcularProxima } from './progressao';
+import {
+  arredondarKg,
+  arredondarParaBaixo,
+  calcularProxima,
+  descreverMudanca,
+  resultadoDoEvento,
+} from './progressao';
 import type { ConfigExercicio, EstadoProgressao, Evento } from './tipos';
 
 // Halter da §5.4: faixa 8–12, 3 séries, incremento 2 kg, limite de 3 falhas.
@@ -152,5 +158,36 @@ describe('arredondarParaBaixo', () => {
     [1.2, 2, 0],
   ])('maior múltiplo de %d com passo %d é %d', (x, passo, esperado) => {
     expect(arredondarParaBaixo(x, passo)).toBe(esperado);
+  });
+});
+
+describe('resultadoDoEvento', () => {
+  it.each([
+    ['aumento_reps', 'bateu'],
+    ['aumento_carga', 'bateu'],
+    ['manteve', 'nao_bateu'],
+    ['deload', 'nao_bateu'],
+    ['sem_mudanca', 'pulou'],
+  ] as const)('%s → %s', (evento, resultado) => {
+    expect(resultadoDoEvento(evento)).toBe(resultado);
+  });
+});
+
+describe('descreverMudanca', () => {
+  it('guarda a meta de antes e a nova', () => {
+    const antes = estado(10, 11);
+    const proxima = calcularProxima(antes, { cargaKg: 10, reps: [12, 12, 12] }, HALTER);
+    expect(descreverMudanca(antes, proxima)).toEqual({
+      tipo: 'aumento_carga',
+      cargaDe: 10,
+      cargaPara: 12,
+      repsDe: 11,
+      repsPara: 8,
+    });
+  });
+
+  it('no primeiro registro, a meta de antes é null', () => {
+    const proxima = calcularProxima(null, { cargaKg: 10, reps: [8, 8, 8] }, HALTER);
+    expect(descreverMudanca(null, proxima)).toMatchObject({ cargaDe: null, repsDe: null, cargaPara: 10, repsPara: 9 });
   });
 });

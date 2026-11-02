@@ -1,9 +1,10 @@
 import { randomUUID } from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import type { Resultado } from '@/domain/tipos';
+
 // Convenções: ver o comentário no topo de treinos.ts.
 
-export type Resultado = 'bateu' | 'nao_bateu' | 'pulou';
 export type Origem = 'checkin' | 'texto' | 'onboarding';
 
 export interface Registro {

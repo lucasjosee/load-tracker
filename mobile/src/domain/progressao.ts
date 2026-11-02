@@ -1,7 +1,14 @@
 // Motor de progressão: dupla progressão com falhas e deload (§5.3).
 // Função pura: a mesma entrada dá sempre a mesma saída, sem banco, data ou rede.
 
-import type { ConfigExercicio, EstadoProgressao, Evento, Realizado } from './tipos';
+import type {
+  ConfigExercicio,
+  EstadoProgressao,
+  Evento,
+  MudancaDeMeta,
+  Realizado,
+  Resultado,
+} from './tipos';
 
 export interface Proxima {
   estado: EstadoProgressao;
@@ -117,4 +124,29 @@ export function recalcularEstado(
     estado = calcularProxima(estado, realizado, config).estado;
   }
   return estado;
+}
+
+// Bateu, não bateu ou pulou, a partir do evento que o motor devolveu.
+export function resultadoDoEvento(evento: Evento): Resultado {
+  switch (evento) {
+    case 'aumento_reps':
+    case 'aumento_carga':
+      return 'bateu';
+    case 'manteve':
+    case 'deload':
+      return 'nao_bateu';
+    case 'sem_mudanca':
+      return 'pulou';
+  }
+}
+
+// A mudança de meta no formato da tabela `evento`: meta de antes → meta nova.
+export function descreverMudanca(antes: EstadoProgressao | null, proxima: Proxima): MudancaDeMeta {
+  return {
+    tipo: proxima.evento,
+    cargaDe: antes?.cargaKg ?? null,
+    cargaPara: proxima.estado.cargaKg,
+    repsDe: antes?.repsAlvo ?? null,
+    repsPara: proxima.estado.repsAlvo,
+  };
 }

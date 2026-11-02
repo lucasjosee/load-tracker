@@ -1,18 +1,25 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Text, TextInput } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { SeletorDeDias } from '@/components/SeletorDeDias';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { excluirTreinoMantendoHistorico, salvarDiasDoTreino } from '@/db/operacoes';
+import { cores } from '@/components/tema';
+import { excluirTreinoMantendoHistorico, moverExercicio, salvarDiasDoTreino } from '@/db/operacoes';
+import { listarEstados } from '@/db/repositorios/estadoProgressao';
+import { desvincularExercicio, listarExerciciosDoTreino, type Exercicio } from '@/db/repositorios/exercicios';
 import { listarTreinos, renomearTreino, type TreinoComDias } from '@/db/repositorios/treinos';
+import { textoMeta, textoSeries } from '@/domain/textos';
+import type { EstadoProgressao } from '@/domain/tipos';
 import { validarNomeDoTreino } from '@/domain/validacao';
 
 interface Dados {
   treino: TreinoComDias;
   ocupados: Map<number, string>; // dias de outros treinos → nome do treino
+  exercicios: Exercicio[];
+  estados: Map<string, EstadoProgressao>;
 }
 
 async function carregarDados(db: SQLiteDatabase, id: string): Promise<Dados | null> {
@@ -24,7 +31,8 @@ async function carregarDados(db: SQLiteDatabase, id: string): Promise<Dados | nu
   const ocupados = new Map(
     treinos.filter((t) => t.id !== id).flatMap((t) => t.dias.map((dia) => [dia, t.nome] as const)),
   );
-  return { treino, ocupados };
+  const [exercicios, estados] = await Promise.all([listarExerciciosDoTreino(db, id), listarEstados(db)]);
+  return { treino, ocupados, exercicios, estados };
 }
 
 export default function TelaTreino() {
@@ -51,7 +59,7 @@ export default function TelaTreino() {
   if (dados === null) {
     return <Tela>{null}</Tela>;
   }
-  const { treino, ocupados } = dados;
+  const { treino, ocupados, exercicios, estados } = dados;
 
   // Salva o nome quando o campo perde o foco, sem botão "salvar".
   async function salvarNome() {
@@ -67,6 +75,25 @@ export default function TelaTreino() {
   async function mudarDias(dias: number[]) {
     await salvarDiasDoTreino(db, treino.id, dias);
     await carregar();
+  }
+
+  async function mover(exercicio: Exercicio, direcao: -1 | 1) {
+    await moverExercicio(db, treino.id, exercicio.id, direcao);
+    await carregar();
+  }
+
+  function confirmarRemocao(exercicio: Exercicio) {
+    Alert.alert(`Tirar ${exercicio.nome} do ${treino.nome}?`, 'O histórico do exercício continua salvo.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Tirar',
+        style: 'destructive',
+        onPress: async () => {
+          await desvincularExercicio(db, treino.id, exercicio.id);
+          await carregar();
+        },
+      },
+    ]);
   }
 
   function confirmarExclusao() {
@@ -106,9 +133,74 @@ export default function TelaTreino() {
         <SeletorDeDias dias={treino.dias} onMudar={mudarDias} ocupados={ocupados} nomeDoTreino={treino.nome} />
       </Secao>
 
+      <Secao titulo="Exercícios">
+        {exercicios.length === 0 && <Text style={estilosComuns.textoSecundario}>Nenhum exercício ainda.</Text>}
+        {exercicios.map((exercicio, indice) => {
+          const estado = estados.get(exercicio.id);
+          return (
+            <View key={exercicio.id} style={[estilosComuns.cartao, styles.linhaExercicio]}>
+              <Pressable
+                style={styles.infoExercicio}
+                accessibilityRole="button"
+                onPress={() => router.push({ pathname: '/exercicio/[id]', params: { id: exercicio.id } })}
+              >
+                <Text style={styles.nomeExercicio}>{exercicio.nome}</Text>
+                <Text style={estilosComuns.textoSecundario}>
+                  {estado === undefined ? 'Sem meta' : textoMeta(estado)} · {textoSeries(exercicio.seriesAlvo)}
+                </Text>
+              </Pressable>
+              <BotaoIcone rotulo={`Subir ${exercicio.nome}`} simbolo="↑" desabilitado={indice === 0} onPress={() => mover(exercicio, -1)} />
+              <BotaoIcone
+                rotulo={`Descer ${exercicio.nome}`}
+                simbolo="↓"
+                desabilitado={indice === exercicios.length - 1}
+                onPress={() => mover(exercicio, 1)}
+              />
+              <BotaoIcone rotulo={`Tirar ${exercicio.nome} do treino`} simbolo="✕" onPress={() => confirmarRemocao(exercicio)} />
+            </View>
+          );
+        })}
+        <Botao
+          titulo="Adicionar exercício"
+          variante="secundario"
+          onPress={() => router.push({ pathname: '/exercicio/novo', params: { treinoId: treino.id } })}
+        />
+      </Secao>
+
       <Secao titulo="Treino">
         <Botao titulo="Excluir treino" variante="perigo" onPress={confirmarExclusao} />
       </Secao>
     </Tela>
   );
 }
+
+interface BotaoIconeProps {
+  simbolo: string;
+  rotulo: string;
+  onPress: () => void;
+  desabilitado?: boolean;
+}
+
+function BotaoIcone({ simbolo, rotulo, onPress, desabilitado = false }: BotaoIconeProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+      disabled={desabilitado}
+      onPress={onPress}
+      hitSlop={6}
+      style={({ pressed }) => [styles.botaoIcone, (pressed || desabilitado) && styles.apagado]}
+    >
+      <Text style={styles.simbolo}>{simbolo}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  linhaExercicio: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  infoExercicio: { flex: 1, gap: 2 },
+  nomeExercicio: { fontSize: 17 },
+  botaoIcone: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  simbolo: { fontSize: 18, color: cores.primaria },
+  apagado: { opacity: 0.3 },
+});
