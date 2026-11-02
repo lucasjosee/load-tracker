@@ -96,3 +96,25 @@ export function calcularProxima(
   }
   return { estado: { cargaKg: base, repsAlvo: repsReferencia, falhas }, evento: 'manteve' };
 }
+
+// Reconstrói o estado do zero aplicando o motor a cada registro, na ordem em
+// que aconteceram (§9). O estado salvo no banco é só um atalho para não ter
+// que fazer isto a cada tela; os registros são a verdade.
+//
+// Usa a config atual do exercício para todo o histórico: se a faixa ou o
+// incremento mudaram no meio do caminho, o resultado pode diferir do salvo.
+export function recalcularEstado(
+  historico: readonly Realizado[],
+  config: ConfigExercicio,
+): EstadoProgressao | null {
+  let estado: EstadoProgressao | null = null;
+  for (const realizado of historico) {
+    // "Pulei" nunca muda nada (§5.3), então pular o registro dá no mesmo.
+    // Isso também evita pedir ao motor um "Pulei" antes da primeira meta.
+    if (realizado === 'PULOU') {
+      continue;
+    }
+    estado = calcularProxima(estado, realizado, config).estado;
+  }
+  return estado;
+}
