@@ -13,7 +13,8 @@
     "check": "npm run lint && tsc --noEmit && npm test && npm run contrato",
     "contrato": "cmp src/contrato.ts ../mobile/src/api/contrato.ts",
     "eval": "tsx --env-file-if-exists=.env evals/rodar.ts",
-    "build": "esbuild src/lambda.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.mjs && zip -q -j dist/lambda.zip dist/index.mjs"
+    "build": "esbuild src/lambda.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.mjs && zip -q -j dist/lambda.zip dist/index.mjs",
+    "eval:onboarding": "tsx --env-file-if-exists=.env evals/rodarOnboarding.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0",

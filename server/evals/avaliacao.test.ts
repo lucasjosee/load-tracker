@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import type { ItemInterpretado } from '../src/contrato';
 
-import { arquivoDeFrases, avaliarFrase, somarPlacar } from './avaliacao';
+import { arquivoDeConversas, arquivoDeFrases, avaliarConversa, avaliarFrase, somarPlacar } from './avaliacao';
 import frases from './frases.json';
+import conversas from './onboarding.json';
 
 function obtido(exercicioId: string | null, cargaKg: number, reps: number[]): ItemInterpretado {
   return { exercicioId, nome: 'X', grupoMuscular: 'peito', equipamento: 'barra', cargaKg, reps, confianca: 'alta' };
@@ -47,5 +48,50 @@ describe('evals/frases.json', () => {
         }
       }
     }
+  });
+});
+
+describe('avaliarConversa', () => {
+  const esperado = {
+    horarioTreino: '18:00',
+    treinos: [
+      { diasSemana: [1, 4], exerciciosComCarga: 2 },
+      { diasSemana: [2], exerciciosComCarga: 1 },
+    ],
+  };
+  const exercicio = (cargaKg: number | null) => ({ cargaKg });
+
+  it('aprova com os mesmos dias (em qualquer ordem), cargas e horário', () => {
+    const obtido = {
+      horarioTreino: '18:00',
+      treinos: [
+        { nome: 'Peito', diasSemana: [4, 1], exercicios: [exercicio(20), exercicio(14), exercicio(null)] },
+        { nome: 'Costas', diasSemana: [2], exercicios: [exercicio(30)] },
+      ],
+    };
+    expect(avaliarConversa(esperado, obtido)).toEqual([]);
+  });
+
+  it('aponta horário, treino faltando e carga faltando', () => {
+    const obtido = {
+      horarioTreino: null,
+      treinos: [{ nome: 'Peito', diasSemana: [1, 4], exercicios: [exercicio(20), exercicio(null)] }],
+    };
+    expect(avaliarConversa(esperado, obtido)).toEqual([
+      'horário: esperado 18:00, veio null',
+      'treinos: esperado 2, vieram 1',
+      'Peito: 1 exercícios com carga, esperado 2',
+      'nenhum treino nos dias [2]',
+    ]);
+  });
+
+  it('sem rascunho, reprova', () => {
+    expect(avaliarConversa(esperado, null)).toEqual(['a conversa não terminou com um rascunho']);
+  });
+});
+
+describe('evals/onboarding.json', () => {
+  it('segue o formato esperado pelo rodarOnboarding.ts', () => {
+    expect(arquivoDeConversas.safeParse(conversas).success).toBe(true);
   });
 });

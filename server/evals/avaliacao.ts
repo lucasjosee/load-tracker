@@ -71,3 +71,57 @@ export function somarPlacar(resultados: readonly Acertos[]): Placar {
   const placar = { carga: fracao(total.carga), reps: fracao(total.reps), associacao: fracao(total.associacao) };
   return { ...placar, passou: placar.carga >= META && placar.reps >= META && placar.associacao >= META };
 }
+
+// ---------- Onboarding (tarefa 4.6): conversas completas ----------
+
+const treinoEsperado = z.object({
+  diasSemana: z.array(z.number().int()),
+  exerciciosComCarga: z.number().int(), // quantos exercícios, no mínimo, com carga
+});
+
+export const arquivoDeConversas = z.object({
+  conversas: z.array(
+    z.object({
+      nome: z.string(),
+      respostas: z.array(z.string()).min(1), // o que a pessoa responde, em ordem
+      esperado: z.object({ horarioTreino: z.string().nullable(), treinos: z.array(treinoEsperado) }),
+    }),
+  ),
+});
+
+export type RascunhoEsperado = z.infer<typeof arquivoDeConversas>['conversas'][number]['esperado'];
+
+interface RascunhoObtido {
+  horarioTreino: string | null;
+  treinos: { nome: string; diasSemana: number[]; exercicios: { cargaKg: number | null }[] }[];
+}
+
+const mesmosDias = (a: readonly number[], b: readonly number[]) =>
+  iguais([...a].sort((x, y) => x - y), [...b].sort((x, y) => x - y));
+
+// Lista o que ficou diferente do esperado; lista vazia = conversa aprovada.
+// O nome do treino não é conferido: "Peito e tríceps" e "Peito/tríceps" valem.
+export function avaliarConversa(esperado: RascunhoEsperado, obtido: RascunhoObtido | null): string[] {
+  if (obtido === null) {
+    return ['a conversa não terminou com um rascunho'];
+  }
+  const problemas: string[] = [];
+  if (obtido.horarioTreino !== esperado.horarioTreino) {
+    problemas.push(`horário: esperado ${esperado.horarioTreino}, veio ${obtido.horarioTreino}`);
+  }
+  if (obtido.treinos.length !== esperado.treinos.length) {
+    problemas.push(`treinos: esperado ${esperado.treinos.length}, vieram ${obtido.treinos.length}`);
+  }
+  for (const treino of esperado.treinos) {
+    const achado = obtido.treinos.find((t) => mesmosDias(t.diasSemana, treino.diasSemana));
+    if (achado === undefined) {
+      problemas.push(`nenhum treino nos dias [${treino.diasSemana}]`);
+      continue;
+    }
+    const comCarga = achado.exercicios.filter((e) => e.cargaKg !== null).length;
+    if (comCarga < treino.exerciciosComCarga) {
+      problemas.push(`${achado.nome}: ${comCarga} exercícios com carga, esperado ${treino.exerciciosComCarga}`);
+    }
+  }
+  return problemas;
+}

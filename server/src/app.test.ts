@@ -11,14 +11,17 @@ const RESPOSTA: RespostaInterpretar = {
   naoEntendido: [],
 };
 
-function criarAppDeTeste(interpretarRegistro: Dependencias['interpretarRegistro'] = vi.fn()) {
-  return criarApp({ appToken: TOKEN, interpretarRegistro });
+function criarAppDeTeste(
+  interpretarRegistro: Dependencias['interpretarRegistro'] = vi.fn(),
+  conversarOnboarding: Dependencias['conversarOnboarding'] = vi.fn(),
+) {
+  return criarApp({ appToken: TOKEN, interpretarRegistro, conversarOnboarding });
 }
 
 const app = criarAppDeTeste();
 
-function postar(aplicacao: ReturnType<typeof criarApp>, corpo: unknown) {
-  return aplicacao.request('/v1/registro/interpretar', {
+function postar(aplicacao: ReturnType<typeof criarApp>, corpo: unknown, caminho = '/v1/registro/interpretar') {
+  return aplicacao.request(caminho, {
     method: 'POST',
     headers: { 'x-app-token': TOKEN, 'content-type': 'application/json' },
     body: typeof corpo === 'string' ? corpo : JSON.stringify(corpo),
@@ -86,6 +89,32 @@ describe('POST /v1/registro/interpretar', () => {
     expect((await postar(aplicacao, { texto: 'a'.repeat(1001), exercicios: [] })).status).toBe(400);
     expect((await postar(aplicacao, 'isto não é json')).status).toBe(400);
     expect(interpretar).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /v1/onboarding/conversa', () => {
+  const pedido = { mensagens: [{ papel: 'assistente', texto: 'Em quais dias você treina?' }, { papel: 'usuario', texto: 'seg e qua' }], rascunho: null };
+  const resposta = { rascunho: { horarioTreino: null, treinos: [] }, proximaPergunta: 'E o que treina?', completo: false };
+
+  it('repassa a conversa e devolve o rascunho', async () => {
+    const conversar = vi.fn().mockResolvedValue({ ok: true, valor: resposta });
+    const http = await postar(criarAppDeTeste(vi.fn(), conversar), pedido, '/v1/onboarding/conversa');
+    expect(http.status).toBe(200);
+    expect(await http.json()).toEqual(resposta);
+    expect(conversar).toHaveBeenCalledWith(pedido);
+  });
+
+  it('mais de 20 mensagens: 400 sem chamar a IA', async () => {
+    const conversar = vi.fn();
+    const mensagens = Array.from({ length: 21 }, () => ({ papel: 'usuario', texto: 'oi' }));
+    const http = await postar(criarAppDeTeste(vi.fn(), conversar), { mensagens, rascunho: null }, '/v1/onboarding/conversa');
+    expect(http.status).toBe(400);
+    expect(conversar).not.toHaveBeenCalled();
+  });
+
+  it('IA sem resposta aproveitável: 422', async () => {
+    const conversar = vi.fn().mockResolvedValue({ ok: false, motivo: 'resposta_invalida' });
+    expect((await postar(criarAppDeTeste(vi.fn(), conversar), pedido, '/v1/onboarding/conversa')).status).toBe(422);
   });
 });
 

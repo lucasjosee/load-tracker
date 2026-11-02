@@ -62,6 +62,10 @@ export const respostaInterpretar = z.object({
 
 // ---------- POST /v1/onboarding/conversa (§8.4) ----------
 
+// A conversa começa sempre por esta pergunta, mostrada pelo próprio app.
+export const PRIMEIRA_PERGUNTA = 'Em quais dias você treina e o que treina em cada um?';
+export const LIMITE_DE_PERGUNTAS = 6; // depois disso, o resto se completa na revisão (§8.4)
+
 export const mensagem = z.object({
   papel: z.enum(['assistente', 'usuario']),
   texto: z.string().trim().min(1).max(LIMITE_DO_TEXTO),
