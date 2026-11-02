@@ -11,7 +11,8 @@
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "check": "npm run lint && tsc --noEmit && npm test && npm run contrato",
-    "contrato": "cmp src/contrato.ts ../mobile/src/api/contrato.ts"
+    "contrato": "cmp src/contrato.ts ../mobile/src/api/contrato.ts",
+    "eval": "tsx --env-file-if-exists=.env evals/rodar.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0",

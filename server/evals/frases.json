@@ -1,0 +1,46 @@
+{
+  "_aviso": "Frases PROVISÓRIAS, escritas no estilo das anotações do Lucas. Troque pelas ~30 reais do bloco de notas (decisão em aberto no PLANO.md) antes de medir de verdade.",
+  "exercicios": [
+    { "id": "supino_reto", "nome": "Supino reto" },
+    { "id": "supino_inclinado_halter", "nome": "Supino inclinado com halteres" },
+    { "id": "inclinado_cross", "nome": "Inclinado no cross" },
+    { "id": "desenvolvimento", "nome": "Desenvolvimento" },
+    { "id": "triceps_triangulo", "nome": "Tríceps no triângulo para baixo" },
+    { "id": "triceps_corda", "nome": "Tríceps na corda pra cima" },
+    { "id": "puxada_aberta", "nome": "Puxada aberta" },
+    { "id": "puxada_fechada", "nome": "Puxada fechada" },
+    { "id": "puxada_unilateral", "nome": "Puxada unilateral" },
+    { "id": "rosca", "nome": "Rosca" },
+    { "id": "rosca_martelo_corda", "nome": "Rosca martelo na corda" },
+    { "id": "agachamento", "nome": "Agachamento livre" },
+    { "id": "panturrilha_em_pe", "nome": "Panturrilha em pé" },
+    { "id": "panturrilha_maquina", "nome": "Panturrilha na máquina" },
+    { "id": "pulldown_maquina", "nome": "Pulldown na máquina" }
+  ],
+  "frases": [
+    { "texto": "supino reto 22,5kg 9,9,8,8", "esperado": [{ "exercicioId": "supino_reto", "cargaKg": 22.5, "reps": [9, 9, 8, 8] }] },
+    { "texto": "puxada aberta 28 4x10", "esperado": [{ "exercicioId": "puxada_aberta", "cargaKg": 28, "reps": [10, 10, 10, 10] }] },
+    { "texto": "rosca 16kg 3x12", "esperado": [{ "exercicioId": "rosca", "cargaKg": 16, "reps": [12, 12, 12] }] },
+    { "texto": "desenvolvimento 14 10,9,8", "esperado": [{ "exercicioId": "desenvolvimento", "cargaKg": 14, "reps": [10, 9, 8] }] },
+    {
+      "texto": "agachamento 30kg 4x8 e panturrilha em pé 25 4x12",
+      "esperado": [
+        { "exercicioId": "agachamento", "cargaKg": 30, "reps": [8, 8, 8, 8] },
+        { "exercicioId": "panturrilha_em_pe", "cargaKg": 25, "reps": [12, 12, 12, 12] }
+      ]
+    },
+    { "texto": "triceps corda 17,5 3x10", "esperado": [{ "exercicioId": "triceps_corda", "cargaKg": 17.5, "reps": [10, 10, 10] }] },
+    { "texto": "barra fixa 3x8", "esperado": [{ "exercicioId": null, "cargaKg": 0, "reps": [8, 8, 8] }] },
+    { "texto": "puxada unilateral 31kg 12/11/10", "esperado": [{ "exercicioId": "puxada_unilateral", "cargaKg": 31, "reps": [12, 11, 10] }] },
+    { "texto": "crucifixo 14 3x12", "esperado": [{ "exercicioId": null, "cargaKg": 14, "reps": [12, 12, 12] }] },
+    { "texto": "martelo corda 24,5 8 reps", "esperado": [{ "exercicioId": "rosca_martelo_corda", "cargaKg": 24.5, "reps": [8] }] },
+    { "texto": "supino inclinado halter 18kg 4x9, ombro doeu um pouco", "esperado": [{ "exercicioId": "supino_inclinado_halter", "cargaKg": 18, "reps": [9, 9, 9, 9] }] },
+    { "texto": "pulldown maquina 54 3x10 e puxada fechada 24,5 10,10,9", "esperado": [
+        { "exercicioId": "pulldown_maquina", "cargaKg": 54, "reps": [10, 10, 10] },
+        { "exercicioId": "puxada_fechada", "cargaKg": 24.5, "reps": [10, 10, 9] }
+      ] },
+    { "texto": "panturrilha maquina 115k 4x15", "esperado": [{ "exercicioId": "panturrilha_maquina", "cargaKg": 115, "reps": [15, 15, 15, 15] }] },
+    { "texto": "triangulo pra baixo 24,5 12,12,11", "esperado": [{ "exercicioId": "triceps_triangulo", "cargaKg": 24.5, "reps": [12, 12, 11] }] },
+    { "texto": "cross inclinado 20 3x11", "esperado": [{ "exercicioId": "inclinado_cross", "cargaKg": 20, "reps": [11, 11, 11] }] }
+  ]
+}
