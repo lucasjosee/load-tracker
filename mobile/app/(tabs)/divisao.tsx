@@ -10,6 +10,7 @@ import { cores } from '@/components/tema';
 import { exportarBackup } from '@/db/backup';
 import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
 import { listarDiasPorExtenso, paraDataLocal } from '@/domain/datas';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaDivisao() {
   const db = useSQLiteContext();
@@ -64,7 +65,7 @@ export default function TelaDivisao() {
         <Botao titulo="Novo treino" variante="secundario" onPress={() => router.push('/treino/novo')} />
       </Secao>
 
-      <SecaoAvisos onMudou={() => undefined} />
+      <SecaoAvisos onMudou={() => reagendarNotificacoes(db)} />
 
       <Secao titulo="Dados">
         <Text style={estilosComuns.textoSecundario}>

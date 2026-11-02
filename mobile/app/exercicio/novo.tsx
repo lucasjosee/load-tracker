@@ -27,6 +27,7 @@ import {
   type GrupoMuscular,
 } from '@/domain/tipos';
 import { validarExercicio } from '@/domain/validacao';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 const OPCOES_DE_GRUPO = GRUPOS_MUSCULARES.map((g) => ({ valor: g, rotulo: NOMES_DOS_GRUPOS[g] }));
 const OPCOES_DE_EQUIPAMENTO = EQUIPAMENTOS.map((e) => ({ valor: e, rotulo: NOMES_DOS_EQUIPAMENTOS[e] }));
@@ -95,11 +96,13 @@ export default function TelaNovoExercicio() {
     }
     const { cargaKg, reps: repsAtuais, ...novo } = validacao.valor;
     await cadastrarExercicio(db, treinoId, novo, { cargaKg, reps: repsAtuais }, paraDataLocal(new Date()));
+    await reagendarNotificacoes(db);
     router.back();
   }
 
   async function usarExistente(exercicio: Exercicio) {
     await adicionarExercicioExistente(db, treinoId, exercicio.id);
+    await reagendarNotificacoes(db);
     router.back();
   }
 

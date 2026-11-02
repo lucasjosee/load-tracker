@@ -74,3 +74,10 @@ export function listarDiasPorExtenso(dias: readonly number[]): string {
   }
   return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`;
 }
+
+// O instante local de um dia + horário: '2026-11-02' às 07:30 no fuso do
+// aparelho. Usado para agendar notificações.
+export function paraInstanteLocal(data: string, hora: number, minuto: number): Date {
+  const [ano, mes, dia] = data.split('-').map(Number);
+  return new Date(ano, mes - 1, dia, hora, minuto);
+}

@@ -14,6 +14,7 @@ import { listarTreinos, renomearTreino, type TreinoComDias } from '@/db/reposito
 import { textoMeta, textoSeries } from '@/domain/textos';
 import type { EstadoProgressao } from '@/domain/tipos';
 import { validarNomeDoTreino } from '@/domain/validacao';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 interface Dados {
   treino: TreinoComDias;
@@ -69,16 +70,19 @@ export default function TelaTreino() {
       return;
     }
     await renomearTreino(db, treino.id, nome.trim());
+    await reagendarNotificacoes(db); // o nome do treino vai no título do aviso
     await carregar();
   }
 
   async function mudarDias(dias: number[]) {
     await salvarDiasDoTreino(db, treino.id, dias);
+    await reagendarNotificacoes(db);
     await carregar();
   }
 
   async function mover(exercicio: Exercicio, direcao: -1 | 1) {
     await moverExercicio(db, treino.id, exercicio.id, direcao);
+    await reagendarNotificacoes(db); // a ordem decide quem aparece no aviso
     await carregar();
   }
 
@@ -90,6 +94,7 @@ export default function TelaTreino() {
         style: 'destructive',
         onPress: async () => {
           await desvincularExercicio(db, treino.id, exercicio.id);
+          await reagendarNotificacoes(db);
           await carregar();
         },
       },
@@ -107,6 +112,7 @@ export default function TelaTreino() {
           style: 'destructive',
           onPress: async () => {
             await excluirTreinoMantendoHistorico(db, treino.id);
+            await reagendarNotificacoes(db);
             router.back();
           },
         },

@@ -6,6 +6,7 @@ import {
   listarDiasPorExtenso,
   ordenarDias,
   paraDataLocal,
+  paraInstanteLocal,
   somarDias,
 } from './datas';
 
@@ -78,5 +79,14 @@ describe('listarDiasPorExtenso', () => {
     expect(listarDiasPorExtenso([0, 4])).toBe('Quinta e domingo');
     expect(listarDiasPorExtenso([2])).toBe('Terça');
     expect(listarDiasPorExtenso([])).toBe('');
+  });
+});
+
+describe('paraInstanteLocal', () => {
+  it('monta o instante no fuso do aparelho', () => {
+    const instante = paraInstanteLocal('2026-11-02', 7, 30);
+    expect([instante.getFullYear(), instante.getMonth(), instante.getDate()]).toEqual([2026, 10, 2]);
+    expect([instante.getHours(), instante.getMinutes()]).toEqual([7, 30]);
+    expect(paraDataLocal(instante)).toBe('2026-11-02');
   });
 });

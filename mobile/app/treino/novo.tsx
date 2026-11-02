@@ -9,6 +9,7 @@ import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { criarTreino } from '@/db/operacoes';
 import { listarTreinos } from '@/db/repositorios/treinos';
 import { validarNomeDoTreino } from '@/domain/validacao';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaNovoTreino() {
   const db = useSQLiteContext();
@@ -32,6 +33,7 @@ export default function TelaNovoTreino() {
       return;
     }
     const id = await criarTreino(db, nome, dias);
+    await reagendarNotificacoes(db);
     // `replace` em vez de `push`: voltar do treino criado leva à Divisão, não
     // a este formulário de novo.
     router.replace({ pathname: '/treino/[id]', params: { id } });

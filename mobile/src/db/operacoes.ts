@@ -227,8 +227,8 @@ export async function desfazerRegistro(db: SQLiteDatabase, exercicio: Exercicio,
   });
 }
 
-// Fecha a sessão do dia. Por enquanto é uma gravação só; as notificações
-// (tarefa 3.2) passam a ser reagendadas aqui também.
+// Fecha a sessão do dia. Quem chama reagenda as notificações depois
+// (src/notificacoes fica fora da camada do banco).
 export async function finalizarTreino(db: SQLiteDatabase, sessaoId: string): Promise<void> {
   await finalizarSessao(db, sessaoId);
 }

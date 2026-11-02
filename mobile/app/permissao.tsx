@@ -1,17 +1,23 @@
 import { router } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { estilosComuns } from '@/components/Tela';
 import { cores, espaco } from '@/components/tema';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 import { pedirPermissao } from '@/notificacoes/permissao';
 
 // Tela de contexto antes do pedido do iOS (§3.1, passo 4). O iOS só pergunta
 // uma vez: explicar antes aumenta a chance de a pessoa dizer sim, e "Agora
 // não" aqui não gasta essa única chance.
 export default function TelaPermissao() {
+  const db = useSQLiteContext();
+
   async function ativar() {
-    await pedirPermissao();
+    if ((await pedirPermissao()) === 'concedida') {
+      await reagendarNotificacoes(db); // os avisos da semana já ficam agendados
+    }
     router.back();
   }
 

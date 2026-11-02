@@ -19,6 +19,7 @@ import {
   textoTreinoPerdido,
 } from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaHoje() {
   const db = useSQLiteContext();
@@ -108,6 +109,9 @@ export default function TelaHoje() {
         return;
       }
       await finalizarTreino(db, sessao.id);
+      // Reagendar com o treino finalizado já tira o lembrete das 21h de hoje
+      // e atualiza os textos dos próximos dias com as metas novas (§6).
+      await reagendarNotificacoes(db);
       Alert.alert('Treino finalizado', textoResumoDaSessao(conteudo.tiposDaSessao));
     });
 
