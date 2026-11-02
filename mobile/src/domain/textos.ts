@@ -55,6 +55,17 @@ export function textoMeta(estado: Pick<EstadoProgressao, 'cargaKg' | 'repsAlvo'>
   return `${formatarKg(estado.cargaKg)} kg × ${estado.repsAlvo}`;
 }
 
+// O que foi feito: '22,5 kg × 9, 9, 8'. Peso corporal: '12, 12, 10 reps'.
+export function textoRealizado(cargaKg: number, reps: readonly number[]): string {
+  if (reps.length === 0) {
+    return 'nenhuma série';
+  }
+  if (cargaKg === 0) {
+    return `${reps.join(', ')} reps`;
+  }
+  return `${formatarKg(cargaKg)} kg × ${reps.join(', ')}`;
+}
+
 export function textoSeries(series: number): string {
   return series === 1 ? '1 série' : `${series} séries`;
 }

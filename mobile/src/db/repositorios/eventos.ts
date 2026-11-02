@@ -97,3 +97,7 @@ export async function listarUltimasMudancas(db: SQLiteDatabase): Promise<Map<str
   );
   return new Map(linhas.map((linha) => [linha.exercicio_id, paraEvento(linha)]));
 }
+
+export async function excluirEventosDoRegistro(db: SQLiteDatabase, registroId: string): Promise<void> {
+  await db.runAsync('DELETE FROM evento WHERE registro_id = ?', registroId);
+}

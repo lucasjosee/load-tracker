@@ -11,6 +11,7 @@ import {
   textoDoDia,
   textoMeta,
   textoProximoTreino,
+  textoRealizado,
   textoResumoDaSemana,
   textoSeries,
 } from './textos';
@@ -74,6 +75,12 @@ describe('textoMeta e textoSeries', () => {
 
   it('peso corporal mostra só as reps', () => {
     expect(textoMeta({ cargaKg: 0, repsAlvo: 13 })).toBe('13 reps');
+  });
+
+  it('textoRealizado lista as reps de cada série', () => {
+    expect(textoRealizado(22.5, [9, 9, 8])).toBe('22,5 kg × 9, 9, 8');
+    expect(textoRealizado(0, [12, 12, 10])).toBe('12, 12, 10 reps');
+    expect(textoRealizado(20, [])).toBe('nenhuma série');
   });
 
   it('séries no singular e no plural', () => {

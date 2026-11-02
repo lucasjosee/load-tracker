@@ -62,3 +62,7 @@ export async function salvarEstado(
     new Date().toISOString(),
   );
 }
+
+export async function excluirEstado(db: SQLiteDatabase, exercicioId: string): Promise<void> {
+  await db.runAsync('DELETE FROM estado_progressao WHERE exercicio_id = ?', exercicioId);
+}

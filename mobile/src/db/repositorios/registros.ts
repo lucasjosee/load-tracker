@@ -169,3 +169,9 @@ export async function contarSessoesComRegistroDesde(db: SQLiteDatabase, desde: s
   );
   return linha?.total ?? 0;
 }
+
+// As séries somem junto (ON DELETE CASCADE). Eventos apontam para o registro
+// e precisam ser apagados antes (eventos.ts).
+export async function excluirRegistro(db: SQLiteDatabase, id: string): Promise<void> {
+  await db.runAsync('DELETE FROM registro WHERE id = ?', id);
+}

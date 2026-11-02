@@ -4,11 +4,17 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { calcularProxima, descreverMudanca, resultadoDoEvento, type Proxima } from '@/domain/progressao';
+import {
+  calcularProxima,
+  descreverMudanca,
+  recalcularEstado,
+  resultadoDoEvento,
+  type Proxima,
+} from '@/domain/progressao';
 import { LIMITE_FALHAS_PADRAO, type ConfigExercicio, type Realizado } from '@/domain/tipos';
 
-import { obterEstado, salvarEstado } from './repositorios/estadoProgressao';
-import { inserirEvento } from './repositorios/eventos';
+import { excluirEstado, obterEstado, salvarEstado } from './repositorios/estadoProgressao';
+import { excluirEventosDoRegistro, inserirEvento } from './repositorios/eventos';
 import {
   definirOrdem,
   inserirExercicio,
@@ -18,7 +24,14 @@ import {
   type Exercicio,
   type NovoExercicio,
 } from './repositorios/exercicios';
-import { inserirRegistro, type Origem, type Registro } from './repositorios/registros';
+import {
+  excluirRegistro,
+  inserirRegistro,
+  listarRegistrosDoExercicio,
+  type Origem,
+  type Registro,
+} from './repositorios/registros';
+import { iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
 import {
   definirTreinoDoDia,
   desligarSessoesDoTreino,
@@ -172,6 +185,44 @@ export async function moverExercicio(
     [ids[de], ids[para]] = [ids[para], ids[de]];
     for (const [indice, id] of ids.entries()) {
       await definirOrdem(txn, treinoId, id, indice + 1);
+    }
+  });
+}
+
+// O registro como o motor entende: "Pulei" ou carga + reps.
+export function paraRealizado(registro: Registro): Realizado {
+  return registro.resultado === 'pulou' ? 'PULOU' : { cargaKg: registro.cargaKg, reps: registro.reps };
+}
+
+// Check-in de um exercício na aba Hoje (§3.2). A sessão do dia nasce no
+// primeiro check-in. Sessão, registro, séries, estado e evento vão juntos
+// numa transação só (regra 7): se algo falhar, nada fica pela metade.
+export async function fazerCheckin(
+  db: SQLiteDatabase,
+  exercicio: Exercicio,
+  realizado: Realizado,
+  treinoId: string,
+  data: string,
+): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    const sessao = (await obterSessaoDoTreino(txn, data, treinoId)) ?? (await iniciarSessao(txn, treinoId, data));
+    await aplicarRealizado(txn, exercicio, realizado, { origem: 'checkin', sessaoId: sessao.id, data });
+  });
+}
+
+// Desfaz um check-in (ex.: tocou em "Bati" sem querer). Apaga o registro e
+// reconstrói o estado do zero a partir do que sobrou, com recalcularEstado():
+// não precisamos ter guardado o estado de antes.
+export async function desfazerRegistro(db: SQLiteDatabase, exercicio: Exercicio, registroId: string): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    await excluirEventosDoRegistro(txn, registroId);
+    await excluirRegistro(txn, registroId);
+    const historico = await listarRegistrosDoExercicio(txn, exercicio.id);
+    const estado = recalcularEstado(historico.map(paraRealizado), configDoExercicio(exercicio));
+    if (estado === null) {
+      await excluirEstado(txn, exercicio.id);
+    } else {
+      await salvarEstado(txn, exercicio.id, estado);
     }
   });
 }
