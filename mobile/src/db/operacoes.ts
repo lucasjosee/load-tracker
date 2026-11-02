@@ -11,9 +11,12 @@ import {
   resultadoDoEvento,
   type Proxima,
 } from '@/domain/progressao';
+import { formatarHorario } from '@/domain/horario';
+import type { DivisaoConfirmada } from '@/domain/onboarding';
 import type { ItemConfirmado } from '@/domain/registroRapido';
 import { configPadrao, LIMITE_FALHAS_PADRAO, type ConfigExercicio, type Realizado } from '@/domain/tipos';
 
+import { obterConfig, salvarConfig } from './repositorios/config';
 import { excluirEstado, obterEstado, salvarEstado } from './repositorios/estadoProgressao';
 import { excluirEventosDoRegistro, inserirEvento } from './repositorios/eventos';
 import {
@@ -281,4 +284,52 @@ export async function desfazerRegistro(db: SQLiteDatabase, exercicio: Exercicio,
 // (src/notificacoes fica fora da camada do banco).
 export async function finalizarTreino(db: SQLiteDatabase, sessaoId: string): Promise<void> {
   await finalizarSessao(db, sessaoId);
+}
+
+// O app abre no onboarding só no primeiro uso: sem a marca de concluído e
+// sem nenhum treino. Olhar os treinos também protege quem já tinha a
+// divisão gravada antes de o onboarding existir.
+export async function precisaDeOnboarding(db: SQLiteDatabase): Promise<boolean> {
+  if ((await obterConfig(db, 'onboarding_concluido')) === '1') {
+    return false;
+  }
+  const linha = await db.getFirstAsync<{ total: number }>('SELECT COUNT(*) AS total FROM treino');
+  return (linha?.total ?? 0) === 0;
+}
+
+// Fim da revisão do onboarding (§3.1, passo 5): grava treinos, dias e
+// exercícios; a carga atual de cada exercício vira o registro de onboarding e
+// o motor calcula a primeira meta. A marca de concluído vai na mesma
+// transação: se o app fechar no meio, ou grava tudo, ou nada, e o onboarding
+// não duplica a divisão ao abrir de novo.
+export async function salvarDivisaoDoOnboarding(
+  db: SQLiteDatabase,
+  divisao: DivisaoConfirmada,
+  data: string,
+): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    // O mesmo exercício em dois treinos (ex.: Legs e Lower) vira um só, com
+    // uma progressão só. Compara sem maiúsculas e espaços nas pontas.
+    const idPorNome = new Map<string, string>();
+    for (const treino of divisao.treinos) {
+      const criado = await inserirTreino(txn, treino.nome);
+      for (const dia of treino.diasSemana) {
+        await definirTreinoDoDia(txn, dia, criado.id);
+      }
+      for (const { cargaKg, reps, ...novo } of treino.exercicios) {
+        const chave = novo.nome.trim().toLowerCase();
+        const existente = idPorNome.get(chave);
+        if (existente !== undefined) {
+          await vincularExercicioAoTreino(txn, criado.id, existente, await proximaOrdem(txn, criado.id));
+          continue;
+        }
+        const exercicio = await gravarExercicioNovo(txn, criado.id, novo, { cargaKg, reps }, data);
+        idPorNome.set(chave, exercicio.id);
+      }
+    }
+    if (divisao.horarioDoAviso !== null) {
+      await salvarConfig(txn, 'horario_notificacao', formatarHorario(divisao.horarioDoAviso));
+    }
+    await salvarConfig(txn, 'onboarding_concluido', '1');
+  });
 }

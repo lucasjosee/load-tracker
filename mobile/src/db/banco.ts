@@ -4,6 +4,7 @@ import { paraDataLocal } from '@/domain/datas';
 
 import { MIGRACOES, migracoesPendentes } from './migracoes';
 import { gravarExercicioNovo } from './operacoes';
+import { salvarConfig } from './repositorios/config';
 import { proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
 import { definirTreinoDoDia, inserirTreino } from './repositorios/treinos';
 import { DIVISAO_SEED, type TreinoSeed } from './seed';
@@ -77,4 +78,6 @@ async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]
       idPorNome.set(exercicio.nome, exercicio.id);
     }
   }
+  // A divisão do seed já faz o papel do onboarding.
+  await salvarConfig(txn, 'onboarding_concluido', '1');
 }
