@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
@@ -16,8 +17,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Não desenha nada: só reagenda as notificações quando o app abre e toda vez
-// que ele volta para a frente (§6, "ao abrir o app").
+// Não desenha nada: reagenda as notificações quando o app abre e toda vez
+// que ele volta para a frente (§6, "ao abrir o app"), e leva para a aba Hoje
+// quando a pessoa toca numa notificação.
 export function AoAbrirOApp() {
   const db = useSQLiteContext();
 
@@ -30,6 +32,16 @@ export function AoAbrirOApp() {
     });
     return () => assinatura.remove();
   }, [db]);
+
+  // Toque numa notificação com o app em segundo plano: volta para a aba Hoje,
+  // mesmo que ele tenha ficado em outra tela. Com o app fechado não precisa
+  // de nada: ele já abre na aba Hoje, que é a primeira.
+  useEffect(() => {
+    const assinatura = Notifications.addNotificationResponseReceivedListener(() => {
+      router.navigate('/');
+    });
+    return () => assinatura.remove();
+  }, []);
 
   return null;
 }
