@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
@@ -87,6 +87,7 @@ export default function TelaHoje() {
         <Text style={estilosComuns.textoSecundario}>
           {textoResumoDaSemana(conteudo.treinosNaSemana, conteudo.seriesNaSemana)}
         </Text>
+        <Botao titulo="+ Registro rápido" variante="secundario" onPress={() => router.push('/registro')} />
       </Tela>
     );
   }
@@ -117,7 +118,15 @@ export default function TelaHoje() {
 
   return (
     <Tela titulo={treino.nome}>
-      <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+      <View style={styles.cabecalho}>
+        <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+        <Botao
+          titulo="+ Registro rápido"
+          variante="secundario"
+          compacto
+          onPress={() => router.push({ pathname: '/registro', params: { treinoId: treino.id } })}
+        />
+      </View>
       {aviso}
       {conteudo.itens.length === 0 && (
         <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
@@ -162,6 +171,7 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 }
 
 const styles = StyleSheet.create({
+  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   descanso: { fontSize: 28, fontWeight: '700', marginTop: 16 },
   proximo: { fontSize: 17, color: cores.texto },
   finalizado: { fontSize: 16, color: cores.sobe, fontWeight: '600', textAlign: 'center', marginTop: 8 },

@@ -11,7 +11,8 @@ import {
   resultadoDoEvento,
   type Proxima,
 } from '@/domain/progressao';
-import { LIMITE_FALHAS_PADRAO, type ConfigExercicio, type Realizado } from '@/domain/tipos';
+import type { ItemConfirmado } from '@/domain/registroRapido';
+import { configPadrao, LIMITE_FALHAS_PADRAO, type ConfigExercicio, type Realizado } from '@/domain/tipos';
 
 import { excluirEstado, obterEstado, salvarEstado } from './repositorios/estadoProgressao';
 import { excluirEventosDoRegistro, inserirEvento } from './repositorios/eventos';
@@ -19,6 +20,7 @@ import {
   definirOrdem,
   inserirExercicio,
   listarExerciciosDoTreino,
+  obterExercicio,
   proximaOrdem,
   vincularExercicioAoTreino,
   type Exercicio,
@@ -205,8 +207,56 @@ export async function fazerCheckin(
   data: string,
 ): Promise<void> {
   await emTransacao(db, async (txn) => {
-    const sessao = (await obterSessaoDoTreino(txn, data, treinoId)) ?? (await iniciarSessao(txn, treinoId, data));
+    const sessao = await obterOuIniciarSessao(txn, data, treinoId);
     await aplicarRealizado(txn, exercicio, realizado, { origem: 'checkin', sessaoId: sessao.id, data });
+  });
+}
+
+async function obterOuIniciarSessao(txn: SQLiteDatabase, data: string, treinoId: string | null) {
+  return (await obterSessaoDoTreino(txn, data, treinoId)) ?? (await iniciarSessao(txn, treinoId, data));
+}
+
+// Registro rápido (§3.3), depois da tela de confirmação. Os itens entram na
+// sessão do treino de hoje (ou numa sessão avulsa, em dia de descanso) e
+// passam pelo mesmo motor do check-in. Tudo numa transação só.
+//
+// Exercício novo nasce com a config padrão do equipamento (§5.2), com tantas
+// séries alvo quantas a pessoa fez, fora de qualquer treino: para ele aparecer
+// na aba Hoje, é só adicioná-lo a um treino na aba Divisão.
+export async function registrarItens(
+  db: SQLiteDatabase,
+  itens: readonly ItemConfirmado[],
+  data: string,
+  treinoDeHojeId: string | null,
+): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    const sessao = await obterOuIniciarSessao(txn, data, treinoDeHojeId);
+    for (const item of itens) {
+      let exercicio: Exercicio | null;
+      if (item.tipo === 'existente') {
+        exercicio = await obterExercicio(txn, item.exercicioId);
+      } else {
+        const padrao = configPadrao(item.equipamento);
+        exercicio = await inserirExercicio(txn, {
+          nome: item.nome,
+          grupoMuscular: item.grupoMuscular,
+          equipamento: item.equipamento,
+          repsMin: padrao.repsMin,
+          repsMax: padrao.repsMax,
+          seriesAlvo: item.reps.length,
+          incrementoKg: padrao.incrementoKg,
+        });
+      }
+      if (exercicio === null) {
+        // A tela só oferece exercícios que existem; chegar aqui é bug.
+        throw new Error('Exercício do registro não existe mais.');
+      }
+      await aplicarRealizado(txn, exercicio, { cargaKg: item.cargaKg, reps: item.reps }, {
+        origem: 'texto',
+        sessaoId: sessao.id,
+        data,
+      });
+    }
   });
 }
 

@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatarKg } from '@/domain/textos';
 
 import { Botao } from './Botao';
+import { EditorDeSeries } from './EditorDeSeries';
 import { Stepper } from './Stepper';
 import { cores } from './tema';
 
@@ -21,8 +22,6 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, onSalvar, on
   const [carga, setCarga] = useState(cargaInicial);
   const [reps, setReps] = useState(repsIniciais);
 
-  const mudarSerie = (indice: number, valor: number) => setReps(reps.map((r, i) => (i === indice ? valor : r)));
-
   return (
     <View style={styles.painel}>
       <View style={styles.linha}>
@@ -30,28 +29,8 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, onSalvar, on
         <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => `${formatarKg(kg)} kg`} rotulo="carga" />
       </View>
 
-      {reps.map((valor, indice) => (
-        <View key={indice} style={styles.linha}>
-          <Text style={styles.rotulo}>Série {indice + 1}</Text>
-          <Stepper valor={valor} onMudar={(v) => mudarSerie(indice, v)} maximo={100} rotulo={`reps da série ${indice + 1}`} />
-        </View>
-      ))}
+      <EditorDeSeries reps={reps} onMudar={setReps} />
 
-      <View style={styles.botoes}>
-        <Botao
-          titulo="− Série"
-          variante="secundario"
-          compacto
-          desabilitado={reps.length <= 1}
-          onPress={() => setReps(reps.slice(0, -1))}
-        />
-        <Botao
-          titulo="+ Série"
-          variante="secundario"
-          compacto
-          onPress={() => setReps([...reps, reps[reps.length - 1] ?? 0])}
-        />
-      </View>
       <View style={styles.botoes}>
         <Botao titulo="Cancelar" variante="secundario" compacto onPress={onCancelar} />
         <Botao titulo="Salvar" compacto onPress={() => onSalvar(carga, reps)} />

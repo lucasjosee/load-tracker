@@ -20,6 +20,7 @@ export default function RootLayout() {
         <Stack.Screen name="exercicio/novo" options={{ title: 'Novo exercício', presentation: 'modal' }} />
         <Stack.Screen name="exercicio/[id]" options={{ title: 'Exercício' }} />
         <Stack.Screen name="permissao" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="registro" options={{ title: 'Registro rápido', presentation: 'modal' }} />
       </Stack>
     </SQLiteProvider>
   );

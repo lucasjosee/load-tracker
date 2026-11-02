@@ -75,15 +75,17 @@ export async function finalizarSessao(db: SQLiteDatabase, id: string): Promise<v
 }
 
 // A sessão de um treino num dia (a mais recente, se houver mais de uma).
+// `treinoId` null = a sessão avulsa do dia (registro por texto em dia de
+// descanso). `IS` compara como `=`, mas também acha NULL, o que `=` não faz.
 export async function obterSessaoDoTreino(
   db: SQLiteDatabase,
   data: string,
-  treinoId: string,
+  treinoId: string | null,
 ): Promise<Sessao | null> {
   const linha = await db.getFirstAsync<LinhaSessao>(
     `SELECT id, treino_id, data, iniciada_em, finalizada_em
        FROM sessao
-      WHERE data = ? AND treino_id = ?
+      WHERE data = ? AND treino_id IS ?
       ORDER BY iniciada_em DESC
       LIMIT 1`,
     data,
