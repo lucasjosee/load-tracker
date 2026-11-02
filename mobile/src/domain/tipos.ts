@@ -73,6 +73,17 @@ export type Realizado = { cargaKg: number; reps: number[] } | 'PULOU';
 // Por que a meta mudou (§5.3).
 export type Evento = 'aumento_reps' | 'aumento_carga' | 'manteve' | 'deload' | 'sem_mudanca';
 
+// Uma mudança de meta, como fica gravada na tabela `evento`: a meta de antes
+// e a de depois. `De` é null no primeiro registro do exercício, quando ainda
+// não havia meta.
+export interface MudancaDeMeta {
+  tipo: Evento;
+  cargaDe: number | null;
+  cargaPara: number;
+  repsDe: number | null;
+  repsPara: number;
+}
+
 // §5.2: quanto a carga sobe de uma vez, por equipamento. Cada exercício pode
 // ter o seu; estes são só o valor inicial do formulário.
 export const INCREMENTO_PADRAO_KG: Record<Equipamento, number> = {
