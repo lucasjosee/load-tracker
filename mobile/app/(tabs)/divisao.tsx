@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { SecaoAvisos } from '@/components/SecaoAvisos';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
 import { exportarBackup } from '@/db/backup';
@@ -62,6 +63,8 @@ export default function TelaDivisao() {
 
         <Botao titulo="Novo treino" variante="secundario" onPress={() => router.push('/treino/novo')} />
       </Secao>
+
+      <SecaoAvisos onMudou={() => undefined} />
 
       <Secao titulo="Dados">
         <Text style={estilosComuns.textoSecundario}>
