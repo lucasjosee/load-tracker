@@ -8,6 +8,7 @@ import {
   NOMES_DOS_GRUPOS,
   type ConfigExercicio,
   type EstadoProgressao,
+  type Evento,
   type GrupoMuscular,
   type MudancaDeMeta,
 } from './tipos';
@@ -168,4 +169,26 @@ export function textoResumoDaSemana(treinos: number, series: number): string {
     return 'Nenhum treino registrado esta semana.';
   }
   return `Esta semana: ${treinos} ${plural(treinos, 'treino', 'treinos')} · ${series} ${plural(series, 'série', 'séries')}`;
+}
+
+// Resumo ao finalizar o treino (§3.2): "3 progressões, 2 mantidos".
+// Um item por exercício registrado; "Pulei" chega como 'sem_mudanca'.
+export function textoResumoDaSessao(tipos: readonly Evento[]): string {
+  const contar = (...procurados: Evento[]) => tipos.filter((t) => procurados.includes(t)).length;
+  const partes = [
+    [contar('aumento_reps', 'aumento_carga'), 'progressão', 'progressões'],
+    [contar('manteve'), 'mantido', 'mantidos'],
+    [contar('deload'), 'deload', 'deloads'],
+    [contar('sem_mudanca'), 'pulado', 'pulados'],
+  ] as const;
+  const texto = partes
+    .filter(([n]) => n > 0)
+    .map(([n, singular, pluralizado]) => `${n} ${plural(n, singular, pluralizado)}`)
+    .join(', ');
+  return texto === '' ? 'Nenhum exercício registrado.' : texto;
+}
+
+// Aviso de treino perdido (§3.5).
+export function textoTreinoPerdido(nomeDoTreino: string): string {
+  return `Você não registrou ${nomeDoTreino} ontem. Fazer hoje?`;
 }

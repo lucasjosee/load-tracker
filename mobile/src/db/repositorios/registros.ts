@@ -175,3 +175,15 @@ export async function contarSessoesComRegistroDesde(db: SQLiteDatabase, desde: s
 export async function excluirRegistro(db: SQLiteDatabase, id: string): Promise<void> {
   await db.runAsync('DELETE FROM registro WHERE id = ?', id);
 }
+
+// Registros (fora "Pulei") feitos em sessões de um dia.
+export async function contarRegistrosDaData(db: SQLiteDatabase, data: string): Promise<number> {
+  const linha = await db.getFirstAsync<{ total: number }>(
+    `SELECT COUNT(*) AS total
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+      WHERE s.data = ? AND r.resultado <> 'pulou'`,
+    data,
+  );
+  return linha?.total ?? 0;
+}

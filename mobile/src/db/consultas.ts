@@ -2,15 +2,16 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { diaDaSemana, inicioDaSemana } from '@/domain/datas';
-import { proximoTreino, type ProximoTreino } from '@/domain/hoje';
+import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
+import { proximoTreino, treinoPerdido, type ProximoTreino, type TreinoIdentificado } from '@/domain/hoje';
 import { seriesDaSemana } from '@/domain/metricas';
-import type { EstadoProgressao, MudancaDeMeta } from '@/domain/tipos';
+import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
 
 import { listarEstados } from './repositorios/estadoProgressao';
-import { listarUltimasMudancas } from './repositorios/eventos';
+import { listarTiposDaSessao, listarUltimasMudancas } from './repositorios/eventos';
 import { listarExerciciosDoTreino, type Exercicio } from './repositorios/exercicios';
 import {
+  contarRegistrosDaData,
   contarSessoesComRegistroDesde,
   listarRegistrosDaSessao,
   listarSeriesDesde,
@@ -26,9 +27,33 @@ export interface ItemDoTreino {
   feitoHoje: Registro | null; // o check-in desta sessão, se já houve
 }
 
-export type Hoje =
-  | { tipo: 'treino'; treino: Treino; sessao: Sessao | null; itens: ItemDoTreino[] }
-  | { tipo: 'descanso'; proximo: ProximoTreino | null; treinosNaSemana: number; seriesNaSemana: number };
+// União discriminada pelo campo `tipo`: dia de treino ou de descanso. Os
+// dois podem trazer o aviso de treino perdido (§3.5).
+export type Hoje = { perdido: TreinoIdentificado | null } & (
+  | {
+      tipo: 'treino';
+      treino: Treino;
+      sessao: Sessao | null;
+      itens: ItemDoTreino[];
+      tiposDaSessao: Evento[]; // para o resumo ao finalizar
+    }
+  | { tipo: 'descanso'; proximo: ProximoTreino | null; treinosNaSemana: number; seriesNaSemana: number }
+);
+
+async function buscarTreinoPerdido(db: SQLiteDatabase, hoje: string, treinoDeHojeId: string | null) {
+  const ontem = somarDias(hoje, -1);
+  const [treinoDeOntem, registrosDeOntem, sessaoDeHoje] = await Promise.all([
+    obterTreinoDoDia(db, diaDaSemana(ontem)),
+    contarRegistrosDaData(db, ontem),
+    obterSessaoDaData(db, hoje),
+  ]);
+  return treinoPerdido(
+    treinoDeOntem === null ? null : { id: treinoDeOntem.id, nome: treinoDeOntem.nome },
+    registrosDeOntem > 0,
+    sessaoDeHoje !== null,
+    treinoDeHojeId,
+  );
+}
 
 // Qual treino a aba Hoje mostra, em ordem de prioridade:
 // 1. o que a pessoa escolheu na hora (ex.: "Fazer hoje?" do treino perdido);
@@ -48,6 +73,7 @@ async function idDoTreinoDeHoje(db: SQLiteDatabase, hoje: string, escolhido: str
 export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: string | null): Promise<Hoje> {
   const treinoId = await idDoTreinoDeHoje(db, hoje, escolhido);
   const treino = treinoId === null ? null : await obterTreino(db, treinoId);
+  const perdido = await buscarTreinoPerdido(db, hoje, treino?.id ?? null);
 
   if (treino === null) {
     const semana = inicioDaSemana(hoje);
@@ -59,6 +85,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     const porGrupo = seriesDaSemana(series, hoje);
     return {
       tipo: 'descanso',
+      perdido,
       proximo: proximoTreino(
         divisao.map((d) => ({ diaSemana: d.diaSemana, nome: d.treino.nome })),
         hoje,
@@ -69,19 +96,22 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
   }
 
   const sessao = await obterSessaoDoTreino(db, hoje, treino.id);
-  const [exercicios, estados, mudancas, feitos] = await Promise.all([
+  const [exercicios, estados, mudancas, feitos, tiposDaSessao] = await Promise.all([
     listarExerciciosDoTreino(db, treino.id),
     listarEstados(db),
     listarUltimasMudancas(db),
     sessao === null ? Promise.resolve([]) : listarRegistrosDaSessao(db, sessao.id),
+    sessao === null ? Promise.resolve([]) : listarTiposDaSessao(db, sessao.id),
   ]);
   // Se o mesmo exercício foi registrado duas vezes na sessão, vale o último.
   const feitoPorExercicio = new Map(feitos.map((r) => [r.exercicioId, r]));
 
   return {
     tipo: 'treino',
+    perdido,
     treino,
     sessao,
+    tiposDaSessao,
     itens: exercicios
       .filter((exercicio) => exercicio.ativo)
       .map((exercicio) => ({

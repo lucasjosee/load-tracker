@@ -1,20 +1,33 @@
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
+import { Botao } from '@/components/Botao';
 import { CartaoExercicio } from '@/components/CartaoExercicio';
 import { estilosComuns, Tela } from '@/components/Tela';
-import { cores } from '@/components/tema';
+import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
-import { desfazerRegistro, fazerCheckin } from '@/db/operacoes';
+import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
-import { textoDoDia, textoProximoTreino, textoResumoDaSemana } from '@/domain/textos';
+import type { TreinoIdentificado } from '@/domain/hoje';
+import {
+  textoDoDia,
+  textoProximoTreino,
+  textoResumoDaSemana,
+  textoResumoDaSessao,
+  textoTreinoPerdido,
+} from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
 
 export default function TelaHoje() {
   const db = useSQLiteContext();
   const [hoje, setHoje] = useState<{ data: string; conteudo: Hoje } | null>(null);
+  // Treino escolhido na hora pelo "Fazer hoje?" (§3.5); null = o normal do
+  // dia. Guarda a data junto para a escolha não valer no dia seguinte, se o
+  // app ficar aberto de um dia para o outro.
+  const [escolhido, setEscolhido] = useState<{ data: string; treinoId: string } | null>(null);
+  const [avisoDispensado, setAvisoDispensado] = useState(false);
   // Trava contra toque duplo: enquanto uma gravação não termina, outro toque
   // em "Bati" não grava o exercício de novo. useRef porque mudar a trava não
   // precisa redesenhar a tela.
@@ -24,8 +37,9 @@ export default function TelaHoje() {
     // A data é lida a cada carga: se o app ficou aberto de um dia para o
     // outro, voltar para a aba já mostra o treino do dia novo.
     const data = paraDataLocal(new Date());
-    setHoje({ data, conteudo: await carregarHoje(db, data, null) });
-  }, [db]);
+    const treinoEscolhido = escolhido?.data === data ? escolhido.treinoId : null;
+    setHoje({ data, conteudo: await carregarHoje(db, data, treinoEscolhido) });
+  }, [db, escolhido]);
 
   useFocusEffect(
     useCallback(() => {
@@ -51,10 +65,20 @@ export default function TelaHoje() {
   }
   const { data, conteudo } = hoje;
 
+  const aviso =
+    conteudo.perdido !== null && !avisoDispensado ? (
+      <AvisoTreinoPerdido
+        treino={conteudo.perdido}
+        onFazer={(treinoId) => setEscolhido({ data, treinoId })}
+        onDispensar={() => setAvisoDispensado(true)}
+      />
+    ) : null;
+
   if (conteudo.tipo === 'descanso') {
     return (
       <Tela titulo="Hoje">
         <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+        {aviso}
         <Text style={styles.descanso}>Descanso</Text>
         {conteudo.proximo !== null && (
           <Text style={styles.proximo}>Próximo treino · {textoProximoTreino(conteudo.proximo)}</Text>
@@ -66,7 +90,7 @@ export default function TelaHoje() {
     );
   }
 
-  const { treino } = conteudo;
+  const { treino, sessao } = conteudo;
 
   const checkin = (item: ItemDoTreino, realizado: Realizado) =>
     gravar(() => fazerCheckin(db, item.exercicio, realizado, treino.id, data));
@@ -78,9 +102,19 @@ export default function TelaHoje() {
       }
     });
 
+  const finalizar = () =>
+    gravar(async () => {
+      if (sessao === null) {
+        return;
+      }
+      await finalizarTreino(db, sessao.id);
+      Alert.alert('Treino finalizado', textoResumoDaSessao(conteudo.tiposDaSessao));
+    });
+
   return (
     <Tela titulo={treino.nome}>
       <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+      {aviso}
       {conteudo.itens.length === 0 && (
         <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
       )}
@@ -92,11 +126,42 @@ export default function TelaHoje() {
           onDesfazer={() => desfazer(item)}
         />
       ))}
+
+      {sessao !== null && sessao.finalizadaEm !== null ? (
+        <Text style={styles.finalizado}>Treino finalizado · {textoResumoDaSessao(conteudo.tiposDaSessao)}</Text>
+      ) : (
+        conteudo.itens.length > 0 && (
+          // Sem nenhum check-in ainda não existe sessão para finalizar.
+          <Botao titulo="Finalizar treino" desabilitado={sessao === null} onPress={finalizar} />
+        )
+      )}
     </Tela>
+  );
+}
+
+interface AvisoProps {
+  treino: TreinoIdentificado;
+  onFazer: (treinoId: string) => void;
+  onDispensar: () => void;
+}
+
+function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
+  return (
+    <View style={styles.aviso}>
+      <Text style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Text>
+      <View style={styles.botoesAviso}>
+        <Botao titulo={`Fazer ${treino.nome}`} compacto onPress={() => onFazer(treino.id)} />
+        <Botao titulo="Agora não" variante="secundario" compacto onPress={onDispensar} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   descanso: { fontSize: 28, fontWeight: '700', marginTop: 16 },
   proximo: { fontSize: 17, color: cores.texto },
+  finalizado: { fontSize: 16, color: cores.sobe, fontWeight: '600', textAlign: 'center', marginTop: 8 },
+  aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 16, gap: 10 },
+  textoAviso: { fontSize: 16, color: cores.texto },
+  botoesAviso: { flexDirection: 'row', gap: 8 },
 });

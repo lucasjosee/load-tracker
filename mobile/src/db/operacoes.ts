@@ -31,7 +31,7 @@ import {
   type Origem,
   type Registro,
 } from './repositorios/registros';
-import { iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
+import { finalizarSessao, iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
 import {
   definirTreinoDoDia,
   desligarSessoesDoTreino,
@@ -225,4 +225,10 @@ export async function desfazerRegistro(db: SQLiteDatabase, exercicio: Exercicio,
       await salvarEstado(txn, exercicio.id, estado);
     }
   });
+}
+
+// Fecha a sessão do dia. Por enquanto é uma gravação só; as notificações
+// (tarefa 3.2) passam a ser reagendadas aqui também.
+export async function finalizarTreino(db: SQLiteDatabase, sessaoId: string): Promise<void> {
+  await finalizarSessao(db, sessaoId);
 }

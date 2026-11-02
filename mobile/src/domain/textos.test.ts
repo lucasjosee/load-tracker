@@ -13,6 +13,8 @@ import {
   textoProximoTreino,
   textoRealizado,
   textoResumoDaSemana,
+  textoResumoDaSessao,
+  textoTreinoPerdido,
   textoSeries,
 } from './textos';
 import type { ConfigExercicio, MudancaDeMeta } from './tipos';
@@ -201,5 +203,24 @@ describe('textos da aba Hoje', () => {
     expect(textoResumoDaSemana(3, 72)).toBe('Esta semana: 3 treinos · 72 séries');
     expect(textoResumoDaSemana(1, 1)).toBe('Esta semana: 1 treino · 1 série');
     expect(textoResumoDaSemana(0, 0)).toBe('Nenhum treino registrado esta semana.');
+  });
+});
+
+describe('textoResumoDaSessao', () => {
+  it('conta progressões, mantidos, deloads e pulados', () => {
+    expect(textoResumoDaSessao(['aumento_reps', 'aumento_carga', 'aumento_reps', 'manteve', 'manteve'])).toBe(
+      '3 progressões, 2 mantidos',
+    );
+    expect(textoResumoDaSessao(['aumento_reps', 'deload', 'sem_mudanca'])).toBe('1 progressão, 1 deload, 1 pulado');
+  });
+
+  it('sessão vazia', () => {
+    expect(textoResumoDaSessao([])).toBe('Nenhum exercício registrado.');
+  });
+});
+
+describe('textoTreinoPerdido', () => {
+  it('segue a §3.5', () => {
+    expect(textoTreinoPerdido('Peito')).toBe('Você não registrou Peito ontem. Fazer hoje?');
   });
 });

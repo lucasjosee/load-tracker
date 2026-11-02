@@ -1,4 +1,4 @@
-import { proximoTreino } from './hoje';
+import { proximoTreino, treinoPerdido } from './hoje';
 
 const DIVISAO = [
   { diaSemana: 1, nome: 'Push' },
@@ -32,5 +32,30 @@ describe('proximoTreino', () => {
 
   it('sem divisão, não há próximo treino', () => {
     expect(proximoTreino([], '2026-11-02')).toBeNull();
+  });
+});
+
+describe('treinoPerdido (§3.5)', () => {
+  const legs = { id: 'legs', nome: 'Legs' };
+
+  it('ontem tinha treino sem registro e hoje nada começou: sugere fazer hoje', () => {
+    expect(treinoPerdido(legs, false, false, null)).toEqual(legs);
+    expect(treinoPerdido(legs, false, false, 'upper')).toEqual(legs);
+  });
+
+  it('não sugere quando ontem foi descanso', () => {
+    expect(treinoPerdido(null, false, false, null)).toBeNull();
+  });
+
+  it('não sugere quando ontem houve registro', () => {
+    expect(treinoPerdido(legs, true, false, null)).toBeNull();
+  });
+
+  it('não sugere depois que a pessoa começou algo hoje', () => {
+    expect(treinoPerdido(legs, false, true, 'upper')).toBeNull();
+  });
+
+  it('não sugere o mesmo treino que já é o de hoje', () => {
+    expect(treinoPerdido(legs, false, false, 'legs')).toBeNull();
   });
 });

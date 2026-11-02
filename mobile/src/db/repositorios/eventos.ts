@@ -101,3 +101,16 @@ export async function listarUltimasMudancas(db: SQLiteDatabase): Promise<Map<str
 export async function excluirEventosDoRegistro(db: SQLiteDatabase, registroId: string): Promise<void> {
   await db.runAsync('DELETE FROM evento WHERE registro_id = ?', registroId);
 }
+
+// O tipo de evento de cada registro da sessão, para o resumo ao finalizar.
+// "Pulei" não tem evento (LEFT JOIN devolve null) e vira 'sem_mudanca'.
+export async function listarTiposDaSessao(db: SQLiteDatabase, sessaoId: string): Promise<Evento[]> {
+  const linhas = await db.getAllAsync<{ tipo: Evento | null }>(
+    `SELECT e.tipo
+       FROM registro r
+       LEFT JOIN evento e ON e.registro_id = r.id
+      WHERE r.sessao_id = ?`,
+    sessaoId,
+  );
+  return linhas.map((linha) => linha.tipo ?? 'sem_mudanca');
+}
