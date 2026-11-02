@@ -1,13 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
+import { exportarBackup } from '@/db/backup';
 import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
-import { listarDiasPorExtenso } from '@/domain/datas';
+import { listarDiasPorExtenso, paraDataLocal } from '@/domain/datas';
 
 export default function TelaDivisao() {
   const db = useSQLiteContext();
@@ -23,6 +24,14 @@ export default function TelaDivisao() {
 
   if (treinos === null) {
     return <Tela titulo="Divisão">{null}</Tela>;
+  }
+
+  async function exportar() {
+    try {
+      await exportarBackup(db, paraDataLocal(new Date()));
+    } catch {
+      Alert.alert('Não foi possível exportar', 'Tente de novo. Seus dados continuam no aparelho.');
+    }
   }
 
   const diasComTreino = treinos.flatMap((treino) => treino.dias);
@@ -52,6 +61,13 @@ export default function TelaDivisao() {
         )}
 
         <Botao titulo="Novo treino" variante="secundario" onPress={() => router.push('/treino/novo')} />
+      </Secao>
+
+      <Secao titulo="Dados">
+        <Text style={estilosComuns.textoSecundario}>
+          Tudo fica só neste iPhone. Exporte de vez em quando e salve em Arquivos ou no iCloud.
+        </Text>
+        <Botao titulo="Exportar backup (JSON)" variante="secundario" onPress={exportar} />
       </Secao>
     </Tela>
   );
