@@ -8,7 +8,10 @@ import {
   motivoDaMeta,
   seloDaMeta,
   textoEstagnacao,
+  textoDoDia,
   textoMeta,
+  textoProximoTreino,
+  textoResumoDaSemana,
   textoSeries,
 } from './textos';
 import type { ConfigExercicio, MudancaDeMeta } from './tipos';
@@ -174,5 +177,22 @@ describe('frases de feedback (§7)', () => {
   it('aumentos do mês, no singular e no plural', () => {
     expect(fraseAumentosDoMes(6)).toBe('Este mês: 6 aumentos de carga');
     expect(fraseAumentosDoMes(1)).toBe('Este mês: 1 aumento de carga');
+  });
+});
+
+describe('textos da aba Hoje', () => {
+  it('textoDoDia', () => {
+    expect(textoDoDia('2026-11-02')).toBe('Segunda, 02/11');
+  });
+
+  it('textoProximoTreino diz "Amanhã" ou o dia da semana', () => {
+    expect(textoProximoTreino({ data: '2026-11-06', diaSemana: 5, nome: 'Upper', emDias: 1 })).toBe('Amanhã: Upper');
+    expect(textoProximoTreino({ data: '2026-11-09', diaSemana: 1, nome: 'Push', emDias: 4 })).toBe('Segunda: Push');
+  });
+
+  it('textoResumoDaSemana', () => {
+    expect(textoResumoDaSemana(3, 72)).toBe('Esta semana: 3 treinos · 72 séries');
+    expect(textoResumoDaSemana(1, 1)).toBe('Esta semana: 1 treino · 1 série');
+    expect(textoResumoDaSemana(0, 0)).toBe('Nenhum treino registrado esta semana.');
   });
 });

@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import type { Resultado } from '@/domain/tipos';
+import type { GrupoMuscular, Resultado } from '@/domain/tipos';
 
 // Convenções: ver o comentário no topo de treinos.ts.
 
@@ -86,30 +86,25 @@ export async function inserirRegistro(db: SQLiteDatabase, novo: NovoRegistro): P
   return registro;
 }
 
-// Em ordem cronológica, que é a ordem em que o motor reaplica os registros
-// para reconstruir o estado (§9).
-export async function listarRegistrosDoExercicio(
+const COLUNAS = `r.id, r.sessao_id, r.exercicio_id, r.carga_kg, r.resultado, r.meta_carga_kg,
+  r.meta_reps, r.origem, r.criado_em`;
+
+// Junta as séries aos registros com uma consulta só para todos, em vez de uma
+// consulta por registro. `filtro` é o mesmo WHERE usado para buscar os registros.
+async function comSeries(
   db: SQLiteDatabase,
-  exercicioId: string,
+  linhas: LinhaRegistro[],
+  filtro: string,
+  parametro: string,
 ): Promise<Registro[]> {
-  const linhas = await db.getAllAsync<LinhaRegistro>(
-    `SELECT id, sessao_id, exercicio_id, carga_kg, resultado, meta_carga_kg, meta_reps,
-            origem, criado_em
-       FROM registro
-      WHERE exercicio_id = ?
-      ORDER BY criado_em, id`,
-    exercicioId,
-  );
-  // Uma consulta para todas as séries, em vez de uma por registro.
   const series = await db.getAllAsync<LinhaSerie>(
     `SELECT s.registro_id, s.reps
        FROM serie s
        JOIN registro r ON r.id = s.registro_id
-      WHERE r.exercicio_id = ?
+      WHERE ${filtro}
       ORDER BY s.registro_id, s.ordem`,
-    exercicioId,
+    parametro,
   );
-
   const repsPorRegistro = new Map<string, number[]>();
   for (const serie of series) {
     const reps = repsPorRegistro.get(serie.registro_id) ?? [];
@@ -117,4 +112,60 @@ export async function listarRegistrosDoExercicio(
     repsPorRegistro.set(serie.registro_id, reps);
   }
   return linhas.map((linha) => paraRegistro(linha, repsPorRegistro.get(linha.id) ?? []));
+}
+
+// Em ordem cronológica, que é a ordem em que o motor reaplica os registros
+// para reconstruir o estado (§9).
+export async function listarRegistrosDoExercicio(
+  db: SQLiteDatabase,
+  exercicioId: string,
+): Promise<Registro[]> {
+  const linhas = await db.getAllAsync<LinhaRegistro>(
+    `SELECT ${COLUNAS} FROM registro r WHERE r.exercicio_id = ? ORDER BY r.criado_em, r.id`,
+    exercicioId,
+  );
+  return comSeries(db, linhas, 'r.exercicio_id = ?', exercicioId);
+}
+
+export async function listarRegistrosDaSessao(db: SQLiteDatabase, sessaoId: string): Promise<Registro[]> {
+  const linhas = await db.getAllAsync<LinhaRegistro>(
+    `SELECT ${COLUNAS} FROM registro r WHERE r.sessao_id = ? ORDER BY r.criado_em, r.id`,
+    sessaoId,
+  );
+  return comSeries(db, linhas, 'r.sessao_id = ?', sessaoId);
+}
+
+export interface SeriesPorGrupo {
+  data: string;
+  grupoMuscular: GrupoMuscular;
+  series: number;
+}
+
+// Quantas séries cada registro teve, com o dia da sessão e o grupo do
+// exercício, a partir de `desde` ('YYYY-MM-DD'). Onboarding fica de fora
+// (não tem sessão): é a carga de antes do app, não um treino.
+export async function listarSeriesDesde(db: SQLiteDatabase, desde: string): Promise<SeriesPorGrupo[]> {
+  const linhas = await db.getAllAsync<{ data: string; grupo_muscular: GrupoMuscular; series: number }>(
+    `SELECT s.data, e.grupo_muscular, COUNT(*) AS series
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+       JOIN exercicio e ON e.id = r.exercicio_id
+       JOIN serie se ON se.registro_id = r.id
+      WHERE s.data >= ?
+      GROUP BY r.id`,
+    desde,
+  );
+  return linhas.map((l) => ({ data: l.data, grupoMuscular: l.grupo_muscular, series: l.series }));
+}
+
+// Dias de treino desde `desde`: sessões com pelo menos um exercício feito.
+export async function contarSessoesComRegistroDesde(db: SQLiteDatabase, desde: string): Promise<number> {
+  const linha = await db.getFirstAsync<{ total: number }>(
+    `SELECT COUNT(DISTINCT r.sessao_id) AS total
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+      WHERE s.data >= ? AND r.resultado <> 'pulou'`,
+    desde,
+  );
+  return linha?.total ?? 0;
 }

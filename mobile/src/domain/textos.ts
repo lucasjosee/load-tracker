@@ -1,6 +1,8 @@
 // Textos mostrados ao usuário (§5.5, §7). Ficam no domínio, e não nas telas,
 // porque também são usados pelas notificações e porque assim têm teste.
 
+import { diaDaSemana, formatarDiaMes, NOMES_DOS_DIAS } from './datas';
+import type { ProximoTreino } from './hoje';
 import type { Estagnacao } from './metricas';
 import {
   NOMES_DOS_GRUPOS,
@@ -136,4 +138,23 @@ export function fraseVariacaoDoGrupo(grupo: GrupoMuscular, variacao: number): st
 // "Este mês: 6 aumentos de carga"
 export function fraseAumentosDoMes(quantidade: number): string {
   return `Este mês: ${quantidade} ${plural(quantidade, 'aumento', 'aumentos')} de carga`;
+}
+
+// Cabeçalho da aba Hoje: "Segunda, 02/11".
+export function textoDoDia(data: string): string {
+  return `${NOMES_DOS_DIAS[diaDaSemana(data)]}, ${formatarDiaMes(data)}`;
+}
+
+// "Amanhã: Upper", "Segunda: Push" (§3.4).
+export function textoProximoTreino(proximo: ProximoTreino): string {
+  const quando = proximo.emDias === 1 ? 'Amanhã' : NOMES_DOS_DIAS[proximo.diaSemana];
+  return `${quando}: ${proximo.nome}`;
+}
+
+// "Esta semana: 3 treinos · 72 séries" (§3.4).
+export function textoResumoDaSemana(treinos: number, series: number): string {
+  if (treinos === 0) {
+    return 'Nenhum treino registrado esta semana.';
+  }
+  return `Esta semana: ${treinos} ${plural(treinos, 'treino', 'treinos')} · ${series} ${plural(series, 'série', 'séries')}`;
 }

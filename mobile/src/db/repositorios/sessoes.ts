@@ -73,3 +73,21 @@ export async function finalizarSessao(db: SQLiteDatabase, id: string): Promise<v
     id,
   );
 }
+
+// A sessão de um treino num dia (a mais recente, se houver mais de uma).
+export async function obterSessaoDoTreino(
+  db: SQLiteDatabase,
+  data: string,
+  treinoId: string,
+): Promise<Sessao | null> {
+  const linha = await db.getFirstAsync<LinhaSessao>(
+    `SELECT id, treino_id, data, iniciada_em, finalizada_em
+       FROM sessao
+      WHERE data = ? AND treino_id = ?
+      ORDER BY iniciada_em DESC
+      LIMIT 1`,
+    data,
+    treinoId,
+  );
+  return linha === null ? null : paraSessao(linha);
+}
