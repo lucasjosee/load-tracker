@@ -8,12 +8,12 @@
 // - Reps iniciais = 8 (início da faixa); o motor sobe a partir daí.
 // - "por lado" = como ele anota (§5.2, regra de ouro: sempre igual naquele exercício).
 
+import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
+
 export interface ExercicioSeed {
   nome: string;
-  // Valores da §7, sem acento. Na tarefa 1.1 viram os tipos GrupoMuscular
-  // e Equipamento, e o compilador passa a recusar um valor errado.
-  grupoMuscular: string;
-  equipamento: string;
+  grupoMuscular: GrupoMuscular;
+  equipamento: Equipamento;
   incrementoKg: number;
   repsMin: number;
   repsMax: number;

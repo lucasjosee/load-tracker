@@ -1,14 +1,15 @@
 import { randomUUID } from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
+
 // Convenções: ver o comentário no topo de treinos.ts.
 
 export interface Exercicio {
   id: string;
   nome: string;
-  // `string` até a tarefa 1.1, que cria os tipos GrupoMuscular e Equipamento.
-  grupoMuscular: string;
-  equipamento: string;
+  grupoMuscular: GrupoMuscular;
+  equipamento: Equipamento;
   repsMin: number;
   repsMax: number;
   seriesAlvo: number;
@@ -19,11 +20,13 @@ export interface Exercicio {
 
 export type NovoExercicio = Omit<Exercicio, 'id' | 'ativo' | 'criadoEm'>;
 
+// `grupo_muscular` e `equipamento` já saem tipados do banco porque o CHECK do
+// schema só aceita os valores da §7.
 interface LinhaExercicio {
   id: string;
   nome: string;
-  grupo_muscular: string;
-  equipamento: string;
+  grupo_muscular: GrupoMuscular;
+  equipamento: Equipamento;
   reps_min: number;
   reps_max: number;
   series_alvo: number;

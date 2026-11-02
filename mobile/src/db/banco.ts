@@ -66,7 +66,7 @@ async function gravarDivisao(db: SQLiteDatabase, divisao: readonly TreinoSeed[])
       if (exercicioId === undefined) {
         const { cargaKg, repsAlvo, ...config } = exercicioSeed;
         const exercicio = await inserirExercicio(db, config);
-        await salvarEstado(db, { exercicioId: exercicio.id, cargaKg, repsAlvo, falhas: 0 });
+        await salvarEstado(db, exercicio.id, { cargaKg, repsAlvo, falhas: 0 });
         exercicioId = exercicio.id;
         idPorNome.set(exercicioSeed.nome, exercicioId);
       }
