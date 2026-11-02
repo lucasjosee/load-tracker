@@ -3,7 +3,13 @@
 import { handle } from 'hono/aws-lambda';
 
 import { criarApp, lerVariavel } from './app';
+import { criarClienteAnthropic } from './llm/cliente';
+import { interpretarRegistro } from './llm/interpretar';
 
-const app = criarApp({ appToken: lerVariavel('APP_TOKEN') });
+const cliente = criarClienteAnthropic(lerVariavel('ANTHROPIC_API_KEY'));
+const app = criarApp({
+  appToken: lerVariavel('APP_TOKEN'),
+  interpretarRegistro: (pedido) => interpretarRegistro(cliente, pedido),
+});
 
 export const handler = handle(app);

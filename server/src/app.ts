@@ -5,10 +5,31 @@ import { timingSafeEqual } from 'node:crypto';
 
 import { Hono } from 'hono';
 
-import type { RespostaDeErro } from './contrato';
+import { pedidoInterpretar, type PedidoInterpretar, type RespostaDeErro, type RespostaInterpretar } from './contrato';
+import type { ResultadoDaIA } from './llm/ferramenta';
 
+// O que o app precisa para responder. As funções da IA entram por aqui para
+// que os testes passem versões falsas, sem chamar a Anthropic.
 export interface Dependencias {
   appToken: string;
+  interpretarRegistro: (pedido: PedidoInterpretar) => Promise<ResultadoDaIA<RespostaInterpretar>>;
+}
+
+// 422: a IA respondeu, mas nada aproveitável; 502: a IA nem respondeu. Nos
+// dois casos o app oferece o formulário manual (§8.2).
+function erroDaIA(motivo: 'resposta_invalida' | 'indisponivel') {
+  return motivo === 'resposta_invalida'
+    ? { status: 422 as const, corpo: { erro: 'Não consegui interpretar o texto.' } }
+    : { status: 502 as const, corpo: { erro: 'A IA está indisponível agora.' } };
+}
+
+// Lê o corpo como JSON sem estourar exceção quando ele não é JSON.
+async function lerJson(requisicao: Request): Promise<unknown> {
+  try {
+    return await requisicao.json();
+  } catch {
+    return undefined;
+  }
 }
 
 // Comparar com `===` para assim que acha o primeiro caractere diferente, e
@@ -35,6 +56,19 @@ export function criarApp(dependencias: Dependencias) {
       return c.json<RespostaDeErro>({ erro: 'Token inválido.' }, 401);
     }
     await proximo();
+  });
+
+  app.post('/v1/registro/interpretar', async (c) => {
+    const pedido = pedidoInterpretar.safeParse(await lerJson(c.req.raw));
+    if (!pedido.success) {
+      return c.json<RespostaDeErro>({ erro: 'Pedido inválido.' }, 400);
+    }
+    const resultado = await dependencias.interpretarRegistro(pedido.data);
+    if (!resultado.ok) {
+      const { status, corpo } = erroDaIA(resultado.motivo);
+      return c.json<RespostaDeErro>(corpo, status);
+    }
+    return c.json<RespostaInterpretar>(resultado.valor);
   });
 
   app.notFound((c) => c.json<RespostaDeErro>({ erro: 'Rota não encontrada.' }, 404));
