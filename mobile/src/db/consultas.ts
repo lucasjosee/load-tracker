@@ -13,14 +13,15 @@ import {
 } from '@/domain/metricas';
 import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
 
-import { listarEstados } from './repositorios/estadoProgressao';
-import { listarTiposDaSessao, listarUltimasMudancas } from './repositorios/eventos';
-import { listarExercicios, listarExerciciosDoTreino, type Exercicio } from './repositorios/exercicios';
+import { listarEstados, obterEstado } from './repositorios/estadoProgressao';
+import { listarEventos, listarTiposDaSessao, listarUltimasMudancas, type EventoSalvo } from './repositorios/eventos';
+import { listarExercicios, listarExerciciosDoTreino, obterExercicio, type Exercicio } from './repositorios/exercicios';
 import {
   contarRegistrosDaData,
   contarSessoesComRegistroDesde,
   listarHistorico,
   listarRegistrosDaSessao,
+  type SessaoDoHistorico,
   listarSeriesDesde,
   type Registro,
 } from './repositorios/registros';
@@ -165,4 +166,22 @@ export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promis
       };
     }),
   };
+}
+
+export interface DetalheDoExercicio {
+  exercicio: Exercicio;
+  estado: EstadoProgressao | null;
+  sessoes: SessaoDoHistorico[]; // em ordem cronológica
+  eventos: EventoSalvo[]; // em ordem cronológica
+}
+
+// Tela de detalhe do exercício (§3.6): histórico para os gráficos e eventos
+// para a linha do tempo.
+export async function carregarDetalhe(db: SQLiteDatabase, id: string): Promise<DetalheDoExercicio | null> {
+  const exercicio = await obterExercicio(db, id);
+  if (exercicio === null) {
+    return null;
+  }
+  const [estado, historico, eventos] = await Promise.all([obterEstado(db, id), listarHistorico(db), listarEventos(db, id)]);
+  return { exercicio, estado, sessoes: historico.filter((sessao) => sessao.exercicioId === id), eventos };
 }

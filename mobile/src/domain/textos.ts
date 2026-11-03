@@ -198,3 +198,24 @@ export function textoDoGrupo(variacao: number | null, seriesNaSemana: number): s
   const forca = variacao === null ? 'Sem histórico ainda' : `${formatarPercentual(variacao)} em 4 semanas`;
   return `${forca} · ${seriesNaSemana} ${plural(seriesNaSemana, 'série', 'séries')} esta semana`;
 }
+
+// Uma linha da linha do tempo do exercício (§3.6), ex.: "↑ 12 kg × 8".
+// A data vai separada, na frente.
+export function textoDoEvento(mudanca: MudancaDeMeta): string {
+  const meta = textoMeta({ cargaKg: mudanca.cargaPara, repsAlvo: mudanca.repsPara });
+  if (mudanca.cargaDe === null) {
+    return `Início: ${meta}`;
+  }
+  switch (mudanca.tipo) {
+    case 'aumento_carga':
+      return `↑ carga: ${meta}`;
+    case 'aumento_reps':
+      return `↑ reps: ${meta}`;
+    case 'manteve':
+      return `= mantém: ${meta}`;
+    case 'deload':
+      return `↓ deload: ${meta}`;
+    case 'sem_mudanca':
+      return `= ${meta}`;
+  }
+}

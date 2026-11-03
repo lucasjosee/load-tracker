@@ -52,14 +52,35 @@ export interface ExercicioValidado {
 // `if (resultado.ok)`, o compilador sabe que `valor` existe; no `else`, `erro`.
 export type Validacao<T> = { ok: true; valor: T } | { ok: false; erro: string };
 
-export function validarExercicio(dados: DadosDoExercicio): Validacao<ExercicioValidado> {
+// As regras de um exercício, sem a carga atual: é o que a tela de detalhe edita.
+export interface DadosDasRegras {
+  nome: string;
+  grupoMuscular: GrupoMuscular | null;
+  equipamento: Equipamento | null;
+  repsMin: number;
+  repsMax: number;
+  seriesAlvo: number;
+  incrementoKg: number | null;
+}
+
+export interface RegrasValidadas {
+  nome: string;
+  grupoMuscular: GrupoMuscular;
+  equipamento: Equipamento;
+  repsMin: number;
+  repsMax: number;
+  seriesAlvo: number;
+  incrementoKg: number;
+}
+
+export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas> {
   const erro = (mensagem: string) => ({ ok: false as const, erro: mensagem });
 
   const erroNoNome = validarNome(dados.nome, 'exercício');
   if (erroNoNome !== null) {
     return erro(erroNoNome);
   }
-  const { grupoMuscular, equipamento, incrementoKg, cargaKg } = dados;
+  const { grupoMuscular, equipamento, incrementoKg } = dados;
   if (grupoMuscular === null) {
     return erro('Escolha o grupo muscular.');
   }
@@ -75,14 +96,31 @@ export function validarExercicio(dados: DadosDoExercicio): Validacao<ExercicioVa
   if (incrementoKg === null) {
     return erro('Incremento inválido. Use só números, como 2 ou 2,5.');
   }
-  if (cargaKg === null) {
-    return erro('Carga inválida. Use só números, como 20 ou 12,5.');
-  }
-  if (dados.reps < 1) {
-    return erro('Informe quantas reps você faz hoje.');
-  }
   return {
     ok: true,
-    valor: { ...dados, nome: dados.nome.trim(), grupoMuscular, equipamento, incrementoKg, cargaKg },
+    valor: {
+      nome: dados.nome.trim(),
+      grupoMuscular,
+      equipamento,
+      repsMin: dados.repsMin,
+      repsMax: dados.repsMax,
+      seriesAlvo: dados.seriesAlvo,
+      incrementoKg,
+    },
   };
+}
+
+// Exercício novo: as regras e, além delas, a carga e as reps de hoje.
+export function validarExercicio(dados: DadosDoExercicio): Validacao<ExercicioValidado> {
+  const regras = validarRegras(dados);
+  if (!regras.ok) {
+    return regras;
+  }
+  if (dados.cargaKg === null) {
+    return { ok: false, erro: 'Carga inválida. Use só números, como 20 ou 12,5.' };
+  }
+  if (dados.reps < 1) {
+    return { ok: false, erro: 'Informe quantas reps você faz hoje.' };
+  }
+  return { ok: true, valor: { ...regras.valor, cargaKg: dados.cargaKg, reps: dados.reps } };
 }

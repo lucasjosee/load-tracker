@@ -9,6 +9,7 @@ import {
   seloDaMeta,
   textoEstagnacao,
   textoDoDia,
+  textoDoEvento,
   textoDoGrupo,
   textoMeta,
   textoProximoTreino,
@@ -230,5 +231,17 @@ describe('textoDoGrupo', () => {
   it('variação e séries da semana', () => {
     expect(textoDoGrupo(0.08, 14)).toBe('+8% em 4 semanas · 14 séries esta semana');
     expect(textoDoGrupo(null, 1)).toBe('Sem histórico ainda · 1 série esta semana');
+  });
+});
+
+describe('textoDoEvento', () => {
+  it.each([
+    [mudanca('aumento_carga', [10, 12], [12, 8]), '↑ carga: 12 kg × 8'],
+    [mudanca('aumento_reps', [10, 9], [10, 10]), '↑ reps: 10 kg × 10'],
+    [mudanca('manteve', [12, 8], [12, 8]), '= mantém: 12 kg × 8'],
+    [mudanca('deload', [12, 8], [10, 8]), '↓ deload: 10 kg × 8'],
+    [mudanca('aumento_reps', null, [10, 9]), 'Início: 10 kg × 9'],
+  ] as const)('%#: %s', (entrada, esperado) => {
+    expect(textoDoEvento(entrada)).toBe(esperado);
   });
 });

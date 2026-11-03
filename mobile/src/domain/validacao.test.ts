@@ -1,4 +1,4 @@
-import { validarExercicio, validarNomeDoTreino, type DadosDoExercicio } from './validacao';
+import { validarExercicio, validarNomeDoTreino, validarRegras, type DadosDoExercicio } from './validacao';
 
 describe('validarNomeDoTreino', () => {
   it('aceita um nome comum', () => {
@@ -49,5 +49,26 @@ describe('validarExercicio', () => {
       ok: false,
       erro: expect.stringMatching(mensagem),
     });
+  });
+});
+
+describe('validarRegras', () => {
+  const regras = {
+    nome: ' Rosca ',
+    grupoMuscular: 'biceps' as const,
+    equipamento: 'halter' as const,
+    repsMin: 10,
+    repsMax: 15,
+    seriesAlvo: 3,
+    incrementoKg: 1,
+  };
+
+  it('aceita e limpa o nome', () => {
+    expect(validarRegras(regras)).toEqual({ ok: true, valor: { ...regras, nome: 'Rosca' } });
+  });
+
+  it('recusa faixa invertida e incremento ilegível', () => {
+    expect(validarRegras({ ...regras, repsMin: 16 }).ok).toBe(false);
+    expect(validarRegras({ ...regras, incrementoKg: null }).ok).toBe(false);
   });
 });

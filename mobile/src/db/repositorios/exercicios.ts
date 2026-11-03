@@ -159,3 +159,28 @@ export async function desvincularExercicio(
     exercicioId,
   );
 }
+
+// Muda as regras do exercício. O estado (a meta atual) não muda: as regras
+// novas valem a partir do próximo registro, quando o motor rodar de novo.
+export async function atualizarExercicio(db: SQLiteDatabase, id: string, dados: NovoExercicio): Promise<void> {
+  await db.runAsync(
+    `UPDATE exercicio
+        SET nome = ?, grupo_muscular = ?, equipamento = ?, reps_min = ?, reps_max = ?,
+            series_alvo = ?, incremento_kg = ?
+      WHERE id = ?`,
+    dados.nome,
+    dados.grupoMuscular,
+    dados.equipamento,
+    dados.repsMin,
+    dados.repsMax,
+    dados.seriesAlvo,
+    dados.incrementoKg,
+    id,
+  );
+}
+
+// Arquivar (ativo = false) tira o exercício da aba Hoje e da Evolução sem
+// apagar nada do histórico.
+export async function definirAtivo(db: SQLiteDatabase, id: string, ativo: boolean): Promise<void> {
+  await db.runAsync('UPDATE exercicio SET ativo = ? WHERE id = ?', ativo ? 1 : 0, id);
+}
