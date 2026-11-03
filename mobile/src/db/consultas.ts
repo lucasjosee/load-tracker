@@ -5,10 +5,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
 import { proximoTreino, treinoPerdido, type ProximoTreino, type TreinoIdentificado } from '@/domain/hoje';
 import {
+  contarAumentosDeCargaNoMes,
+  detectarEstagnacao,
   pontosDeForca,
   resumirGrupos,
   seriesDaSemana,
   variacaoDoExercicio,
+  type Estagnacao,
   type ResumoDoGrupo,
 } from '@/domain/metricas';
 import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
@@ -33,6 +36,18 @@ export interface ItemDoTreino {
   estado: EstadoProgressao | null; // a meta de agora
   mudanca: MudancaDeMeta | null; // o evento que produziu a meta
   feitoHoje: Registro | null; // o check-in desta sessão, se já houve
+  estagnacao: Estagnacao | null; // alerta da §7 (tarefa 5.3)
+}
+
+// Estagnação de um exercício (§7), a partir do estado e do histórico dele.
+function estagnacaoDe(
+  exercicio: Exercicio,
+  estado: EstadoProgressao | null,
+  historico: readonly SessaoDoHistorico[],
+): Estagnacao | null {
+  const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
+  const forcas = pontosDeForca(sessoes, exercicio.equipamento === 'peso_corporal').map((ponto) => ponto.valor);
+  return detectarEstagnacao(estado?.falhas ?? 0, forcas);
 }
 
 // União discriminada pelo campo `tipo`: dia de treino ou de descanso. Os
@@ -104,12 +119,13 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
   }
 
   const sessao = await obterSessaoDoTreino(db, hoje, treino.id);
-  const [exercicios, estados, mudancas, feitos, tiposDaSessao] = await Promise.all([
+  const [exercicios, estados, mudancas, feitos, tiposDaSessao, historico] = await Promise.all([
     listarExerciciosDoTreino(db, treino.id),
     listarEstados(db),
     listarUltimasMudancas(db),
     sessao === null ? Promise.resolve([]) : listarRegistrosDaSessao(db, sessao.id),
     sessao === null ? Promise.resolve([]) : listarTiposDaSessao(db, sessao.id),
+    listarHistorico(db),
   ]);
   // Se o mesmo exercício foi registrado duas vezes na sessão, vale o último.
   const feitoPorExercicio = new Map(feitos.map((r) => [r.exercicioId, r]));
@@ -122,12 +138,16 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     tiposDaSessao,
     itens: exercicios
       .filter((exercicio) => exercicio.ativo)
-      .map((exercicio) => ({
-        exercicio,
-        estado: estados.get(exercicio.id) ?? null,
-        mudanca: mudancas.get(exercicio.id) ?? null,
-        feitoHoje: feitoPorExercicio.get(exercicio.id) ?? null,
-      })),
+      .map((exercicio) => {
+        const estado = estados.get(exercicio.id) ?? null;
+        return {
+          exercicio,
+          estado,
+          mudanca: mudancas.get(exercicio.id) ?? null,
+          feitoHoje: feitoPorExercicio.get(exercicio.id) ?? null,
+          estagnacao: estagnacaoDe(exercicio, estado, historico),
+        };
+      }),
   };
 }
 
@@ -136,17 +156,24 @@ export interface ExercicioNaEvolucao {
   estado: EstadoProgressao | null;
   variacao: number | null; // ~4 semanas (§7)
   sessoes: number; // quantas sessões no histórico (com o onboarding)
+  estagnacao: Estagnacao | null;
 }
 
 export interface Evolucao {
   grupos: ResumoDoGrupo[];
   exercicios: ExercicioNaEvolucao[];
+  aumentosNoMes: number;
 }
 
 // Tudo o que a aba Evolução e a tela do grupo mostram (§3.6). Só exercícios
 // ativos; o histórico dos arquivados continua guardado.
 export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promise<Evolucao> {
-  const [todos, historico, estados] = await Promise.all([listarExercicios(db), listarHistorico(db), listarEstados(db)]);
+  const [todos, historico, estados, eventos] = await Promise.all([
+    listarExercicios(db),
+    listarHistorico(db),
+    listarEstados(db),
+    listarEventos(db),
+  ]);
   const exercicios = todos.filter((exercicio) => exercicio.ativo);
   const pesoCorporal = (exercicio: Exercicio) => exercicio.equipamento === 'peso_corporal';
 
@@ -158,13 +185,20 @@ export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promis
     ),
     exercicios: exercicios.map((exercicio) => {
       const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
+      const estado = estados.get(exercicio.id) ?? null;
       return {
         exercicio,
-        estado: estados.get(exercicio.id) ?? null,
+        estado,
         variacao: variacaoDoExercicio(pontosDeForca(sessoes, pesoCorporal(exercicio))),
         sessoes: sessoes.length,
+        estagnacao: estagnacaoDe(exercicio, estado, historico),
       };
     }),
+    // O evento do onboarding (sem meta anterior) é o ponto de partida, não um aumento.
+    aumentosNoMes: contarAumentosDeCargaNoMes(
+      eventos.filter((evento) => evento.cargaDe !== null),
+      hoje,
+    ),
   };
 }
 

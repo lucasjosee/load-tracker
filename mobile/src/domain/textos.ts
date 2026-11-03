@@ -219,3 +219,26 @@ export function textoDoEvento(mudanca: MudancaDeMeta): string {
       return `= ${meta}`;
   }
 }
+
+// Frases de feedback do topo da aba Evolução (§7, templates): o grupo que
+// mais evoluiu (se evoluiu) e os aumentos de carga do mês (se houve).
+export function frasesDeFeedback(
+  grupos: readonly { grupo: GrupoMuscular; variacao: number | null }[],
+  aumentosNoMes: number,
+): string[] {
+  const frases: string[] = [];
+  let melhor: { grupo: GrupoMuscular; variacao: number } | null = null;
+  for (const { grupo, variacao } of grupos) {
+    if (variacao !== null && variacao > 0 && (melhor === null || variacao > melhor.variacao)) {
+      melhor = { grupo, variacao };
+    }
+  }
+  // Abaixo de 1% a frase diria "+0%", que não é notícia.
+  if (melhor !== null && Math.round(melhor.variacao * 100) >= 1) {
+    frases.push(fraseVariacaoDoGrupo(melhor.grupo, melhor.variacao));
+  }
+  if (aumentosNoMes > 0) {
+    frases.push(fraseAumentosDoMes(aumentosNoMes));
+  }
+  return frases;
+}

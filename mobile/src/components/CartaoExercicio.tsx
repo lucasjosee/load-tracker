@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { ItemDoTreino } from '@/db/consultas';
 import { configDoExercicio } from '@/db/operacoes';
-import { motivoDaMeta, seloDaMeta, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
+import { motivoDaMeta, seloDaMeta, textoEstagnacao, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
 
 import { Botao } from './Botao';
@@ -22,7 +22,7 @@ interface Props {
 // check-in. Depois do check-in, o mesmo cartão mostra o que foi feito e a
 // meta da próxima vez, que o motor acabou de calcular.
 export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
-  const { exercicio, estado, mudanca, feitoHoje } = item;
+  const { exercicio, estado, mudanca, feitoHoje, estagnacao } = item;
   const [ajustando, setAjustando] = useState(false);
 
   function bati() {
@@ -42,8 +42,15 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
     <View style={[estilosComuns.cartao, feitoHoje !== null && styles.feito]}>
       <View style={styles.topo}>
         <Text style={styles.nome}>{exercicio.nome}</Text>
-        {estado !== null && <Selo selo={seloDaMeta(mudanca)} />}
+        <View style={styles.selos}>
+          {estagnacao !== null && feitoHoje === null && <Selo selo={{ texto: '⚠ estagnado', direcao: 'desce' }} />}
+          {estado !== null && <Selo selo={seloDaMeta(mudanca)} />}
+        </View>
       </View>
+      {estagnacao !== null && feitoHoje === null && (
+        // O alerta não muda a meta: quem decide é o motor (regra 2). Só avisa.
+        <Text style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Text>
+      )}
 
       {feitoHoje !== null ? (
         <>
@@ -93,6 +100,8 @@ const styles = StyleSheet.create({
   feito: { opacity: 0.85 },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   nome: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
+  selos: { flexDirection: 'row', gap: 4 },
+  alerta: { fontSize: 14, color: cores.desce },
   meta: { fontSize: 22, fontWeight: '700', color: cores.texto, marginTop: 2 },
   series: { fontSize: 17, fontWeight: '400', color: cores.textoSecundario },
   resultado: { fontSize: 17, fontWeight: '600', color: cores.sobe, marginTop: 2 },

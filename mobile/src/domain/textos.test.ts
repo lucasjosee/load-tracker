@@ -2,6 +2,7 @@ import {
   formatarKg,
   formatarNumero,
   formatarPercentual,
+  frasesDeFeedback,
   fraseAumentosDoMes,
   fraseVariacaoDoGrupo,
   lerNumero,
@@ -243,5 +244,20 @@ describe('textoDoEvento', () => {
     [mudanca('aumento_reps', null, [10, 9]), 'Início: 10 kg × 9'],
   ] as const)('%#: %s', (entrada, esperado) => {
     expect(textoDoEvento(entrada)).toBe(esperado);
+  });
+});
+
+describe('frasesDeFeedback', () => {
+  it('o grupo que mais evoluiu e os aumentos do mês', () => {
+    const grupos = [
+      { grupo: 'peito' as const, variacao: 0.08 },
+      { grupo: 'costas' as const, variacao: 0.12 },
+      { grupo: 'biceps' as const, variacao: null },
+    ];
+    expect(frasesDeFeedback(grupos, 6)).toEqual(['Costas: +12% de força em 4 semanas', 'Este mês: 6 aumentos de carga']);
+  });
+
+  it('sem evolução nem aumentos, nenhuma frase', () => {
+    expect(frasesDeFeedback([{ grupo: 'peito', variacao: -0.02 }, { grupo: 'costas', variacao: 0.004 }], 0)).toEqual([]);
   });
 });
