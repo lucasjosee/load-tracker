@@ -22,6 +22,7 @@ import {
   type TreinoEmRevisao,
 } from '@/domain/onboarding';
 import { EQUIPAMENTOS, GRUPOS_MUSCULARES, NOMES_DOS_EQUIPAMENTOS, NOMES_DOS_GRUPOS } from '@/domain/tipos';
+import { useGravacao } from '@/hooks/gravacao';
 import { useRascunho } from '@/hooks/onboarding';
 
 const OPCOES_DE_GRUPO = GRUPOS_MUSCULARES.map((g) => ({ valor: g, rotulo: NOMES_DOS_GRUPOS[g] }));
@@ -36,6 +37,7 @@ export default function TelaRevisao() {
   const [divisao, setDivisao] = useState<DivisaoEmRevisao>(() => revisaoDoRascunho(rascunho));
   const [erro, setErro] = useState<string | null>(null);
   const proximaChave = useRef(0);
+  const gravar = useGravacao(); // trava contra toque duplo
 
   function novaChave(prefixo: string) {
     proximaChave.current += 1;
@@ -56,14 +58,16 @@ export default function TelaRevisao() {
   const horario = divisao.horarioTreino === null ? null : lerHorario(divisao.horarioTreino);
   const minutos = horario === null ? null : horario.hora * 60 + horario.minuto;
 
-  async function confirmar() {
+  function confirmar() {
     const validacao = validarDivisao(divisao);
     if (!validacao.ok) {
       setErro(validacao.erro);
       return;
     }
-    await salvarDivisaoDoOnboarding(db, validacao.valor, paraDataLocal(new Date()));
-    router.replace('/onboarding/permissao');
+    gravar(async () => {
+      await salvarDivisaoDoOnboarding(db, validacao.valor, paraDataLocal(new Date()));
+      router.replace('/onboarding/permissao');
+    });
   }
 
   return (

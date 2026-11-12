@@ -13,6 +13,7 @@ import { registrarItens } from '@/db/operacoes';
 import { listarExercicios, type Exercicio } from '@/db/repositorios/exercicios';
 import { paraDataLocal } from '@/domain/datas';
 import { itemEmBranco, itensDaSugestao, validarItens, type ItemEmEdicao } from '@/domain/registroRapido';
+import { useGravacao } from '@/hooks/gravacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 // Registro rápido (§3.3): texto livre → IA → confirmação editável → motor.
@@ -29,6 +30,7 @@ export default function TelaRegistro() {
   const [erro, setErro] = useState<string | null>(null);
   const [interpretando, setInterpretando] = useState(false);
   const proximaChave = useRef(0);
+  const gravar = useGravacao();
 
   useEffect(() => {
     listarExercicios(db).then((todos) => setExercicios(todos.filter((e) => e.ativo)));
@@ -64,7 +66,7 @@ export default function TelaRegistro() {
     setItens(itensDaSugestao(sugeridos));
   }
 
-  async function salvar() {
+  function salvar() {
     if (itens === null) {
       return;
     }
@@ -73,9 +75,13 @@ export default function TelaRegistro() {
       setErro(validacao.erro);
       return;
     }
-    await registrarItens(db, validacao.valor, paraDataLocal(new Date()), treinoId || null);
-    await reagendarNotificacoes(db); // as metas mudaram: os avisos da semana também
-    router.back();
+    // Com a trava, um segundo toque em "Salvar" não grava os itens de novo
+    // (o motor rodaria duas vezes e a meta avançaria em dobro).
+    gravar(async () => {
+      await registrarItens(db, validacao.valor, paraDataLocal(new Date()), treinoId || null);
+      await reagendarNotificacoes(db); // as metas mudaram: os avisos da semana também
+      router.back();
+    });
   }
 
   if (itens === null) {

@@ -1,4 +1,4 @@
-import { proximoTreino, treinoPerdido } from './hoje';
+import { avisoDeTreinoPerdidoVisivel, proximoTreino, treinoPerdido } from './hoje';
 
 const DIVISAO = [
   { diaSemana: 1, nome: 'Push' },
@@ -57,5 +57,19 @@ describe('treinoPerdido (§3.5)', () => {
 
   it('não sugere o mesmo treino que já é o de hoje', () => {
     expect(treinoPerdido(legs, false, false, 'legs')).toBeNull();
+  });
+});
+
+describe('avisoDeTreinoPerdidoVisivel', () => {
+  it('aparece quando nunca foi dispensado', () => {
+    expect(avisoDeTreinoPerdidoVisivel(null, '2026-11-17')).toBe(true);
+  });
+
+  it('some no dia em que a pessoa tocou "Agora não"', () => {
+    expect(avisoDeTreinoPerdidoVisivel('2026-11-17', '2026-11-17')).toBe(false);
+  });
+
+  it('volta no dia seguinte, mesmo com o app aberto desde ontem', () => {
+    expect(avisoDeTreinoPerdidoVisivel('2026-11-17', '2026-11-18')).toBe(true);
   });
 });

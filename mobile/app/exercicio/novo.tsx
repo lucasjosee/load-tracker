@@ -27,6 +27,7 @@ import {
   type GrupoMuscular,
 } from '@/domain/tipos';
 import { validarExercicio } from '@/domain/validacao';
+import { useGravacao } from '@/hooks/gravacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 const OPCOES_DE_GRUPO = GRUPOS_MUSCULARES.map((g) => ({ valor: g, rotulo: NOMES_DOS_GRUPOS[g] }));
@@ -49,6 +50,7 @@ export default function TelaNovoExercicio() {
   const [reps, setReps] = useState(REPS_MIN_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
   const [existentes, setExistentes] = useState<Exercicio[]>([]);
+  const gravar = useGravacao(); // trava contra toque duplo
 
   useFocusEffect(
     useCallback(() => {
@@ -89,21 +91,25 @@ export default function TelaNovoExercicio() {
       ).estado
     : null;
 
-  async function salvar() {
+  function salvar() {
     if (!validacao.ok) {
       setErro(validacao.erro);
       return;
     }
     const { cargaKg, reps: repsAtuais, ...novo } = validacao.valor;
-    await cadastrarExercicio(db, treinoId, novo, { cargaKg, reps: repsAtuais }, paraDataLocal(new Date()));
-    await reagendarNotificacoes(db);
-    router.back();
+    gravar(async () => {
+      await cadastrarExercicio(db, treinoId, novo, { cargaKg, reps: repsAtuais }, paraDataLocal(new Date()));
+      await reagendarNotificacoes(db);
+      router.back();
+    });
   }
 
-  async function usarExistente(exercicio: Exercicio) {
-    await adicionarExercicioExistente(db, treinoId, exercicio.id);
-    await reagendarNotificacoes(db);
-    router.back();
+  function usarExistente(exercicio: Exercicio) {
+    gravar(async () => {
+      await adicionarExercicioExistente(db, treinoId, exercicio.id);
+      await reagendarNotificacoes(db);
+      router.back();
+    });
   }
 
   return (

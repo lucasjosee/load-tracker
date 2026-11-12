@@ -47,3 +47,9 @@ export function treinoPerdido(
   }
   return treinoDeOntem;
 }
+
+// "Agora não" no aviso de treino perdido vale só no dia em que foi tocado:
+// amanhã, se houver outro treino perdido, o aviso volta.
+export function avisoDeTreinoPerdidoVisivel(dispensadoEm: string | null, hoje: string): boolean {
+  return dispensadoEm !== hoje;
+}

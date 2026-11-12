@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
@@ -10,7 +10,7 @@ import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
-import type { TreinoIdentificado } from '@/domain/hoje';
+import { avisoDeTreinoPerdidoVisivel, type TreinoIdentificado } from '@/domain/hoje';
 import {
   textoDoDia,
   textoProximoTreino,
@@ -19,6 +19,7 @@ import {
   textoTreinoPerdido,
 } from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
+import { useAoVoltarParaFrente, useGravacao } from '@/hooks/gravacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaHoje() {
@@ -28,11 +29,11 @@ export default function TelaHoje() {
   // dia. Guarda a data junto para a escolha não valer no dia seguinte, se o
   // app ficar aberto de um dia para o outro.
   const [escolhido, setEscolhido] = useState<{ data: string; treinoId: string } | null>(null);
-  const [avisoDispensado, setAvisoDispensado] = useState(false);
-  // Trava contra toque duplo: enquanto uma gravação não termina, outro toque
-  // em "Bati" não grava o exercício de novo. useRef porque mudar a trava não
-  // precisa redesenhar a tela.
-  const gravando = useRef(false);
+  // O dia em que a pessoa tocou "Agora não" no aviso de treino perdido: a
+  // dispensa vale só naquele dia, não até o app ser encerrado.
+  const [avisoDispensadoEm, setAvisoDispensadoEm] = useState<string | null>(null);
+  // Trava contra toque duplo, com aviso se a gravação falhar.
+  const gravarComTrava = useGravacao();
 
   const carregar = useCallback(async () => {
     // A data é lida a cada carga: se o app ficou aberto de um dia para o
@@ -48,18 +49,15 @@ export default function TelaHoje() {
     }, [carregar]),
   );
 
-  async function gravar(acao: () => Promise<void>) {
-    if (gravando.current) {
-      return;
-    }
-    gravando.current = true;
-    try {
+  // Sem isto, abrir o app no dia seguinte (ele costuma ficar em segundo plano)
+  // mostraria o treino de ontem, e o check-in iria para a data de ontem.
+  useAoVoltarParaFrente(carregar);
+
+  const gravar = (acao: () => Promise<void>) =>
+    gravarComTrava(async () => {
       await acao();
       await carregar(); // o cartão mostra na hora o que foi feito e a meta nova
-    } finally {
-      gravando.current = false;
-    }
-  }
+    });
 
   if (hoje === null) {
     return <Tela titulo="Hoje">{null}</Tela>;
@@ -67,11 +65,11 @@ export default function TelaHoje() {
   const { data, conteudo } = hoje;
 
   const aviso =
-    conteudo.perdido !== null && !avisoDispensado ? (
+    conteudo.perdido !== null && avisoDeTreinoPerdidoVisivel(avisoDispensadoEm, data) ? (
       <AvisoTreinoPerdido
         treino={conteudo.perdido}
         onFazer={(treinoId) => setEscolhido({ data, treinoId })}
-        onDispensar={() => setAvisoDispensado(true)}
+        onDispensar={() => setAvisoDispensadoEm(data)}
       />
     ) : null;
 
