@@ -106,7 +106,18 @@ CREATE TABLE config (
 );
 `;
 
-export const MIGRACOES: readonly Migracao[] = [{ versao: 1, sql: V1_SCHEMA_INICIAL }];
+// As falhas que o exercício tinha antes do registro. Com meta_carga_kg e
+// meta_reps (que já existiam), o registro passa a guardar a meta inteira de
+// antes dele, e "Desfazer" consegue voltar exatamente a ela. Registros
+// antigos ficam com NULL; para eles o desfazer recalcula pelo histórico.
+const V2_FALHAS_ANTES_DO_REGISTRO = `
+ALTER TABLE registro ADD COLUMN meta_falhas INTEGER;
+`;
+
+export const MIGRACOES: readonly Migracao[] = [
+  { versao: 1, sql: V1_SCHEMA_INICIAL },
+  { versao: 2, sql: V2_FALHAS_ANTES_DO_REGISTRO },
+];
 
 // Devolve, em ordem, as migrações que ainda não foram aplicadas no aparelho.
 // Uma lista mal numerada é bug de quem escreveu a migração, por isso `throw`.

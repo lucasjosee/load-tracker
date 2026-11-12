@@ -147,6 +147,41 @@ export function recalcularEstado(
   return estado;
 }
 
+// A meta que valia antes de um registro, como ele a guarda no banco
+// (colunas meta_* da tabela `registro`). Tudo null = era o primeiro registro
+// do exercício. `metaFalhas` null com as outras preenchidas = registro
+// gravado antes de essa coluna existir (migração v2).
+export interface MetaDoRegistro {
+  metaCargaKg: number | null;
+  metaReps: number | null;
+  metaFalhas: number | null;
+}
+
+export type PlanoDeDesfazer =
+  | { como: 'restaurar'; estado: EstadoProgressao | null } // null = o exercício volta a ficar sem meta
+  | { como: 'recalcular' };
+
+// Como desfazer um registro: voltar exatamente à meta que valia antes dele.
+// Recalcular o histórico inteiro (recalcularEstado) usa as regras de hoje em
+// sessões antigas, e muda a meta se a faixa ou as séries foram editadas no
+// meio do caminho; por isso fica só como reserva, para quando o registro não
+// guardou a meta completa ou não é o mais recente do exercício.
+export function comoDesfazer(registro: MetaDoRegistro, ehOMaisRecente: boolean): PlanoDeDesfazer {
+  if (!ehOMaisRecente) {
+    return { como: 'recalcular' };
+  }
+  if (registro.metaCargaKg === null || registro.metaReps === null) {
+    return { como: 'restaurar', estado: null };
+  }
+  if (registro.metaFalhas === null) {
+    return { como: 'recalcular' };
+  }
+  return {
+    como: 'restaurar',
+    estado: { cargaKg: registro.metaCargaKg, repsAlvo: registro.metaReps, falhas: registro.metaFalhas },
+  };
+}
+
 // Bateu, não bateu ou pulou, a partir do evento que o motor devolveu.
 export function resultadoDoEvento(evento: Evento): Resultado {
   switch (evento) {

@@ -1,5 +1,7 @@
 import {
   ajustarMetaAsRegras,
+  comoDesfazer,
+  recalcularEstado,
   arredondarKg,
   arredondarParaBaixo,
   calcularProxima,
@@ -230,5 +232,49 @@ describe('descreverMudanca', () => {
   it('no primeiro registro, a meta de antes é null', () => {
     const proxima = calcularProxima(null, { cargaKg: 10, reps: [8, 8, 8] }, HALTER);
     expect(descreverMudanca(null, proxima)).toMatchObject({ cargaDe: null, repsDe: null, cargaPara: 10, repsPara: 9 });
+  });
+});
+
+describe('comoDesfazer', () => {
+  it('restaura a meta que o registro guardou, sem depender das regras de hoje', () => {
+    // O caso que motivou a função: histórico de 3 séries, e a pessoa passou o
+    // exercício para 4 séries. Recalcular tudo com a regra nova trataria cada
+    // sessão antiga como falha e levaria a meta de 12 kg para 10 kg.
+    const antes = estado(12, 8, 0);
+    const quatroSeries = { ...HALTER, seriesAlvo: 4 };
+    const historico = [
+      { cargaKg: 10, reps: [8, 8, 8] },
+      { cargaKg: 10, reps: [9, 9, 9] },
+      { cargaKg: 10, reps: [10, 10, 10] },
+      { cargaKg: 10, reps: [11, 11, 11] },
+      { cargaKg: 10, reps: [12, 12, 12] },
+    ];
+    expect(recalcularEstado(historico, HALTER)).toEqual(antes);
+    expect(recalcularEstado(historico, quatroSeries)).not.toEqual(antes); // o caminho antigo errava
+
+    const plano = comoDesfazer({ metaCargaKg: 12, metaReps: 8, metaFalhas: 0 }, true);
+    expect(plano).toEqual({ como: 'restaurar', estado: antes });
+  });
+
+  it('guarda também as falhas de antes', () => {
+    expect(comoDesfazer({ metaCargaKg: 12, metaReps: 8, metaFalhas: 2 }, true)).toEqual({
+      como: 'restaurar',
+      estado: estado(12, 8, 2),
+    });
+  });
+
+  it('desfazer o primeiro registro deixa o exercício sem meta', () => {
+    expect(comoDesfazer({ metaCargaKg: null, metaReps: null, metaFalhas: null }, true)).toEqual({
+      como: 'restaurar',
+      estado: null,
+    });
+  });
+
+  it('registro antigo, gravado antes de existir metaFalhas, recalcula pelo histórico', () => {
+    expect(comoDesfazer({ metaCargaKg: 12, metaReps: 8, metaFalhas: null }, true)).toEqual({ como: 'recalcular' });
+  });
+
+  it('se houve registro depois dele, recalcula: restaurar apagaria o efeito do mais novo', () => {
+    expect(comoDesfazer({ metaCargaKg: 12, metaReps: 8, metaFalhas: 0 }, false)).toEqual({ como: 'recalcular' });
   });
 });

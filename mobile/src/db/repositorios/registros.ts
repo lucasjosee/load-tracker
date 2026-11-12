@@ -15,6 +15,7 @@ export interface Registro {
   resultado: Resultado;
   metaCargaKg: number | null;
   metaReps: number | null;
+  metaFalhas: number | null; // null também em registros de antes da migração v2
   origem: Origem;
   criadoEm: string;
   // Reps feitas em cada série, na ordem: [10, 9, 8] = 3 séries.
@@ -33,6 +34,7 @@ interface LinhaRegistro {
   resultado: Resultado;
   meta_carga_kg: number | null;
   meta_reps: number | null;
+  meta_falhas: number | null;
   origem: Origem;
   criado_em: string;
 }
@@ -51,6 +53,7 @@ function paraRegistro(linha: LinhaRegistro, reps: number[]): Registro {
     resultado: linha.resultado,
     metaCargaKg: linha.meta_carga_kg,
     metaReps: linha.meta_reps,
+    metaFalhas: linha.meta_falhas,
     origem: linha.origem,
     criadoEm: linha.criado_em,
     reps,
@@ -63,8 +66,8 @@ export async function inserirRegistro(db: SQLiteDatabase, novo: NovoRegistro): P
   const registro: Registro = { ...novo, id: randomUUID(), criadoEm: new Date().toISOString() };
   await db.runAsync(
     `INSERT INTO registro (id, sessao_id, exercicio_id, carga_kg, resultado,
-                           meta_carga_kg, meta_reps, origem, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                           meta_carga_kg, meta_reps, meta_falhas, origem, criado_em)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     registro.id,
     registro.sessaoId,
     registro.exercicioId,
@@ -72,6 +75,7 @@ export async function inserirRegistro(db: SQLiteDatabase, novo: NovoRegistro): P
     registro.resultado,
     registro.metaCargaKg,
     registro.metaReps,
+    registro.metaFalhas,
     registro.origem,
     registro.criadoEm,
   );
@@ -87,7 +91,7 @@ export async function inserirRegistro(db: SQLiteDatabase, novo: NovoRegistro): P
 }
 
 const COLUNAS = `r.id, r.sessao_id, r.exercicio_id, r.carga_kg, r.resultado, r.meta_carga_kg,
-  r.meta_reps, r.origem, r.criado_em`;
+  r.meta_reps, r.meta_falhas, r.origem, r.criado_em`;
 
 // Junta as séries aos registros com uma consulta só para todos, em vez de uma
 // consulta por registro. `filtro` é o mesmo WHERE usado para buscar os registros.
@@ -168,6 +172,26 @@ export async function contarSessoesComRegistroDesde(db: SQLiteDatabase, desde: s
     desde,
   );
   return linha?.total ?? 0;
+}
+
+// Ids dos registros de um exercício feitos em sessões de um dia, do mais
+// novo para o mais velho. O registro de onboarding não tem sessão e fica de
+// fora: ele é o ponto de partida, não um treino daquele dia.
+export async function listarIdsDoExercicioNaData(
+  db: SQLiteDatabase,
+  exercicioId: string,
+  data: string,
+): Promise<string[]> {
+  const linhas = await db.getAllAsync<{ id: string }>(
+    `SELECT r.id
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+      WHERE r.exercicio_id = ? AND s.data = ?
+      ORDER BY r.criado_em DESC, r.id DESC`,
+    exercicioId,
+    data,
+  );
+  return linhas.map((linha) => linha.id);
 }
 
 // As séries somem junto (ON DELETE CASCADE). Eventos apontam para o registro

@@ -33,6 +33,12 @@ describe('migracoesPendentes', () => {
     expect(() => migracoesPendentes(0, foraDeOrdem)).toThrow('esperado 1');
   });
 
+  it('a v2 só acrescenta a coluna meta_falhas, sem recriar tabela (o histórico do iPhone fica)', () => {
+    const v2 = MIGRACOES.find((m) => m.versao === 2);
+    expect(v2?.sql).toContain('ALTER TABLE registro ADD COLUMN meta_falhas INTEGER');
+    expect(v2?.sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i);
+  });
+
   it('a lista real do app está bem numerada', () => {
     expect(() => migracoesPendentes(0, MIGRACOES)).not.toThrow();
   });

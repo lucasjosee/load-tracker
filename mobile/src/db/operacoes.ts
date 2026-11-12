@@ -7,6 +7,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   ajustarMetaAsRegras,
   calcularProxima,
+  comoDesfazer,
   descreverMudanca,
   recalcularEstado,
   resultadoDoEvento,
@@ -34,6 +35,7 @@ import {
 import {
   excluirRegistro,
   inserirRegistro,
+  listarIdsDoExercicioNaData,
   listarRegistrosDoExercicio,
   type Origem,
   type Registro,
@@ -140,6 +142,7 @@ export async function aplicarRealizado(
     resultado: resultadoDoEvento(proxima.evento),
     metaCargaKg: antes?.cargaKg ?? null,
     metaReps: antes?.repsAlvo ?? null,
+    metaFalhas: antes?.falhas ?? null,
     origem: contexto.origem,
   });
 
@@ -246,6 +249,11 @@ async function obterOuIniciarSessao(txn: SQLiteDatabase, data: string, treinoId:
 // sessão do treino de hoje (ou numa sessão avulsa, em dia de descanso) e
 // passam pelo mesmo motor do check-in. Tudo numa transação só.
 //
+// Um exercício tem no máximo um registro por dia: se ele já foi registrado
+// hoje (check-in ou texto), o registro novo substitui o anterior. É o que
+// faz a correção por texto funcionar; somar os dois rodaria o motor duas
+// vezes para um treino só.
+//
 // Exercício novo nasce com a config padrão do equipamento (§5.2), com tantas
 // séries alvo quantas a pessoa fez, fora de qualquer treino: para ele aparecer
 // na aba Hoje, é só adicioná-lo a um treino na aba Divisão.
@@ -277,6 +285,9 @@ export async function registrarItens(
         // A tela só oferece exercícios que existem; chegar aqui é bug.
         throw new Error('Exercício do registro não existe mais.');
       }
+      for (const anteriorId of await listarIdsDoExercicioNaData(txn, exercicio.id, data)) {
+        await desfazerNaTransacao(txn, exercicio, anteriorId);
+      }
       await aplicarRealizado(txn, exercicio, { cargaKg: item.cargaKg, reps: item.reps }, {
         origem: 'texto',
         sessaoId: sessao.id,
@@ -286,21 +297,38 @@ export async function registrarItens(
   });
 }
 
-// Desfaz um check-in (ex.: tocou em "Bati" sem querer). Apaga o registro e
-// reconstrói o estado do zero a partir do que sobrou, com recalcularEstado():
-// não precisamos ter guardado o estado de antes.
+// Apaga um registro e volta a meta ao que era antes dele. O registro guarda
+// essa meta (colunas meta_*), então o normal é restaurá-la; recalcular o
+// histórico inteiro fica como reserva (ver comoDesfazer, no domínio).
+// Recebe a transação de quem chama.
+async function desfazerNaTransacao(txn: SQLiteDatabase, exercicio: Exercicio, registroId: string): Promise<void> {
+  const historico = await listarRegistrosDoExercicio(txn, exercicio.id);
+  const registro = historico.find((r) => r.id === registroId);
+  if (registro === undefined) {
+    return; // já foi desfeito (ex.: a tela estava desatualizada)
+  }
+  const ehOMaisRecente = historico[historico.length - 1].id === registroId;
+  const config = configDoExercicio(exercicio);
+
+  await excluirEventosDoRegistro(txn, registroId);
+  await excluirRegistro(txn, registroId);
+
+  const plano = comoDesfazer(registro, ehOMaisRecente);
+  const estado =
+    plano.como === 'restaurar'
+      ? plano.estado
+      : recalcularEstado(historico.filter((r) => r.id !== registroId).map(paraRealizado), config);
+  if (estado === null) {
+    await excluirEstado(txn, exercicio.id);
+  } else {
+    // As regras podem ter mudado depois daquela meta: ela volta dentro da faixa atual.
+    await salvarEstado(txn, exercicio.id, ajustarMetaAsRegras(estado, config));
+  }
+}
+
+// Desfaz um check-in (ex.: tocou em "Bati" sem querer).
 export async function desfazerRegistro(db: SQLiteDatabase, exercicio: Exercicio, registroId: string): Promise<void> {
-  await emTransacao(db, async (txn) => {
-    await excluirEventosDoRegistro(txn, registroId);
-    await excluirRegistro(txn, registroId);
-    const historico = await listarRegistrosDoExercicio(txn, exercicio.id);
-    const estado = recalcularEstado(historico.map(paraRealizado), configDoExercicio(exercicio));
-    if (estado === null) {
-      await excluirEstado(txn, exercicio.id);
-    } else {
-      await salvarEstado(txn, exercicio.id, estado);
-    }
-  });
+  await emTransacao(db, (txn) => desfazerNaTransacao(txn, exercicio, registroId));
 }
 
 // Fecha a sessão do dia. Quem chama reagenda as notificações depois
