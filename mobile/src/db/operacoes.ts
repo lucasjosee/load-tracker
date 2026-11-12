@@ -5,6 +5,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import {
+  ajustarMetaAsRegras,
   calcularProxima,
   descreverMudanca,
   recalcularEstado,
@@ -20,6 +21,7 @@ import { obterConfig, salvarConfig } from './repositorios/config';
 import { excluirEstado, obterEstado, salvarEstado } from './repositorios/estadoProgressao';
 import { excluirEventosDoRegistro, inserirEvento } from './repositorios/eventos';
 import {
+  atualizarExercicio,
   definirOrdem,
   inserirExercicio,
   listarExerciciosDoTreino,
@@ -88,6 +90,27 @@ export function configDoExercicio(exercicio: Exercicio): ConfigExercicio {
     incrementoKg: exercicio.incrementoKg,
     limiteFalhas: LIMITE_FALHAS_PADRAO,
   };
+}
+
+// Salva as regras editadas do exercício (tela de detalhe) e, na mesma
+// transação, traz a meta atual para dentro da faixa nova. Carga e falhas não
+// mudam: o resto das regras vale a partir do próximo registro.
+export async function salvarRegrasDoExercicio(
+  db: SQLiteDatabase,
+  exercicioId: string,
+  regras: NovoExercicio,
+): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    await atualizarExercicio(txn, exercicioId, regras);
+    const estado = await obterEstado(txn, exercicioId);
+    if (estado === null) {
+      return;
+    }
+    const ajustado = ajustarMetaAsRegras(estado, { ...regras, limiteFalhas: LIMITE_FALHAS_PADRAO });
+    if (ajustado !== estado) {
+      await salvarEstado(txn, exercicioId, ajustado);
+    }
+  });
 }
 
 interface Contexto {

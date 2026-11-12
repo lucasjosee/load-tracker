@@ -11,8 +11,8 @@ import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
 import { carregarDetalhe, type DetalheDoExercicio } from '@/db/consultas';
-import { configDoExercicio } from '@/db/operacoes';
-import { atualizarExercicio, definirAtivo } from '@/db/repositorios/exercicios';
+import { configDoExercicio, salvarRegrasDoExercicio } from '@/db/operacoes';
+import { definirAtivo } from '@/db/repositorios/exercicios';
 import { formatarDiaMes } from '@/domain/datas';
 import { forcaDaSessao } from '@/domain/metricas';
 import {
@@ -101,9 +101,9 @@ export default function TelaExercicio() {
       setMensagem({ texto: validacao.erro, erro: true });
       return;
     }
-    await atualizarExercicio(db, exercicio.id, validacao.valor);
+    await salvarRegrasDoExercicio(db, exercicio.id, validacao.valor);
     await reagendarNotificacoes(db); // o nome vai no texto do aviso
-    setMensagem({ texto: 'Salvo. As regras novas valem a partir do próximo registro.', erro: false });
+    setMensagem({ texto: 'Salvo. A meta atual fica dentro da faixa de reps; o resto vale a partir do próximo registro.', erro: false });
     await carregar();
   }
 

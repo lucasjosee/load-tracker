@@ -138,6 +138,22 @@ describe('calcularProxima: propriedades da §5.3', () => {
     });
   });
 
+  it('o deload nunca aumenta a carga', () => {
+    const sorteios = criarSorteios(8);
+    for (let i = 0; i < RODADAS; i++) {
+      const config = sorteios.config();
+      if (config.incrementoKg === 0) {
+        continue;
+      }
+      // Cargas fora da grade do incremento, inclusive abaixo de um incremento.
+      const cargaKg = sorteios.inteiro(1, 40) / 2;
+      const prestesADeload = { cargaKg, repsAlvo: config.repsMin, falhas: config.limiteFalhas - 1 };
+      const { estado: novo, evento } = calcularProxima(prestesADeload, { cargaKg, reps: [] }, config);
+      expect(evento).toBe('deload');
+      expect(novo.cargaKg).toBeLessThanOrEqual(cargaKg);
+    }
+  });
+
   it('é pura: mesma entrada, mesma saída, e não altera o que recebeu', () => {
     paraCadaCaso(5, ({ config, estado, realizado }) => {
       const copias = JSON.parse(JSON.stringify({ config, estado, realizado }));

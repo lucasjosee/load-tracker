@@ -32,6 +32,19 @@ function limitar(valor: number, minimo: number, maximo: number): number {
   return Math.min(Math.max(valor, minimo), maximo);
 }
 
+// Traz a meta para dentro da faixa de reps do exercício. Só faz diferença
+// depois que a pessoa edita a faixa: a meta 10 kg × 11 numa faixa que virou
+// 6–10 passa a ser 10 kg × 10. Sem isto, fazer o topo da faixa nova contaria
+// como falha e acabaria em deload.
+//
+// Em peso corporal (incremento 0) não há teto: ali a progressão é justamente
+// passar do repsMax.
+export function ajustarMetaAsRegras(estado: EstadoProgressao, config: ConfigExercicio): EstadoProgressao {
+  const teto = config.incrementoKg === 0 ? Number.POSITIVE_INFINITY : config.repsMax;
+  const repsAlvo = limitar(estado.repsAlvo, config.repsMin, teto);
+  return repsAlvo === estado.repsAlvo ? estado : { ...estado, repsAlvo };
+}
+
 export function calcularProxima(
   estado: EstadoProgressao | null,
   realizado: Realizado,
@@ -49,8 +62,12 @@ export function calcularProxima(
   const cargaFeita = arredondarKg(realizado.cargaKg);
 
   // Passo 2: primeiro registro do exercício. A carga feita vira a meta e as
-  // reps começam no início da faixa.
-  const atual = estado ?? { cargaKg: cargaFeita, repsAlvo: config.repsMin, falhas: 0 };
+  // reps começam no início da faixa. Se já havia meta, ela é lida dentro da
+  // faixa atual (a faixa pode ter sido editada depois de a meta ser calculada).
+  const atual =
+    estado === null
+      ? { cargaKg: cargaFeita, repsAlvo: config.repsMin, falhas: 0 }
+      : ajustarMetaAsRegras(estado, config);
 
   // Passo 3: se a pessoa usou outra carga por conta própria, essa carga vira a
   // nova base e a contagem recomeça do início da faixa.
@@ -84,17 +101,21 @@ export function calcularProxima(
     };
   }
 
-  // Passo 6: não bateu.
-  const falhas = falhasAntes + 1;
+  // Passo 6: não bateu. O primeiro registro é o ponto de partida, não uma
+  // tentativa: ainda não existia meta para falhar, então não conta falha.
+  const falhas = estado === null ? 0 : falhasAntes + 1;
   if (config.incrementoKg > 0 && falhas >= config.limiteFalhas) {
     // Deload: recua ~10% da carga, nunca menos que um incremento, e nunca
     // abaixo de um incremento (o halter mais leve continua sendo um halter).
+    // O `Math.min(base, ...)` cobre a carga que já está abaixo de um
+    // incremento (2,5 kg com incremento 5): ela fica onde está, porque um
+    // deload nunca pode aumentar o peso.
     // `base / 10` em vez de `base * 0.1`: 35 * 0.1 dá 3.5000000000000004,
     // enquanto a divisão por 10 sai exata sempre que o resultado cabe no número.
     const reducao = Math.max(config.incrementoKg, arredondarParaBaixo(base / 10, config.incrementoKg));
     return {
       estado: {
-        cargaKg: arredondarKg(Math.max(config.incrementoKg, base - reducao)),
+        cargaKg: arredondarKg(Math.min(base, Math.max(config.incrementoKg, base - reducao))),
         repsAlvo: config.repsMin,
         falhas: 0,
       },

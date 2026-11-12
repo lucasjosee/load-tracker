@@ -1,4 +1,5 @@
 import {
+  ajustarMetaAsRegras,
   arredondarKg,
   arredondarParaBaixo,
   calcularProxima,
@@ -92,9 +93,29 @@ describe('calcularProxima: casos de borda da §5.4', () => {
 });
 
 describe('calcularProxima: outros casos', () => {
-  it('primeiro registro abaixo do início da faixa: meta fica em repsMin, com 1 falha', () => {
+  it('primeiro registro abaixo do início da faixa: é ponto de partida, não conta como falha', () => {
     const resultado = calcularProxima(null, { cargaKg: 20, reps: [6, 6, 6] }, HALTER);
-    expect(resultado).toEqual({ estado: estado(20, 8, 1), evento: 'manteve' });
+    expect(resultado).toEqual({ estado: estado(20, 8, 0), evento: 'manteve' });
+  });
+
+  it('deload com a carga abaixo de um incremento mantém a carga (nunca aumenta)', () => {
+    // Elevação lateral na polia a 2,5 kg, com incremento de 5 kg.
+    const polia = { ...HALTER, incrementoKg: 5 };
+    const resultado = calcularProxima(estado(2.5, 9, 2), { cargaKg: 2.5, reps: [7, 7, 6] }, polia);
+    expect(resultado).toEqual({ estado: estado(2.5, 8), evento: 'deload' });
+  });
+
+  it('deload que cairia abaixo de um incremento para no incremento', () => {
+    const polia = { ...HALTER, incrementoKg: 5 };
+    const resultado = calcularProxima(estado(7, 8, 2), { cargaKg: 7, reps: [7, 7, 6] }, polia);
+    expect(resultado).toEqual({ estado: estado(5, 8), evento: 'deload' });
+  });
+
+  it('se a faixa encolheu e a meta ficou acima do novo repsMax, bater o topo novo sobe a carga', () => {
+    // Meta 10 × 11 na faixa 8–12; a faixa virou 6–10.
+    const faixaNova = { ...HALTER, repsMin: 6, repsMax: 10 };
+    const resultado = calcularProxima(estado(10, 11), { cargaKg: 10, reps: [10, 10, 10] }, faixaNova);
+    expect(resultado).toEqual({ estado: estado(12, 6), evento: 'aumento_carga' });
   });
 
   it('séries além de seriesAlvo não contam, nem para ajudar nem para atrapalhar', () => {
@@ -139,6 +160,26 @@ describe('calcularProxima: outros casos', () => {
 
   it('pular sem ter meta é bug de quem chama', () => {
     expect(() => calcularProxima(null, 'PULOU', HALTER)).toThrow();
+  });
+});
+
+describe('ajustarMetaAsRegras', () => {
+  it('meta dentro da faixa não muda', () => {
+    const meta = estado(10, 10, 1);
+    expect(ajustarMetaAsRegras(meta, HALTER)).toBe(meta);
+  });
+
+  it('meta acima do repsMax novo desce para o topo da faixa, sem mexer em carga e falhas', () => {
+    expect(ajustarMetaAsRegras(estado(10, 11, 1), { ...HALTER, repsMin: 6, repsMax: 10 })).toEqual(estado(10, 10, 1));
+  });
+
+  it('meta abaixo do repsMin novo sobe para o início da faixa', () => {
+    expect(ajustarMetaAsRegras(estado(10, 8), { ...HALTER, repsMin: 10, repsMax: 15 })).toEqual(estado(10, 10));
+  });
+
+  it('em peso corporal a meta pode passar do repsMax (é assim que ele progride)', () => {
+    const meta = estado(0, 20);
+    expect(ajustarMetaAsRegras(meta, { ...HALTER, incrementoKg: 0 })).toBe(meta);
   });
 });
 

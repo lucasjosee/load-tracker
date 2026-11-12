@@ -160,8 +160,8 @@ export async function desvincularExercicio(
   );
 }
 
-// Muda as regras do exercício. O estado (a meta atual) não muda: as regras
-// novas valem a partir do próximo registro, quando o motor rodar de novo.
+// Muda as regras do exercício. Não mexe no estado (a meta atual): quem ajusta
+// a meta à faixa nova é salvarRegrasDoExercicio (operacoes.ts), que as telas usam.
 export async function atualizarExercicio(db: SQLiteDatabase, id: string, dados: NovoExercicio): Promise<void> {
   await db.runAsync(
     `UPDATE exercicio
