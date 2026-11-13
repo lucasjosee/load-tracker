@@ -17,6 +17,9 @@ export const arquivoDeFrases = z.object({
   exercicios: z.array(z.object({ id: z.string(), nome: z.string() })),
   frases: z.array(
     z.object({
+      // 'ajuste' = usado para ajustar o prompt; 'teste' = separado, só para a
+      // nota final. Olhar os erros do teste e mexer no prompt estragaria a nota.
+      conjunto: z.enum(['ajuste', 'teste']),
       texto: z.string(),
       esperado: z.array(itemEsperado), // na ordem em que aparecem no texto
     }),
@@ -24,6 +27,7 @@ export const arquivoDeFrases = z.object({
 });
 
 export type ItemEsperado = z.infer<typeof itemEsperado>;
+export type Conjunto = z.infer<typeof arquivoDeFrases>['frases'][number]['conjunto'];
 
 export interface Acertos {
   itens: number; // itens esperados
@@ -77,6 +81,9 @@ export function somarPlacar(resultados: readonly Acertos[]): Placar {
 const treinoEsperado = z.object({
   diasSemana: z.array(z.number().int()),
   exerciciosComCarga: z.number().int(), // quantos exercícios, no mínimo, com carga
+  // Opcional: a carga de cada exercício, na ordem em que a pessoa escreveu.
+  // Serve para conferir as regras de carga ("lado" = dobro, dois números).
+  cargas: z.array(z.number()).optional(),
 });
 
 export const arquivoDeConversas = z.object({
@@ -121,6 +128,12 @@ export function avaliarConversa(esperado: RascunhoEsperado, obtido: RascunhoObti
     const comCarga = achado.exercicios.filter((e) => e.cargaKg !== null).length;
     if (comCarga < treino.exerciciosComCarga) {
       problemas.push(`${achado.nome}: ${comCarga} exercícios com carga, esperado ${treino.exerciciosComCarga}`);
+    }
+    if (treino.cargas !== undefined) {
+      const obtidas = achado.exercicios.map((e) => e.cargaKg ?? -1); // -1 = sem carga
+      if (!iguais(obtidas, treino.cargas)) {
+        problemas.push(`${achado.nome}: cargas [${obtidas}], esperado [${treino.cargas}]`);
+      }
     }
   }
   return problemas;

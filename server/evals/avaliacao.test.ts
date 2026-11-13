@@ -85,6 +85,16 @@ describe('avaliarConversa', () => {
     ]);
   });
 
+  it('com `cargas`, confere a carga de cada exercício na ordem', () => {
+    const comCargas = { horarioTreino: null, treinos: [{ diasSemana: [1], exerciciosComCarga: 2, cargas: [45, 18] }] };
+    const obtido = (primeira: number) => ({
+      horarioTreino: null,
+      treinos: [{ nome: 'Peito', diasSemana: [1], exercicios: [exercicio(primeira), exercicio(18)] }],
+    });
+    expect(avaliarConversa(comCargas, obtido(45))).toEqual([]);
+    expect(avaliarConversa(comCargas, obtido(22.5))).toEqual(['Peito: cargas [22.5,18], esperado [45,18]']);
+  });
+
   it('sem rascunho, reprova', () => {
     expect(avaliarConversa(esperado, null)).toEqual(['a conversa não terminou com um rascunho']);
   });

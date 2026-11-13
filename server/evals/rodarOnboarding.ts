@@ -9,9 +9,10 @@ import { criarClienteAnthropic } from '../src/llm/cliente';
 import { conversarOnboarding } from '../src/llm/onboarding';
 
 import { arquivoDeConversas, avaliarConversa } from './avaliacao';
+import { comMedidor, resumoDoUso } from './custo';
 
 const arquivo = arquivoDeConversas.parse(JSON.parse(readFileSync(new URL('./onboarding.json', import.meta.url), 'utf8')));
-const cliente = criarClienteAnthropic(lerVariavel('ANTHROPIC_API_KEY'));
+const { cliente, uso } = comMedidor(criarClienteAnthropic(lerVariavel('ANTHROPIC_API_KEY')));
 
 let aprovadas = 0;
 for (const conversa of arquivo.conversas) {
@@ -39,4 +40,5 @@ for (const conversa of arquivo.conversas) {
 }
 
 console.log(`\n${aprovadas} de ${arquivo.conversas.length} conversas aprovadas`);
+console.log(resumoDoUso(uso));
 process.exitCode = aprovadas === arquivo.conversas.length ? 0 : 1;

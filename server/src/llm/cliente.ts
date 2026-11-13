@@ -12,7 +12,11 @@ export interface ClienteLLM {
   };
 }
 
-export type RespostaDoModelo = Pick<Anthropic.Message, 'content' | 'stop_reason'>;
+// `usage` (tokens gastos) é opcional: o servidor não usa, só os evals, e
+// assim os clientes falsos dos testes não precisam inventar esse campo.
+export type RespostaDoModelo = Pick<Anthropic.Message, 'content' | 'stop_reason'> & {
+  usage?: Pick<Anthropic.Usage, 'input_tokens' | 'output_tokens'>;
+};
 
 export function criarClienteAnthropic(apiKey: string): ClienteLLM {
   return new Anthropic({
