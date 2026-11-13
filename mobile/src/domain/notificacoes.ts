@@ -70,6 +70,19 @@ export interface Planejamento {
   treinoDeHojeFinalizado: boolean;
 }
 
+export interface SessaoDoDia {
+  treinoId: string | null; // null = sessão avulsa (registro rápido em dia de descanso)
+  finalizada: boolean;
+}
+
+// Só a sessão do próprio treino do dia cancela os avisos dele. Finalizar
+// outro treino no mesmo dia (o perdido de ontem, por exemplo) não conta.
+export function treinoDoDiaFinalizado(treinoDoDiaId: string | null, sessoesDeHoje: readonly SessaoDoDia[]): boolean {
+  return (
+    treinoDoDiaId !== null && sessoesDeHoje.some((sessao) => sessao.treinoId === treinoDoDiaId && sessao.finalizada)
+  );
+}
+
 function jaPassou(horario: Horario, agora: Horario): boolean {
   return horario.hora * 60 + horario.minuto <= agora.hora * 60 + agora.minuto;
 }

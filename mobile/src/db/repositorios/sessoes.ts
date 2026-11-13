@@ -66,6 +66,19 @@ export async function obterSessaoDaData(db: SQLiteDatabase, data: string): Promi
   return linha === null ? null : paraSessao(linha);
 }
 
+// Todas as sessões de um dia (pode haver mais de uma: o treino do dia, um
+// treino perdido feito hoje, a sessão avulsa do registro rápido).
+export async function listarSessoesDaData(db: SQLiteDatabase, data: string): Promise<Sessao[]> {
+  const linhas = await db.getAllAsync<LinhaSessao>(
+    `SELECT id, treino_id, data, iniciada_em, finalizada_em
+       FROM sessao
+      WHERE data = ?
+      ORDER BY iniciada_em`,
+    data,
+  );
+  return linhas.map(paraSessao);
+}
+
 export async function finalizarSessao(db: SQLiteDatabase, id: string): Promise<void> {
   await db.runAsync(
     'UPDATE sessao SET finalizada_em = ? WHERE id = ?',

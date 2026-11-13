@@ -7,7 +7,7 @@ const SUGERIDOS: ItemSugerido[] = [
 
 describe('itensDaSugestao', () => {
   it('vira itens editáveis, com a carga em texto e destaque na confiança baixa', () => {
-    const itens = itensDaSugestao(SUGERIDOS);
+    const itens = itensDaSugestao(SUGERIDOS, ['ex_01']);
     expect(itens[0]).toMatchObject({ exercicioId: 'ex_01', carga: '12,5', reps: [8, 8, 7], revisar: false });
     expect(itens[1]).toMatchObject({ exercicioId: null, revisar: true });
     expect(new Set(itens.map((i) => i.chave)).size).toBe(2);
@@ -15,7 +15,7 @@ describe('itensDaSugestao', () => {
 });
 
 describe('validarItens', () => {
-  const [existente, novo] = itensDaSugestao(SUGERIDOS) as [ItemEmEdicao, ItemEmEdicao];
+  const [existente, novo] = itensDaSugestao(SUGERIDOS, ['ex_01']) as [ItemEmEdicao, ItemEmEdicao];
 
   it('confirma exercício existente e novo', () => {
     expect(validarItens([existente, novo])).toEqual({
@@ -47,5 +47,29 @@ describe('validarItens', () => {
 
   it('lista vazia não tem o que salvar', () => {
     expect(validarItens([])).toEqual({ ok: false, erro: 'Não há nada para salvar.' });
+  });
+});
+
+describe('itensDaSugestao: exercicioId que o app não conhece', () => {
+  const sugerido: ItemSugerido = {
+    exercicioId: 'id-que-nao-existe',
+    nome: 'Supino reto',
+    grupoMuscular: 'peito',
+    equipamento: 'barra',
+    cargaKg: 20,
+    reps: [10, 10, 10],
+    confianca: 'alta',
+  };
+
+  it('vira exercício novo e fica marcado para revisão', () => {
+    const [item] = itensDaSugestao([sugerido], ['ex_01']);
+    expect(item.exercicioId).toBeNull();
+    expect(item.revisar).toBe(true);
+  });
+
+  it('id conhecido passa como veio', () => {
+    const [item] = itensDaSugestao([sugerido], ['id-que-nao-existe']);
+    expect(item.exercicioId).toBe('id-que-nao-existe');
+    expect(item.revisar).toBe(false);
   });
 });

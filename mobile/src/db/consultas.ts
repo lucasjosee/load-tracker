@@ -3,7 +3,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
-import { proximoTreino, treinoPerdido, type ProximoTreino, type TreinoIdentificado } from '@/domain/hoje';
+import {
+  outroTreinoDoDia,
+  proximoTreino,
+  treinoPerdido,
+  type ProximoTreino,
+  type TreinoIdentificado,
+} from '@/domain/hoje';
 import {
   contarAumentosDeCargaNoMes,
   detectarEstagnacao,
@@ -56,6 +62,8 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
   | {
       tipo: 'treino';
       treino: Treino;
+      // O treino do dia da semana, quando o mostrado é outro (ex.: o perdido de ontem).
+      treinoDoDia: TreinoIdentificado | null;
       sessao: Sessao | null;
       itens: ItemDoTreino[];
       tiposDaSessao: Evento[]; // para o resumo ao finalizar
@@ -119,7 +127,8 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
   }
 
   const sessao = await obterSessaoDoTreino(db, hoje, treino.id);
-  const [exercicios, estados, mudancas, feitos, tiposDaSessao, historico] = await Promise.all([
+  const [doDia, exercicios, estados, mudancas, feitos, tiposDaSessao, historico] = await Promise.all([
+    obterTreinoDoDia(db, diaDaSemana(hoje)),
     listarExerciciosDoTreino(db, treino.id),
     listarEstados(db),
     listarUltimasMudancas(db),
@@ -134,6 +143,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     tipo: 'treino',
     perdido,
     treino,
+    treinoDoDia: outroTreinoDoDia(treino.id, doDia === null ? null : { id: doDia.id, nome: doDia.nome }),
     sessao,
     tiposDaSessao,
     itens: exercicios

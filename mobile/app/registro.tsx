@@ -63,7 +63,12 @@ export default function TelaRegistro() {
       return;
     }
     setAviso(naoEntendido.length > 0 ? `Não entendi: ${naoEntendido.join('; ')}` : null);
-    setItens(itensDaSugestao(sugeridos));
+    setItens(
+      itensDaSugestao(
+        sugeridos,
+        exercicios.map((e) => e.id),
+      ),
+    );
   }
 
   function salvar() {

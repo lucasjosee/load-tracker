@@ -48,6 +48,16 @@ export function treinoPerdido(
   return treinoDeOntem;
 }
 
+// O treino do dia da semana, quando a aba Hoje está mostrando outro (ex.: o
+// treino perdido de ontem). A tela oferece um botão para ir até ele; sem
+// isso, depois de começar o treino perdido não haveria como abrir o do dia.
+export function outroTreinoDoDia(
+  mostradoId: string,
+  treinoDoDia: TreinoIdentificado | null,
+): TreinoIdentificado | null {
+  return treinoDoDia === null || treinoDoDia.id === mostradoId ? null : treinoDoDia;
+}
+
 // "Agora não" no aviso de treino perdido vale só no dia em que foi tocado:
 // amanhã, se houver outro treino perdido, o aviso volta.
 export function avisoDeTreinoPerdidoVisivel(dispensadoEm: string | null, hoje: string): boolean {

@@ -90,7 +90,7 @@ export default function TelaHoje() {
     );
   }
 
-  const { treino, sessao } = conteudo;
+  const { treino, sessao, treinoDoDia } = conteudo;
 
   const checkin = (item: ItemDoTreino, realizado: Realizado) =>
     gravar(() => fazerCheckin(db, item.exercicio, realizado, treino.id, data));
@@ -126,6 +126,15 @@ export default function TelaHoje() {
         />
       </View>
       {aviso}
+      {treinoDoDia !== null && (
+        // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
+        <Botao
+          titulo={`Ir para ${treinoDoDia.nome} (treino de hoje)`}
+          variante="secundario"
+          compacto
+          onPress={() => setEscolhido({ data, treinoId: treinoDoDia.id })}
+        />
+      )}
       {conteudo.itens.length === 0 && (
         <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
       )}

@@ -1,4 +1,4 @@
-import { DIVISAO_SEED } from './seed';
+import { deveAplicarSeed, DIVISAO_SEED } from './seed';
 
 // O banco também barra boa parte disto (CHECK no schema), mas lá o erro só
 // aparece no iPhone, ao abrir o app. Aqui ele aparece no `npm run check`.
@@ -43,5 +43,19 @@ describe('DIVISAO_SEED', () => {
         expect(exercicio).toEqual(primeiro);
       }
     }
+  });
+});
+
+describe('deveAplicarSeed', () => {
+  it('banco recém-criado recebe o seed', () => {
+    expect(deveAplicarSeed(0, 0)).toBe(true);
+  });
+
+  it('sem treinos mas com exercícios (a pessoa excluiu os treinos): não regrava, para não duplicar exercícios', () => {
+    expect(deveAplicarSeed(0, 12)).toBe(false);
+  });
+
+  it('com treinos: não regrava', () => {
+    expect(deveAplicarSeed(5, 12)).toBe(false);
   });
 });

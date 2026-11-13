@@ -1,4 +1,4 @@
-import { avisoDeTreinoPerdidoVisivel, proximoTreino, treinoPerdido } from './hoje';
+import { avisoDeTreinoPerdidoVisivel, outroTreinoDoDia, proximoTreino, treinoPerdido } from './hoje';
 
 const DIVISAO = [
   { diaSemana: 1, nome: 'Push' },
@@ -71,5 +71,21 @@ describe('avisoDeTreinoPerdidoVisivel', () => {
 
   it('volta no dia seguinte, mesmo com o app aberto desde ontem', () => {
     expect(avisoDeTreinoPerdidoVisivel('2026-11-17', '2026-11-18')).toBe(true);
+  });
+});
+
+describe('outroTreinoDoDia', () => {
+  const costas = { id: 'costas', nome: 'Costas' };
+
+  it('fazendo o treino perdido de ontem, o treino do dia continua ao alcance', () => {
+    expect(outroTreinoDoDia('peito', costas)).toEqual(costas);
+  });
+
+  it('mostrando o próprio treino do dia, não há outro para oferecer', () => {
+    expect(outroTreinoDoDia('costas', costas)).toBeNull();
+  });
+
+  it('dia de descanso não tem treino do dia', () => {
+    expect(outroTreinoDoDia('peito', null)).toBeNull();
   });
 });

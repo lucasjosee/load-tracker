@@ -41,17 +41,24 @@ export type ItemConfirmado =
       reps: number[];
     };
 
-export function itensDaSugestao(itens: readonly ItemSugerido[]): ItemEmEdicao[] {
-  return itens.map((item, indice) => ({
-    chave: `sugerido-${indice}`,
-    exercicioId: item.exercicioId,
-    nome: item.nome,
-    grupoMuscular: item.grupoMuscular,
-    equipamento: item.equipamento,
-    carga: String(item.cargaKg).replace('.', ','),
-    reps: [...item.reps],
-    revisar: item.confianca === 'baixa',
-  }));
+// `idsConhecidos`: os exercícios que o app tem. O servidor já troca por null
+// um id que não estava na lista enviada, mas o app não confia só nisso
+// (regra 3): um id desconhecido vira exercício novo, marcado para revisão,
+// em vez de fazer o "Salvar" falhar lá na gravação.
+export function itensDaSugestao(itens: readonly ItemSugerido[], idsConhecidos: readonly string[]): ItemEmEdicao[] {
+  return itens.map((item, indice) => {
+    const desconhecido = item.exercicioId !== null && !idsConhecidos.includes(item.exercicioId);
+    return {
+      chave: `sugerido-${indice}`,
+      exercicioId: desconhecido ? null : item.exercicioId,
+      nome: item.nome,
+      grupoMuscular: item.grupoMuscular,
+      equipamento: item.equipamento,
+      carga: String(item.cargaKg).replace('.', ','),
+      reps: [...item.reps],
+      revisar: desconhecido || item.confianca === 'baixa',
+    };
+  });
 }
 
 // Item em branco, para o formulário manual (sem internet ou IA com erro).

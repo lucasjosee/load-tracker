@@ -7,7 +7,7 @@ import { gravarExercicioNovo } from './operacoes';
 import { salvarConfig } from './repositorios/config';
 import { proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
 import { definirTreinoDoDia, inserirTreino } from './repositorios/treinos';
-import { DIVISAO_SEED, type TreinoSeed } from './seed';
+import { deveAplicarSeed, DIVISAO_SEED, type TreinoSeed } from './seed';
 import { emTransacao, PRAGMAS_DA_CONEXAO } from './transacao';
 
 export const NOME_DO_BANCO = 'load-tracker.db';
@@ -47,8 +47,10 @@ async function aplicarMigracoes(db: SQLiteDatabase): Promise<void> {
 }
 
 async function aplicarSeedSeBancoVazio(db: SQLiteDatabase): Promise<void> {
-  const linha = await db.getFirstAsync<{ total: number }>('SELECT COUNT(*) AS total FROM treino');
-  if ((linha?.total ?? 0) > 0) {
+  const linha = await db.getFirstAsync<{ treinos: number; exercicios: number }>(
+    'SELECT (SELECT COUNT(*) FROM treino) AS treinos, (SELECT COUNT(*) FROM exercicio) AS exercicios',
+  );
+  if (!deveAplicarSeed(linha?.treinos ?? 0, linha?.exercicios ?? 0)) {
     return;
   }
   // Tudo ou nada: um seed pela metade deixaria o banco "não vazio" e o seed

@@ -5,11 +5,11 @@ import { obterConfig } from '@/db/repositorios/config';
 import { listarEstados } from '@/db/repositorios/estadoProgressao';
 import { listarUltimasMudancas } from '@/db/repositorios/eventos';
 import { listarExerciciosDoTreino } from '@/db/repositorios/exercicios';
-import { obterSessaoDaData } from '@/db/repositorios/sessoes';
-import { listarTreinosPorDia } from '@/db/repositorios/treinos';
-import { paraDataLocal, paraInstanteLocal } from '@/domain/datas';
+import { listarSessoesDaData } from '@/db/repositorios/sessoes';
+import { listarTreinosPorDia, obterTreinoDoDia } from '@/db/repositorios/treinos';
+import { diaDaSemana, paraDataLocal, paraInstanteLocal } from '@/domain/datas';
 import { HORARIO_PADRAO_DO_AVISO, lerHorario } from '@/domain/horario';
-import { planejarNotificacoes, type TreinoDoAviso } from '@/domain/notificacoes';
+import { planejarNotificacoes, treinoDoDiaFinalizado, type TreinoDoAviso } from '@/domain/notificacoes';
 
 import { lerPermissao } from './permissao';
 
@@ -50,10 +50,11 @@ export async function reagendarNotificacoes(db: SQLiteDatabase): Promise<void> {
 
     const agora = new Date();
     const hoje = paraDataLocal(agora);
-    const [divisao, horarioSalvo, sessaoDeHoje] = await Promise.all([
+    const [divisao, horarioSalvo, sessoesDeHoje, treinoDeHoje] = await Promise.all([
       carregarDivisao(db),
       obterConfig(db, 'horario_notificacao'),
-      obterSessaoDaData(db, hoje),
+      listarSessoesDaData(db, hoje),
+      obterTreinoDoDia(db, diaDaSemana(hoje)),
     ]);
 
     const plano = planejarNotificacoes({
@@ -61,7 +62,10 @@ export async function reagendarNotificacoes(db: SQLiteDatabase): Promise<void> {
       agora: { hora: agora.getHours(), minuto: agora.getMinutes() },
       horarioDoAviso: lerHorario(horarioSalvo ?? '') ?? HORARIO_PADRAO_DO_AVISO,
       treinoDoDia: (dia) => divisao.get(dia) ?? null,
-      treinoDeHojeFinalizado: sessaoDeHoje !== null && sessaoDeHoje.finalizadaEm !== null,
+      treinoDeHojeFinalizado: treinoDoDiaFinalizado(
+        treinoDeHoje?.id ?? null,
+        sessoesDeHoje.map((sessao) => ({ treinoId: sessao.treinoId, finalizada: sessao.finalizadaEm !== null })),
+      ),
     });
 
     for (const notificacao of plano) {

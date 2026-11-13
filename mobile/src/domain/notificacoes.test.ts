@@ -1,4 +1,10 @@
-import { planejarNotificacoes, textoDoAvisoDeTreino, type Planejamento, type TreinoDoAviso } from './notificacoes';
+import {
+  planejarNotificacoes,
+  textoDoAvisoDeTreino,
+  treinoDoDiaFinalizado,
+  type Planejamento,
+  type TreinoDoAviso,
+} from './notificacoes';
 
 const PUSH: TreinoDoAviso = {
   nome: 'Push',
@@ -75,5 +81,28 @@ describe('planejarNotificacoes', () => {
 
   it('sem divisão, nada é agendado', () => {
     expect(planejarNotificacoes({ ...base, treinoDoDia: () => null })).toEqual([]);
+  });
+});
+
+describe('treinoDoDiaFinalizado', () => {
+  it('sessão finalizada do treino do dia: finalizado', () => {
+    expect(treinoDoDiaFinalizado('costas', [{ treinoId: 'costas', finalizada: true }])).toBe(true);
+  });
+
+  it('finalizar outro treino (o perdido de ontem) não cancela os avisos do treino do dia', () => {
+    expect(treinoDoDiaFinalizado('costas', [{ treinoId: 'peito', finalizada: true }])).toBe(false);
+  });
+
+  it('sessão do treino do dia ainda aberta: não finalizado', () => {
+    expect(
+      treinoDoDiaFinalizado('costas', [
+        { treinoId: 'peito', finalizada: true },
+        { treinoId: 'costas', finalizada: false },
+      ]),
+    ).toBe(false);
+  });
+
+  it('dia de descanso: nada a finalizar', () => {
+    expect(treinoDoDiaFinalizado(null, [{ treinoId: null, finalizada: true }])).toBe(false);
   });
 });
