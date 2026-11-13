@@ -7,7 +7,11 @@
 // - Cargas anotadas com dois números ("28/63"): ficou o primeiro.
 // - Reps atuais = 8 (início da faixa). Como no onboarding (§3.1), essa carga
 //   vira a "última sessão" e o motor calcula a primeira meta: carga × 9.
-// - "por lado" = como ele anota (§5.2, regra de ouro: sempre igual naquele exercício).
+// - Carga anotada "por lado" (barra, máquina de anilha, cross de dois cabos)
+//   entra como o TOTAL, o dobro do número anotado: "22,5 lado" = 45. É a
+//   mesma regra que a IA usa no registro rápido (§8.3); se o seed guardasse
+//   22,5 e o registro trouxesse 45, o app veria um salto de carga que não houve.
+//   Halter fica com o peso de um halter (§5.2).
 
 import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
 
@@ -45,7 +49,8 @@ export interface TreinoSeed {
 const INCREMENTO = {
   halter: 2, // halteres de 2 em 2 kg: 10, 14, 16, 18
   polia: 3.5, // a maioria das cargas de cross é múltipla de 3,5: 17,5 · 24,5 · 28
-  porLado: 2.5, // barra e máquinas de anilha, anotadas por lado: 22,5 e 32,5 pedem anilha de 2,5
+  porLado: 5, // barra e máquinas de anilha: uma anilha de 2,5 de cada lado sobe 5 no total
+  crossDuplo: 7, // cross de dois cabos: um passo de 3,5 em cada lado
   pino: 5, // máquinas de pino: padrão da §5.2
 };
 
@@ -54,9 +59,9 @@ const PADRAO = { repsMin: 8, repsMax: 12, seriesAlvo: 4, repsAtuais: 8 };
 // Legs e Lower usam os mesmos exercícios, então a progressão deles é uma só.
 const PERNAS: ExercicioSeed[] = [
   { nome: 'Agachamento livre', grupoMuscular: 'quadriceps', equipamento: 'barra',
-    incrementoKg: INCREMENTO.porLado, cargaKg: 30, ...PADRAO },
+    incrementoKg: INCREMENTO.porLado, cargaKg: 40, ...PADRAO },
   { nome: 'Panturrilha em pé', grupoMuscular: 'panturrilha', equipamento: 'maquina',
-    incrementoKg: INCREMENTO.porLado, cargaKg: 25, ...PADRAO },
+    incrementoKg: INCREMENTO.porLado, cargaKg: 50, ...PADRAO },
   { nome: 'Panturrilha na máquina', grupoMuscular: 'panturrilha', equipamento: 'maquina',
     incrementoKg: INCREMENTO.pino, cargaKg: 115, ...PADRAO },
 ];
@@ -67,11 +72,11 @@ export const DIVISAO_SEED: readonly TreinoSeed[] = [
     nome: 'Push',
     exercicios: [
       { nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra',
-        incrementoKg: INCREMENTO.porLado, cargaKg: 22.5, ...PADRAO },
+        incrementoKg: INCREMENTO.porLado, cargaKg: 45, ...PADRAO },
       { nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter',
         incrementoKg: INCREMENTO.halter, cargaKg: 18, ...PADRAO },
       { nome: 'Inclinado no cross', grupoMuscular: 'peito', equipamento: 'polia',
-        incrementoKg: INCREMENTO.polia, cargaKg: 20, ...PADRAO },
+        incrementoKg: INCREMENTO.crossDuplo, cargaKg: 40, ...PADRAO },
       { nome: 'Desenvolvimento', grupoMuscular: 'ombros', equipamento: 'halter',
         incrementoKg: INCREMENTO.halter, cargaKg: 14, ...PADRAO },
       { nome: 'Tríceps no triângulo para baixo', grupoMuscular: 'triceps', equipamento: 'polia',
@@ -109,7 +114,7 @@ export const DIVISAO_SEED: readonly TreinoSeed[] = [
     nome: 'Upper',
     exercicios: [
       { nome: 'Supino reto na máquina', grupoMuscular: 'peito', equipamento: 'maquina',
-        incrementoKg: INCREMENTO.porLado, cargaKg: 32.5, ...PADRAO },
+        incrementoKg: INCREMENTO.porLado, cargaKg: 65, ...PADRAO },
       { nome: 'Supino inclinado na máquina', grupoMuscular: 'peito', equipamento: 'maquina',
         incrementoKg: INCREMENTO.pino, cargaKg: 75, ...PADRAO },
       { nome: 'Pulldown na máquina', grupoMuscular: 'costas', equipamento: 'maquina',
