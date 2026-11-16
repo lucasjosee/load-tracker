@@ -55,6 +55,12 @@ describe('migracoesPendentes', () => {
     expect(posicao('exercicio')).toBeLessThan(posicao('treino'));
   });
 
+  it('a v4 só acrescenta a coluna nota (o histórico do iPhone fica)', () => {
+    const v4 = MIGRACOES.find((m) => m.versao === 4);
+    expect(v4?.sql).toContain('ALTER TABLE exercicio ADD COLUMN nota TEXT');
+    expect(v4?.sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i);
+  });
+
   it('a lista real do app está bem numerada', () => {
     expect(() => migracoesPendentes(0, MIGRACOES)).not.toThrow();
   });

@@ -55,6 +55,7 @@ describe('validarDivisao', () => {
         seriesAlvo: 3,
         incrementoKg: 5,
         porLado: false,
+        nota: null,
         cargaKg: 20,
         reps: 8,
       });

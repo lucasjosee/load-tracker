@@ -5,6 +5,8 @@
 import type { Equipamento, GrupoMuscular } from './tipos';
 
 export const TAMANHO_MAXIMO_DO_NOME = 60;
+// A nota aparece numa linha do cartão: precisa ser curta para caber.
+export const TAMANHO_MAXIMO_DA_NOTA = 60;
 
 function validarNome(nome: string, oQue: string): string | null {
   const limpo = nome.trim();
@@ -32,6 +34,7 @@ export interface DadosDoExercicio {
   seriesAlvo: number;
   incrementoKg: number | null;
   porLado: boolean;
+  nota: string;
   cargaKg: number | null;
   reps: number; // reps atuais, em todas as séries
 }
@@ -46,6 +49,7 @@ export interface ExercicioValidado {
   seriesAlvo: number;
   incrementoKg: number;
   porLado: boolean;
+  nota: string | null;
   cargaKg: number;
   reps: number;
 }
@@ -65,6 +69,7 @@ export interface DadosDasRegras {
   incrementoKg: number | null;
   // A carga deste exercício é anotada por lado (§5.2). Só muda o rótulo.
   porLado: boolean;
+  nota: string; // texto do campo; vazio = sem nota
 }
 
 export interface RegrasValidadas {
@@ -76,6 +81,7 @@ export interface RegrasValidadas {
   seriesAlvo: number;
   incrementoKg: number;
   porLado: boolean;
+  nota: string | null; // null = sem nota
 }
 
 export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas> {
@@ -101,6 +107,10 @@ export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas>
   if (incrementoKg === null) {
     return erro('Incremento inválido. Use só números, como 2 ou 2,5.');
   }
+  const nota = dados.nota.trim();
+  if (nota.length > TAMANHO_MAXIMO_DA_NOTA) {
+    return erro(`Nota muito longa (máximo ${TAMANHO_MAXIMO_DA_NOTA} letras).`);
+  }
   return {
     ok: true,
     valor: {
@@ -112,6 +122,7 @@ export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas>
       seriesAlvo: dados.seriesAlvo,
       incrementoKg,
       porLado: dados.porLado,
+      nota: nota === '' ? null : nota,
     },
   };
 }

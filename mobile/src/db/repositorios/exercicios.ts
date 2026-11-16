@@ -17,6 +17,7 @@ export interface Exercicio {
   // A carga é anotada por lado (§5.2): o app mostra "20 kg lado" e nunca soma
   // os dois lados. Só muda o rótulo; o motor trata o número como qualquer carga.
   porLado: boolean;
+  nota: string | null; // lembrete livre, mostrado no cartão ("banco no furo 4")
   ativo: boolean;
   criadoEm: string;
 }
@@ -35,12 +36,13 @@ interface LinhaExercicio {
   series_alvo: number;
   incremento_kg: number;
   carga_por_lado: number; // SQLite não tem booleano: 0 ou 1
+  nota: string | null;
   ativo: number;
   criado_em: string;
 }
 
 const COLUNAS = `e.id, e.nome, e.grupo_muscular, e.equipamento, e.reps_min, e.reps_max,
-  e.series_alvo, e.incremento_kg, e.carga_por_lado, e.ativo, e.criado_em`;
+  e.series_alvo, e.incremento_kg, e.carga_por_lado, e.nota, e.ativo, e.criado_em`;
 
 function paraExercicio(linha: LinhaExercicio): Exercicio {
   return {
@@ -53,6 +55,7 @@ function paraExercicio(linha: LinhaExercicio): Exercicio {
     seriesAlvo: linha.series_alvo,
     incrementoKg: linha.incremento_kg,
     porLado: linha.carga_por_lado === 1,
+    nota: linha.nota,
     ativo: linha.ativo === 1,
     criadoEm: linha.criado_em,
   };
@@ -67,8 +70,8 @@ export async function inserirExercicio(db: SQLiteDatabase, novo: NovoExercicio):
   };
   await db.runAsync(
     `INSERT INTO exercicio (id, nome, grupo_muscular, equipamento, reps_min, reps_max,
-                            series_alvo, incremento_kg, carga_por_lado, ativo, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+                            series_alvo, incremento_kg, carga_por_lado, nota, ativo, criado_em)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
     exercicio.id,
     exercicio.nome,
     exercicio.grupoMuscular,
@@ -78,6 +81,7 @@ export async function inserirExercicio(db: SQLiteDatabase, novo: NovoExercicio):
     exercicio.seriesAlvo,
     exercicio.incrementoKg,
     exercicio.porLado ? 1 : 0,
+    exercicio.nota,
     exercicio.criadoEm,
   );
   return exercicio;
@@ -172,7 +176,7 @@ export async function atualizarExercicio(db: SQLiteDatabase, id: string, dados: 
   await db.runAsync(
     `UPDATE exercicio
         SET nome = ?, grupo_muscular = ?, equipamento = ?, reps_min = ?, reps_max = ?,
-            series_alvo = ?, incremento_kg = ?, carga_por_lado = ?
+            series_alvo = ?, incremento_kg = ?, carga_por_lado = ?, nota = ?
       WHERE id = ?`,
     dados.nome,
     dados.grupoMuscular,
@@ -182,6 +186,7 @@ export async function atualizarExercicio(db: SQLiteDatabase, id: string, dados: 
     dados.seriesAlvo,
     dados.incrementoKg,
     dados.porLado ? 1 : 0,
+    dados.nota,
     id,
   );
 }

@@ -76,7 +76,7 @@ async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]
       // O mesmo caminho do formulário da Divisão: registro de onboarding e
       // primeira meta pelo motor, para o estado ser recalculável (§9).
       const { cargaKg, repsAtuais, ...novo } = exercicioSeed;
-      const exercicio = await gravarExercicioNovo(txn, treino.id, novo, { cargaKg, reps: repsAtuais }, hoje);
+      const exercicio = await gravarExercicioNovo(txn, treino.id, { ...novo, nota: null }, { cargaKg, reps: repsAtuais }, hoje);
       idPorNome.set(exercicio.nome, exercicio.id);
     }
   }

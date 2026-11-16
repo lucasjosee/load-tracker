@@ -1,4 +1,10 @@
-import { validarExercicio, validarNomeDoTreino, validarRegras, type DadosDoExercicio } from './validacao';
+import {
+  TAMANHO_MAXIMO_DA_NOTA,
+  validarExercicio,
+  validarNomeDoTreino,
+  validarRegras,
+  type DadosDoExercicio,
+} from './validacao';
 
 describe('validarNomeDoTreino', () => {
   it('aceita um nome comum', () => {
@@ -24,12 +30,13 @@ describe('validarExercicio', () => {
     seriesAlvo: 4,
     incrementoKg: 2.5,
     porLado: true,
+    nota: '',
     cargaKg: 22.5,
     reps: 8,
   };
 
   it('aceita dados completos e tira os espaços do nome', () => {
-    expect(validarExercicio({ ...valido, nome: ' Supino reto ' })).toEqual({ ok: true, valor: valido });
+    expect(validarExercicio({ ...valido, nome: ' Supino reto ' })).toEqual({ ok: true, valor: { ...valido, nota: null } });
   });
 
   it('aceita peso corporal: carga e incremento 0', () => {
@@ -63,10 +70,21 @@ describe('validarRegras', () => {
     seriesAlvo: 3,
     incrementoKg: 1,
     porLado: false,
+    nota: '',
   };
 
   it('aceita e limpa o nome', () => {
-    expect(validarRegras(regras)).toEqual({ ok: true, valor: { ...regras, nome: 'Rosca' } });
+    expect(validarRegras(regras)).toEqual({ ok: true, valor: { ...regras, nome: 'Rosca', nota: null } });
+  });
+
+  it('nota: tira os espaços, vazia vira null e longa demais é recusada', () => {
+    expect(validarRegras({ ...regras, nota: '  banco no furo 4 ' })).toMatchObject({ ok: true, valor: { nota: 'banco no furo 4' } });
+    expect(validarRegras({ ...regras, nota: '   ' })).toMatchObject({ ok: true, valor: { nota: null } });
+    expect(validarRegras({ ...regras, nota: 'a'.repeat(TAMANHO_MAXIMO_DA_NOTA) }).ok).toBe(true);
+    expect(validarRegras({ ...regras, nota: 'a'.repeat(TAMANHO_MAXIMO_DA_NOTA + 1) })).toMatchObject({
+      ok: false,
+      erro: expect.stringMatching(/Nota muito longa/),
+    });
   });
 
   it('recusa faixa invertida e incremento ilegível', () => {

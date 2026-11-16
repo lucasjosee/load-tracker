@@ -85,6 +85,14 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props)
         </View>
       </View>
 
+      {/* A nota é o lembrete que a pessoa escreveu para a hora do exercício
+          ("banco no furo 4"); só existe se ela escreveu. */}
+      {exercicio.nota !== null && (
+        <Text style={styles.nota} numberOfLines={1}>
+          {exercicio.nota}
+        </Text>
+      )}
+
       {estado === null ? (
         <Text style={estilosComuns.textoSecundario}>Sem meta ainda: registre pelo Ajustar.</Text>
       ) : (
@@ -173,6 +181,7 @@ const styles = StyleSheet.create({
   areaDoNome: { flexShrink: 1 },
   nome: { fontSize: 16, fontWeight: '600', color: cores.textoSecundario },
   selos: { flexDirection: 'row', gap: 4 },
+  nota: { fontSize: 14, color: cores.textoSecundario, fontStyle: 'italic', marginTop: 2 },
   meta: {
     fontSize: 44,
     fontWeight: '800',

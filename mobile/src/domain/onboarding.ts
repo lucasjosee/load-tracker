@@ -64,6 +64,7 @@ export interface ExercicioConfirmado {
   seriesAlvo: number;
   incrementoKg: number;
   porLado: boolean;
+  nota: string | null; // o onboarding não pergunta nota: sempre null
   cargaKg: number; // carga atual: vira o registro de onboarding
   reps: number; // reps atuais, em todas as séries
 }
@@ -143,6 +144,7 @@ function validarExercicioDaRevisao(exercicio: ExercicioEmRevisao, onde: string):
       seriesAlvo: exercicio.series,
       incrementoKg: padrao.incrementoKg,
       porLado: exercicio.porLado,
+      nota: null,
       cargaKg,
       reps: exercicio.reps,
     },

@@ -280,6 +280,7 @@ export async function registrarItens(
           seriesAlvo: item.reps.length,
           incrementoKg: padrao.incrementoKg,
           porLado: item.porLado,
+          nota: null,
         });
       }
       if (exercicio === null) {

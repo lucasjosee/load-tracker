@@ -33,7 +33,7 @@ import {
   type Equipamento,
   type GrupoMuscular,
 } from '@/domain/tipos';
-import { validarRegras } from '@/domain/validacao';
+import { TAMANHO_MAXIMO_DA_NOTA, validarRegras } from '@/domain/validacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 const OPCOES_DE_GRUPO = GRUPOS_MUSCULARES.map((g) => ({ valor: g, rotulo: NOMES_DOS_GRUPOS[g] }));
@@ -49,6 +49,7 @@ interface Formulario {
   seriesAlvo: number;
   incremento: string;
   porLado: boolean;
+  nota: string;
 }
 
 function formularioDe(detalhe: DetalheDoExercicio): Formulario {
@@ -62,6 +63,7 @@ function formularioDe(detalhe: DetalheDoExercicio): Formulario {
     seriesAlvo: exercicio.seriesAlvo,
     incremento: String(exercicio.incrementoKg).replace('.', ','),
     porLado: exercicio.porLado,
+    nota: exercicio.nota ?? '',
   };
 }
 
@@ -181,6 +183,14 @@ export default function TelaExercicio() {
         <TextInput
           value={formulario.nome}
           onChangeText={(nome) => setFormulario({ ...formulario, nome })}
+          style={estilosComuns.campo}
+        />
+        <TextInput
+          value={formulario.nota}
+          onChangeText={(nota) => setFormulario({ ...formulario, nota })}
+          placeholder="Nota (ex.: banco no furo 4)"
+          maxLength={TAMANHO_MAXIMO_DA_NOTA}
+          accessibilityLabel="nota do exercício"
           style={estilosComuns.campo}
         />
         <Opcoes

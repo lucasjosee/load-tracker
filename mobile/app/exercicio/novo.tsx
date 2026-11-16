@@ -26,7 +26,7 @@ import {
   type Equipamento,
   type GrupoMuscular,
 } from '@/domain/tipos';
-import { validarExercicio } from '@/domain/validacao';
+import { TAMANHO_MAXIMO_DA_NOTA, validarExercicio } from '@/domain/validacao';
 import { useGravacao } from '@/hooks/gravacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
@@ -48,6 +48,7 @@ export default function TelaNovoExercicio() {
   const [incremento, setIncremento] = useState('');
   const [carga, setCarga] = useState('');
   const [porLado, setPorLado] = useState(false);
+  const [nota, setNota] = useState('');
   const [reps, setReps] = useState(REPS_MIN_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
   const [existentes, setExistentes] = useState<Exercicio[]>([]);
@@ -80,6 +81,7 @@ export default function TelaNovoExercicio() {
     seriesAlvo: series,
     incrementoKg: lerNumero(incremento),
     porLado,
+    nota,
     cargaKg: lerNumero(carga),
     reps,
   });
@@ -118,6 +120,16 @@ export default function TelaNovoExercicio() {
     <Tela>
       <Secao titulo="Nome">
         <TextInput value={nome} onChangeText={setNome} placeholder="Ex.: Supino reto" style={estilosComuns.campo} />
+      </Secao>
+
+      <Secao titulo="Nota (opcional)">
+        <TextInput
+          value={nota}
+          onChangeText={setNota}
+          placeholder="Ex.: banco no furo 4"
+          maxLength={TAMANHO_MAXIMO_DA_NOTA}
+          style={estilosComuns.campo}
+        />
       </Secao>
 
       <Secao titulo="Grupo muscular">

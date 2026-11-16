@@ -138,10 +138,18 @@ DELETE FROM treino;
 DELETE FROM config;
 `;
 
+// Nota livre do exercício ("banco no furo 4", "barra triangular"): o tipo de
+// lembrete que ficava no bloco de notas. NULL = sem nota. Só acrescenta a
+// coluna; nenhum dado é tocado.
+const V4_NOTA_DO_EXERCICIO = `
+ALTER TABLE exercicio ADD COLUMN nota TEXT;
+`;
+
 export const MIGRACOES: readonly Migracao[] = [
   { versao: 1, sql: V1_SCHEMA_INICIAL },
   { versao: 2, sql: V2_FALHAS_ANTES_DO_REGISTRO },
   { versao: 3, sql: V3_CARGA_POR_LADO },
+  { versao: 4, sql: V4_NOTA_DO_EXERCICIO },
 ];
 
 // Devolve, em ordem, as migrações que ainda não foram aplicadas no aparelho.
