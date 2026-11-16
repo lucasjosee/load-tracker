@@ -10,9 +10,12 @@ interface Props {
   variante?: Variante;
   desabilitado?: boolean;
   compacto?: boolean;
+  // Numa linha de botões, quanto da largura este ocupa em relação aos
+  // vizinhos (vira `flex`). Ex.: "Bati" com peso 2 ao lado de dois com peso 1.
+  peso?: number;
 }
 
-export function Botao({ titulo, onPress, variante = 'primario', desabilitado = false, compacto = false }: Props) {
+export function Botao({ titulo, onPress, variante = 'primario', desabilitado = false, compacto = false, peso }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -23,11 +26,14 @@ export function Botao({ titulo, onPress, variante = 'primario', desabilitado = f
       style={({ pressed }) => [
         styles.base,
         compacto && styles.compacto,
+        peso !== undefined && [styles.comPeso, { flex: peso }],
         styles[variante],
         (pressed || desabilitado) && styles.apagado,
       ]}
     >
-      <Text style={[styles.texto, styles[`texto_${variante}`]]}>{titulo}</Text>
+      <Text numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
+        {titulo}
+      </Text>
     </Pressable>
   );
 }
@@ -44,6 +50,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexGrow: 1,
   },
+  // Dividindo a linha, a largura já vem do `flex`: margem interna pequena
+  // para "Ajustar" caber num quarto do cartão.
+  comPeso: { paddingHorizontal: 6 },
   primario: { backgroundColor: cores.primaria },
   // `superficieAlta` e não `superficie`: muitos botões ficam dentro de um
   // cartão, e com a cor do cartão eles sumiriam.

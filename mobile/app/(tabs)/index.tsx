@@ -11,6 +11,7 @@ import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
 import { avisoDeTreinoPerdidoVisivel, type TreinoIdentificado } from '@/domain/hoje';
+import { progressoDoTreino } from '@/domain/regua';
 import {
   textoDoDia,
   textoProximoTreino,
@@ -91,6 +92,7 @@ export default function TelaHoje() {
   }
 
   const { treino, sessao, treinoDoDia } = conteudo;
+  const progresso = progressoDoTreino(conteudo.itens.map((item) => item.feitoHoje !== null));
 
   const checkin = (item: ItemDoTreino, realizado: Realizado) =>
     gravar(() => fazerCheckin(db, item.exercicio, realizado, treino.id, data));
@@ -125,6 +127,22 @@ export default function TelaHoje() {
           onPress={() => router.push({ pathname: '/registro', params: { treinoId: treino.id } })}
         />
       </View>
+      {progresso.total > 0 && (
+        <View
+          style={styles.progresso}
+          accessible
+          accessibilityLabel={`${progresso.feitos} de ${progresso.total} exercícios feitos`}
+        >
+          <View style={styles.segmentos}>
+            {conteudo.itens.map((item) => (
+              <View key={item.exercicio.id} style={[styles.segmento, item.feitoHoje !== null && styles.segmentoFeito]} />
+            ))}
+          </View>
+          <Text style={styles.textoDoProgresso}>
+            {progresso.feitos} de {progresso.total} {progresso.total === 1 ? 'exercício' : 'exercícios'}
+          </Text>
+        </View>
+      )}
       {aviso}
       {treinoDoDia !== null && (
         // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
@@ -144,6 +162,7 @@ export default function TelaHoje() {
           item={item}
           onCheckin={(realizado) => checkin(item, realizado)}
           onDesfazer={() => desfazer(item)}
+          onAbrir={() => router.push({ pathname: '/exercicio/[id]', params: { id: item.exercicio.id } })}
         />
       ))}
 
@@ -179,6 +198,12 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 
 const styles = StyleSheet.create({
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  progresso: { gap: 6 },
+  // Um segmento por exercício, na ordem do treino: dá para ver quais faltam.
+  segmentos: { flexDirection: 'row', gap: 6 },
+  segmento: { flex: 1, height: 6, borderRadius: 3, backgroundColor: cores.superficieAlta },
+  segmentoFeito: { backgroundColor: cores.primaria },
+  textoDoProgresso: { fontSize: 13, fontWeight: '500', color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   descanso: { fontSize: 28, fontWeight: '700', marginTop: 16, color: cores.texto },
   proximo: { fontSize: 17, color: cores.texto },
   finalizado: { fontSize: 16, color: cores.sobe, fontWeight: '600', textAlign: 'center', marginTop: 8 },
