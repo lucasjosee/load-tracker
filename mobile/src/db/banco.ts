@@ -55,11 +55,12 @@ async function aplicarSeedSeBancoVazio(db: SQLiteDatabase): Promise<void> {
   }
   // Tudo ou nada: um seed pela metade deixaria o banco "não vazio" e o seed
   // nunca mais rodaria para completar.
-  await emTransacao(db, (txn) => gravarDivisao(txn, DIVISAO_SEED));
+  await emTransacao(db, (txn) => gravarDivisao(txn, DIVISAO_SEED, paraDataLocal(new Date())));
 }
 
-async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]): Promise<void> {
-  const hoje = paraDataLocal(new Date());
+// `data` é o dia em que a divisão "começou": hoje no seed normal, semanas
+// atrás quando o histórico fictício é gerado (dadosFicticios.ts).
+export async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[], data: string): Promise<void> {
   // Exercício com o mesmo nome em dois treinos é gravado uma vez só.
   const idPorNome = new Map<string, string>();
 
@@ -76,7 +77,7 @@ async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]
       // O mesmo caminho do formulário da Divisão: registro de onboarding e
       // primeira meta pelo motor, para o estado ser recalculável (§9).
       const { cargaKg, repsAtuais, ...novo } = exercicioSeed;
-      const exercicio = await gravarExercicioNovo(txn, treino.id, { ...novo, nota: null }, { cargaKg, reps: repsAtuais }, hoje);
+      const exercicio = await gravarExercicioNovo(txn, treino.id, { ...novo, nota: null }, { cargaKg, reps: repsAtuais }, data);
       idPorNome.set(exercicio.nome, exercicio.id);
     }
   }

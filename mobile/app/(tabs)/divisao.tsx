@@ -8,6 +8,7 @@ import { SecaoAvisos } from '@/components/SecaoAvisos';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
+import { preencherDadosFicticios, SEMANAS_DE_HISTORICO } from '@/db/dadosFicticios';
 import { escolherArquivoDeBackup, exportarBackup, restaurarBackup, VERSAO_DO_BANCO } from '@/db/backup';
 import { obterConfig, salvarConfig } from '@/db/repositorios/config';
 import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
@@ -96,6 +97,33 @@ export default function TelaDivisao() {
     );
   }
 
+  // Só existe em desenvolvimento (Expo Go): enche o app de histórico inventado
+  // para dar o que ver nos gráficos.
+  function preencherFicticios() {
+    Alert.alert(
+      'Trocar tudo por dados fictícios?',
+      `A divisão e o histórico deste iPhone serão apagados e substituídos por ${SEMANAS_DE_HISTORICO} semanas de treinos inventados.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Trocar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await preencherDadosFicticios(db, paraDataLocal(new Date()));
+            } catch {
+              Alert.alert('Não foi possível gerar os dados', 'Nada foi alterado.');
+              return;
+            }
+            await reagendarNotificacoes(db);
+            setTreinos(await listarTreinos(db));
+            Alert.alert('Dados fictícios gravados', 'Veja as abas Hoje e Evolução.');
+          },
+        },
+      ],
+    );
+  }
+
   const diasComTreino = treinos.flatMap((treino) => treino.dias);
   const diasDeDescanso = [0, 1, 2, 3, 4, 5, 6].filter((dia) => !diasComTreino.includes(dia));
 
@@ -152,6 +180,15 @@ export default function TelaDivisao() {
         <Botao titulo="Exportar backup (JSON)" variante="secundario" onPress={exportar} />
         <Botao titulo="Restaurar backup" variante="perigo" onPress={restaurar} />
       </Secao>
+
+      {__DEV__ && (
+        <Secao titulo="Desenvolvimento">
+          <Text style={estilosComuns.textoSecundario}>
+            Só aparece no Expo Go. Apaga tudo e grava {SEMANAS_DE_HISTORICO} semanas de treinos inventados.
+          </Text>
+          <Botao titulo="Preencher com dados fictícios" variante="perigo" onPress={preencherFicticios} />
+        </Secao>
+      )}
     </Tela>
   );
 }
