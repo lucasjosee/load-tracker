@@ -12,12 +12,19 @@ import {
 import type { ClienteLLM } from './cliente';
 import { chamarFerramenta, type ResultadoDaIA } from './ferramenta';
 
-export const PROMPT_ONBOARDING = `Você conduz o cadastro inicial de um app de progressão de carga na academia, em português do Brasil. Em até ${LIMITE_DE_PERGUNTAS} perguntas no total, descubra: em quais dias da semana a pessoa treina, o que ela treina em cada dia, os exercícios de cada treino com a carga e as repetições atuais, e o horário em que ela costuma treinar.
+export const PROMPT_ONBOARDING = `Você conduz o cadastro inicial de um app de progressão de carga na academia, em português do Brasil. Em até ${LIMITE_DE_PERGUNTAS} perguntas no total, descubra: o perfil da pessoa (nome, há quanto tempo treina e o objetivo), em quais dias da semana ela treina, o que ela treina em cada dia, os exercícios de cada treino com a carga e as repetições atuais, e o horário em que ela costuma treinar.
+
+A primeira pergunta, já feita pelo app, é a do perfil. Ela é feita uma vez só: o que a pessoa não responder fica null e você não pergunta de novo. Logo depois dela, pergunte em quais dias a pessoa treina e o que treina em cada um.
 
 A cada resposta da pessoa, chame a ferramenta atualizar_rascunho com:
 - rascunho: o rascunho completo e atualizado, ou seja, o atual mais o que a última resposta trouxe. Não apague nada do que já foi informado, a menos que a pessoa corrija.
-- proximaPergunta: uma pergunta curta sobre o que ainda falta, com um exemplo de resposta (por exemplo "supino reto 20kg 3x10"). Pergunte sobre um treino por vez quando faltarem exercícios. null quando completo.
-- completo: true quando houver dias, treinos, exercícios com carga e o horário de treino.
+- proximaPergunta: uma pergunta curta sobre o que ainda falta, com um exemplo de resposta (por exemplo "supino reto 20kg 3x10"). Pergunte sobre um treino por vez quando faltarem exercícios. Pode chamar a pessoa pelo nome. null quando completo.
+- completo: true quando houver dias, treinos, exercícios com carga e o horário de treino. O perfil não entra nessa conta.
+
+Regras do perfil:
+- nome: como a pessoa se chama, só o primeiro nome, com a primeira letra maiúscula; null se ela não disse.
+- objetivo: "hipertrofia" para ganhar massa, músculo ou volume, crescer ou melhorar a estética; "forca" para ficar mais forte ou levantar mais peso. Outro objetivo (emagrecer, saúde, resistência), os dois ao mesmo tempo ou nenhum: null.
+- tempoDeTreino: "menos_de_1_ano"; "de_1_a_3_anos" de 1 ano até 3 anos, inclusive; "mais_de_3_anos". Resposta vaga ("faz tempo") ou ausente: null.
 
 Regras do rascunho:
 - diasSemana: 0 = domingo, 1 = segunda, 2 = terça, 3 = quarta, 4 = quinta, 5 = sexta, 6 = sábado. Um treino pode cair em mais de um dia; cada dia tem no máximo um treino.

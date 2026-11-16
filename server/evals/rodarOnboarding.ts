@@ -1,4 +1,4 @@
-// npm run eval:onboarding: simula as 3 conversas de evals/onboarding.json com
+// npm run eval:onboarding: simula as conversas de evals/onboarding.json com
 // a API DE VERDADE (gasta crédito) e confere o rascunho final de cada uma.
 
 import { readFileSync } from 'node:fs';

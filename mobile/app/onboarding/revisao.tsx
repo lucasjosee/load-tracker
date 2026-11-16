@@ -21,12 +21,25 @@ import {
   type ExercicioEmRevisao,
   type TreinoEmRevisao,
 } from '@/domain/onboarding';
-import { EQUIPAMENTOS, GRUPOS_MUSCULARES, NOMES_DOS_EQUIPAMENTOS, NOMES_DOS_GRUPOS } from '@/domain/tipos';
+import {
+  EQUIPAMENTOS,
+  faixaDeReps,
+  GRUPOS_MUSCULARES,
+  NOMES_DOS_EQUIPAMENTOS,
+  NOMES_DOS_GRUPOS,
+  NOMES_DOS_OBJETIVOS,
+  NOMES_DOS_TEMPOS_DE_TREINO,
+  OBJETIVOS,
+  TEMPOS_DE_TREINO,
+} from '@/domain/tipos';
 import { useGravacao } from '@/hooks/gravacao';
 import { useRascunho } from '@/hooks/onboarding';
 
 const OPCOES_DE_GRUPO = GRUPOS_MUSCULARES.map((g) => ({ valor: g, rotulo: NOMES_DOS_GRUPOS[g] }));
 const OPCOES_DE_EQUIPAMENTO = EQUIPAMENTOS.map((e) => ({ valor: e, rotulo: NOMES_DOS_EQUIPAMENTOS[e] }));
+const OPCOES_DE_OBJETIVO = OBJETIVOS.map((o) => ({ valor: o, rotulo: NOMES_DOS_OBJETIVOS[o] }));
+const OPCOES_DE_TEMPO = TEMPOS_DE_TREINO.map((t) => ({ valor: t, rotulo: NOMES_DOS_TEMPOS_DE_TREINO[t] }));
+const TAMANHO_MAXIMO_DO_NOME = 40; // o mesmo limite do contrato (§8.4)
 
 // Revisão (§3.1, passo 3): a divisão montada aparece inteira e editável. É
 // também o formulário manual, quando não há rascunho (sem IA ou sem internet).
@@ -57,6 +70,7 @@ export default function TelaRevisao() {
   // Minutos desde 00:00, para o stepper do horário andar de 15 em 15.
   const horario = divisao.horarioTreino === null ? null : lerHorario(divisao.horarioTreino);
   const minutos = horario === null ? null : horario.hora * 60 + horario.minuto;
+  const faixa = faixaDeReps(divisao.objetivo);
 
   function confirmar() {
     const validacao = validarDivisao(divisao);
@@ -75,6 +89,33 @@ export default function TelaRevisao() {
       <Text style={estilosComuns.textoSecundario}>
         Confira tudo. A carga de agora vira o ponto de partida, e o app calcula a primeira meta de cada exercício.
       </Text>
+
+      <Secao titulo="Sobre você (opcional)">
+        <TextInput
+          value={divisao.nome}
+          onChangeText={(nome) => setDivisao({ ...divisao, nome })}
+          placeholder="Seu nome"
+          maxLength={TAMANHO_MAXIMO_DO_NOME}
+          autoCapitalize="words"
+          style={estilosComuns.campo}
+        />
+        <Text style={styles.rotulo}>Objetivo</Text>
+        {/* Tocar na opção marcada desmarca: o perfil pode ficar em branco. */}
+        <Opcoes
+          opcoes={OPCOES_DE_OBJETIVO}
+          selecionados={divisao.objetivo === null ? [] : [divisao.objetivo]}
+          onAlternar={(objetivo) => setDivisao({ ...divisao, objetivo: objetivo === divisao.objetivo ? null : objetivo })}
+        />
+        <Text style={estilosComuns.textoSecundario}>
+          Seus exercícios progridem na faixa de {faixa.repsMin} a {faixa.repsMax} reps. Dá para mudar em cada exercício depois.
+        </Text>
+        <Text style={styles.rotulo}>Há quanto tempo treina</Text>
+        <Opcoes
+          opcoes={OPCOES_DE_TEMPO}
+          selecionados={divisao.tempoDeTreino === null ? [] : [divisao.tempoDeTreino]}
+          onAlternar={(tempo) => setDivisao({ ...divisao, tempoDeTreino: tempo === divisao.tempoDeTreino ? null : tempo })}
+        />
+      </Secao>
 
       <Secao titulo="Horário em que você treina">
         {minutos === null ? (
@@ -177,7 +218,7 @@ export default function TelaRevisao() {
             <Botao
               titulo="+ Exercício"
               variante="secundario"
-              onPress={() => mudarTreino(treino.chave, { exercicios: [...treino.exercicios, exercicioEmBranco(novaChave('exercicio'))] })}
+              onPress={() => mudarTreino(treino.chave, { exercicios: [...treino.exercicios, exercicioEmBranco(novaChave('exercicio'), divisao.objetivo)] })}
             />
             <Botao
               titulo="Tirar treino"

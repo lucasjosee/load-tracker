@@ -6,8 +6,8 @@
 // lados compara os arquivos (script `contrato`) e falha se estiverem diferentes.
 //
 // Por isso ele não importa nada do resto do projeto: só o zod. As listas de
-// grupos e equipamentos repetem as da §7; outro teste no app confere que
-// batem com as de mobile/src/domain/tipos.ts.
+// grupos, equipamentos, objetivos e tempos de treino repetem as do domínio;
+// outro teste no app confere que batem com as de mobile/src/domain/tipos.ts.
 
 import { z } from 'zod';
 
@@ -65,9 +65,16 @@ export const respostaInterpretar = z.object({
 
 // ---------- POST /v1/onboarding/conversa (§8.4) ----------
 
-// A conversa começa sempre por esta pergunta, mostrada pelo próprio app.
-export const PRIMEIRA_PERGUNTA = 'Em quais dias você treina e o que treina em cada um?';
-export const LIMITE_DE_PERGUNTAS = 6; // depois disso, o resto se completa na revisão (§8.4)
+// A conversa começa sempre por esta pergunta, mostrada pelo próprio app. Ela
+// cobre o perfil (nome, tempo de treino e objetivo); a divisão vem em seguida.
+export const PRIMEIRA_PERGUNTA =
+  'Para começar: como você se chama, há quanto tempo treina e qual é o seu foco, força ou hipertrofia?';
+export const LIMITE_DE_PERGUNTAS = 7; // depois disso, o resto se completa na revisão (§8.4)
+
+// O objetivo define a faixa de reps padrão dos exercícios (§5.1). Quem faz
+// essa conta é o app, por uma tabela fixa; a IA só registra a resposta.
+export const objetivo = z.enum(['forca', 'hipertrofia']);
+export const tempoDeTreino = z.enum(['menos_de_1_ano', 'de_1_a_3_anos', 'mais_de_3_anos']);
 
 export const mensagem = z.object({
   papel: z.enum(['assistente', 'usuario']),
@@ -92,6 +99,10 @@ export const treinoDoRascunho = z.object({
 });
 
 export const rascunho = z.object({
+  // Perfil: cada campo fica null enquanto a pessoa não disser.
+  nome: z.string().trim().min(1).max(40).nullable(),
+  objetivo: objetivo.nullable(),
+  tempoDeTreino: tempoDeTreino.nullable(),
   horarioTreino: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'use HH:MM')
@@ -121,6 +132,8 @@ export type ItemInterpretado = z.infer<typeof itemInterpretado>;
 export type RespostaInterpretar = z.infer<typeof respostaInterpretar>;
 export type Mensagem = z.infer<typeof mensagem>;
 export type ExercicioDoRascunho = z.infer<typeof exercicioDoRascunho>;
+export type Objetivo = z.infer<typeof objetivo>;
+export type TempoDeTreino = z.infer<typeof tempoDeTreino>;
 export type TreinoDoRascunho = z.infer<typeof treinoDoRascunho>;
 export type Rascunho = z.infer<typeof rascunho>;
 export type PedidoOnboarding = z.infer<typeof pedidoOnboarding>;

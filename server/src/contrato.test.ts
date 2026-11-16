@@ -68,7 +68,7 @@ describe('contrato: exemplos da §8.4', () => {
 
     const resposta = {
       rascunho: {
-        horarioTreino: null,
+        nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null,
         treinos: [
           { nome: 'Peito e tríceps', diasSemana: [1], exercicios: [] },
           { nome: 'Costas e bíceps', diasSemana: [2], exercicios: [] },
@@ -81,10 +81,19 @@ describe('contrato: exemplos da §8.4', () => {
     expect(respostaOnboarding.parse(resposta)).toEqual(resposta);
   });
 
+  it('aceita o perfil preenchido e recusa objetivo ou tempo de treino fora da lista', () => {
+    const comPerfil = { nome: 'Lucas', objetivo: 'forca', tempoDeTreino: 'de_1_a_3_anos', horarioTreino: null, treinos: [] };
+    const resposta = (rascunho: object) => ({ rascunho, proximaPergunta: null, completo: true });
+    expect(respostaOnboarding.safeParse(resposta(comPerfil)).success).toBe(true);
+    expect(respostaOnboarding.safeParse(resposta({ ...comPerfil, objetivo: 'emagrecer' })).success).toBe(false);
+    expect(respostaOnboarding.safeParse(resposta({ ...comPerfil, tempoDeTreino: '2 anos' })).success).toBe(false);
+    expect(respostaOnboarding.safeParse(resposta({ ...comPerfil, nome: '  ' })).success).toBe(false);
+  });
+
   it('recusa horário fora de HH:MM, dia 7 e mais de 20 mensagens', () => {
-    const vazio = { horarioTreino: null, treinos: [] };
+    const vazio = { nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null, treinos: [] };
     expect(respostaOnboarding.safeParse({ rascunho: { ...vazio, horarioTreino: '18h' }, proximaPergunta: null, completo: true }).success).toBe(false);
-    const comDia7 = { horarioTreino: null, treinos: [{ nome: 'A', diasSemana: [7], exercicios: [] }] };
+    const comDia7 = { nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null, treinos: [{ nome: 'A', diasSemana: [7], exercicios: [] }] };
     expect(respostaOnboarding.safeParse({ rascunho: comDia7, proximaPergunta: null, completo: true }).success).toBe(false);
     const mensagens = Array.from({ length: 21 }, () => ({ papel: 'usuario', texto: 'oi' }));
     expect(pedidoOnboarding.safeParse({ mensagens, rascunho: null }).success).toBe(false);

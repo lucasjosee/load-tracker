@@ -68,6 +68,9 @@ export async function preencherDadosFicticios(db: SQLiteDatabase, hoje: string):
 export async function prepararParaRefazerOnboarding(db: SQLiteDatabase): Promise<void> {
   await emTransacao(db, async (txn) => {
     await apagarDivisaoEHistorico(txn);
+    // O perfil é respondido de novo no onboarding; sem apagar, o que ficasse
+    // em branco agora continuaria com a resposta antiga.
+    await txn.runAsync("DELETE FROM config WHERE chave IN ('nome', 'objetivo', 'tempo_de_treino')");
     await salvarConfig(txn, 'seed_dispensado', '1');
     await salvarConfig(txn, 'onboarding_concluido', '0');
   });

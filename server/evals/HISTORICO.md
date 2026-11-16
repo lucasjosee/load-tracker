@@ -44,6 +44,7 @@ Com 10 itens, cada erro vale 10 pontos e uma rodada só não separa 80% de 90% c
 | v3 | treinos com nomes diferentes ficam separados | 4 de 4, duas rodadas | US$ 0,0098 e 0,0093 |
 
 | v4 | "por lado" como escrito, com `porLado` (a conversa real confere a marca de cada exercício) | 4 de 4 | US$ 0,0098 |
+| v5 | perfil na primeira pergunta (nome, objetivo, tempo de treino), limite de 7 perguntas; cada conversa ganhou a resposta do perfil e o gabarito dele | 4 de 4 | US$ 0,0132 |
 
 Na rodada "2 de 4", além das cargas por lado, a IA juntou Legs e Lower num treino só (dias 3 e 6). Na v1 anterior e na v2 isso não aconteceu: o erro é intermitente, e a v3 existe para ele.
 

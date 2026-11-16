@@ -18,7 +18,7 @@ import type { DivisaoConfirmada } from '@/domain/onboarding';
 import type { ItemConfirmado } from '@/domain/registroRapido';
 import { configPadrao, LIMITE_FALHAS_PADRAO, type ConfigExercicio, type Realizado } from '@/domain/tipos';
 
-import { obterConfig, salvarConfig } from './repositorios/config';
+import { obterConfig, obterObjetivo, salvarConfig } from './repositorios/config';
 import { excluirEstado, obterEstado, salvarEstado } from './repositorios/estadoProgressao';
 import { excluirEventosDoRegistro, inserirEvento } from './repositorios/eventos';
 import {
@@ -254,7 +254,8 @@ async function obterOuIniciarSessao(txn: SQLiteDatabase, data: string, treinoId:
 // faz a correção por texto funcionar; somar os dois rodaria o motor duas
 // vezes para um treino só.
 //
-// Exercício novo nasce com a config padrão do equipamento (§5.2), com tantas
+// Exercício novo nasce com a config padrão do equipamento (§5.2) e a faixa de
+// reps do objetivo da pessoa (§5.1), com tantas
 // séries alvo quantas a pessoa fez, fora de qualquer treino: para ele aparecer
 // na aba Hoje, é só adicioná-lo a um treino na aba Divisão.
 export async function registrarItens(
@@ -265,12 +266,13 @@ export async function registrarItens(
 ): Promise<void> {
   await emTransacao(db, async (txn) => {
     const sessao = await obterOuIniciarSessao(txn, data, treinoDeHojeId);
+    const objetivo = await obterObjetivo(txn);
     for (const item of itens) {
       let exercicio: Exercicio | null;
       if (item.tipo === 'existente') {
         exercicio = await obterExercicio(txn, item.exercicioId);
       } else {
-        const padrao = configPadrao(item.equipamento);
+        const padrao = configPadrao(item.equipamento, objetivo);
         exercicio = await inserirExercicio(txn, {
           nome: item.nome,
           grupoMuscular: item.grupoMuscular,
@@ -382,6 +384,18 @@ export async function salvarDivisaoDoOnboarding(
     }
     if (divisao.horarioDoAviso !== null) {
       await salvarConfig(txn, 'horario_notificacao', formatarHorario(divisao.horarioDoAviso));
+    }
+    // Perfil: só o que a pessoa informou. O objetivo é o que escolhe a faixa
+    // de reps dos exercícios criados daqui em diante (§5.1).
+    const { nome, objetivo, tempoDeTreino } = divisao.perfil;
+    if (nome !== null) {
+      await salvarConfig(txn, 'nome', nome);
+    }
+    if (objetivo !== null) {
+      await salvarConfig(txn, 'objetivo', objetivo);
+    }
+    if (tempoDeTreino !== null) {
+      await salvarConfig(txn, 'tempo_de_treino', tempoDeTreino);
     }
     await salvarConfig(txn, 'onboarding_concluido', '1');
   });

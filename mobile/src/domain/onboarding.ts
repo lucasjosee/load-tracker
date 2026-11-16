@@ -7,16 +7,21 @@ import { horarioDoAviso, lerHorario, type Horario } from './horario';
 import { lerNumero } from './textos';
 import {
   configPadrao,
-  REPS_MIN_PADRAO,
+  faixaDeReps,
   SERIES_ALVO_PADRAO,
   type Equipamento,
   type GrupoMuscular,
+  type Objetivo,
+  type TempoDeTreino,
 } from './tipos';
 import { validarNomeDoTreino, type Validacao } from './validacao';
 
 // O rascunho que o servidor devolve (contrato §8.4), repetido aqui porque o
 // domínio não importa de outras camadas.
 export interface RascunhoSugerido {
+  nome: string | null;
+  objetivo: Objetivo | null;
+  tempoDeTreino: TempoDeTreino | null;
   horarioTreino: string | null;
   treinos: {
     nome: string;
@@ -52,6 +57,9 @@ export interface TreinoEmRevisao {
 }
 
 export interface DivisaoEmRevisao {
+  nome: string; // texto digitado; vazio = não informado
+  objetivo: Objetivo | null;
+  tempoDeTreino: TempoDeTreino | null;
   horarioTreino: string | null; // 'HH:MM'
   treinos: TreinoEmRevisao[];
 }
@@ -70,18 +78,31 @@ export interface ExercicioConfirmado {
   reps: number; // reps atuais, em todas as séries
 }
 
+// O perfil é opcional: a pessoa pode confirmar a divisão sem preenchê-lo.
+export interface Perfil {
+  nome: string | null;
+  objetivo: Objetivo | null;
+  tempoDeTreino: TempoDeTreino | null;
+}
+
 export interface DivisaoConfirmada {
+  perfil: Perfil;
   horarioDoAviso: Horario | null; // 30 min antes do treino (§6)
   treinos: { nome: string; diasSemana: number[]; exercicios: ExercicioConfirmado[] }[];
 }
 
-// Campos que a IA deixou em branco recebem o padrão da §5.1 (séries e reps);
-// a carga fica vazia, porque inventar carga é proibido (§8.1).
+// Campos que a IA deixou em branco recebem o padrão da §5.1 (séries, e reps
+// no começo da faixa do objetivo); a carga fica vazia, porque inventar carga
+// é proibido (§8.1).
 export function revisaoDoRascunho(rascunho: RascunhoSugerido | null): DivisaoEmRevisao {
   if (rascunho === null) {
-    return { horarioTreino: null, treinos: [] };
+    return { nome: '', objetivo: null, tempoDeTreino: null, horarioTreino: null, treinos: [] };
   }
+  const repsPadrao = faixaDeReps(rascunho.objetivo).repsMin;
   return {
+    nome: rascunho.nome ?? '',
+    objetivo: rascunho.objetivo,
+    tempoDeTreino: rascunho.tempoDeTreino,
     horarioTreino: rascunho.horarioTreino,
     treinos: rascunho.treinos.map((treino, t) => ({
       chave: `treino-${t}`,
@@ -95,7 +116,7 @@ export function revisaoDoRascunho(rascunho: RascunhoSugerido | null): DivisaoEmR
         carga: exercicio.cargaKg === null ? '' : String(exercicio.cargaKg).replace('.', ','),
         porLado: exercicio.porLado,
         series: exercicio.series ?? SERIES_ALVO_PADRAO,
-        reps: exercicio.reps ?? REPS_MIN_PADRAO,
+        reps: exercicio.reps ?? repsPadrao,
       })),
     })),
   };
@@ -105,7 +126,7 @@ export function treinoEmBranco(chave: string): TreinoEmRevisao {
   return { chave, nome: '', diasSemana: [], exercicios: [] };
 }
 
-export function exercicioEmBranco(chave: string): ExercicioEmRevisao {
+export function exercicioEmBranco(chave: string, objetivo: Objetivo | null): ExercicioEmRevisao {
   return {
     chave,
     nome: '',
@@ -114,11 +135,15 @@ export function exercicioEmBranco(chave: string): ExercicioEmRevisao {
     carga: '',
     porLado: false,
     series: SERIES_ALVO_PADRAO,
-    reps: REPS_MIN_PADRAO,
+    reps: faixaDeReps(objetivo).repsMin,
   };
 }
 
-function validarExercicioDaRevisao(exercicio: ExercicioEmRevisao, onde: string): Validacao<ExercicioConfirmado> {
+function validarExercicioDaRevisao(
+  exercicio: ExercicioEmRevisao,
+  objetivo: Objetivo | null,
+  onde: string,
+): Validacao<ExercicioConfirmado> {
   const nome = exercicio.nome.trim();
   if (nome === '') {
     return { ok: false, erro: `${onde}: falta o nome do exercício.` };
@@ -133,7 +158,7 @@ function validarExercicioDaRevisao(exercicio: ExercicioEmRevisao, onde: string):
   if (exercicio.series < 1 || exercicio.reps < 1) {
     return { ok: false, erro: `${onde} (${nome}): séries e reps precisam ser pelo menos 1.` };
   }
-  const padrao = configPadrao(exercicio.equipamento);
+  const padrao = configPadrao(exercicio.equipamento, objetivo);
   return {
     ok: true,
     valor: {
@@ -177,7 +202,7 @@ export function validarDivisao(divisao: DivisaoEmRevisao): Validacao<DivisaoConf
     }
     const exercicios: ExercicioConfirmado[] = [];
     for (const [e, exercicio] of treino.exercicios.entries()) {
-      const validacao = validarExercicioDaRevisao(exercicio, `${treino.nome.trim()}, exercício ${e + 1}`);
+      const validacao = validarExercicioDaRevisao(exercicio, divisao.objetivo, `${treino.nome.trim()}, exercício ${e + 1}`);
       if (!validacao.ok) {
         return validacao;
       }
@@ -185,7 +210,12 @@ export function validarDivisao(divisao: DivisaoEmRevisao): Validacao<DivisaoConf
     }
     treinos.push({ nome: treino.nome.trim(), diasSemana: [...treino.diasSemana], exercicios });
   }
-  return { ok: true, valor: { horarioDoAviso: horario === null ? null : horarioDoAviso(horario), treinos } };
+  const perfil: Perfil = {
+    nome: divisao.nome.trim() === '' ? null : divisao.nome.trim(),
+    objetivo: divisao.objetivo,
+    tempoDeTreino: divisao.tempoDeTreino,
+  };
+  return { ok: true, valor: { perfil, horarioDoAviso: horario === null ? null : horarioDoAviso(horario), treinos } };
 }
 
 // ---------- Rascunho ao vivo na conversa (§3.1, passo 2) ----------

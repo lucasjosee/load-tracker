@@ -11,6 +11,9 @@ import {
 } from './onboarding';
 
 const RASCUNHO: RascunhoSugerido = {
+  nome: 'Lucas',
+  objetivo: null,
+  tempoDeTreino: 'de_1_a_3_anos',
   horarioTreino: '18:00',
   treinos: [
     {
@@ -33,7 +36,14 @@ describe('revisaoDoRascunho', () => {
   });
 
   it('sem rascunho (preencher manualmente), começa vazio', () => {
-    expect(revisaoDoRascunho(null)).toEqual({ horarioTreino: null, treinos: [] });
+    expect(revisaoDoRascunho(null)).toEqual({ nome: '', objetivo: null, tempoDeTreino: null, horarioTreino: null, treinos: [] });
+  });
+
+  it('leva o perfil para a revisão, e com objetivo força as reps que faltam começam em 4', () => {
+    const revisao = revisaoDoRascunho({ ...RASCUNHO, objetivo: 'forca' });
+    expect(revisao).toMatchObject({ nome: 'Lucas', objetivo: 'forca', tempoDeTreino: 'de_1_a_3_anos' });
+    expect(revisao.treinos[0]?.exercicios[0]?.reps).toBe(8); // o que a pessoa disse não muda
+    expect(revisao.treinos[0]?.exercicios[1]?.reps).toBe(4);
   });
 });
 
@@ -67,6 +77,18 @@ describe('validarDivisao', () => {
     }
   });
 
+  it('o objetivo escolhe a faixa de reps de todos os exercícios (§5.1)', () => {
+    const resultado = validarDivisao({ ...completa, objetivo: 'forca' });
+    expect(resultado.ok && resultado.valor.treinos[0]?.exercicios.map((e) => [e.repsMin, e.repsMax])).toEqual([[4, 6], [4, 6]]);
+  });
+
+  it('devolve o perfil, com nome em branco virando null', () => {
+    const comPerfil = validarDivisao({ ...completa, nome: '  Lucas ', objetivo: 'hipertrofia' });
+    expect(comPerfil.ok && comPerfil.valor.perfil).toEqual({ nome: 'Lucas', objetivo: 'hipertrofia', tempoDeTreino: 'de_1_a_3_anos' });
+    const semNome = validarDivisao({ ...completa, nome: '   ', tempoDeTreino: null });
+    expect(semNome.ok && semNome.valor.perfil).toEqual({ nome: null, objetivo: null, tempoDeTreino: null });
+  });
+
   it('sem horário, o aviso fica no padrão do app', () => {
     const resultado = validarDivisao({ ...completa, horarioTreino: null });
     expect(resultado.ok && resultado.valor.horarioDoAviso).toBeNull();
@@ -83,13 +105,13 @@ describe('validarDivisao', () => {
     const outro = { ...treinoEmBranco('t2'), nome: 'Costas', diasSemana: [4] };
     expect(validarDivisao({ ...completa, treinos: [...completa.treinos, outro] })).toMatchObject({ ok: false, erro: expect.stringMatching(/um treino só/) });
     expect(validarDivisao({ ...completa, treinos: [treinoEmBranco('t3')] })).toMatchObject({ ok: false, erro: expect.stringMatching(/nome/) });
-    expect(validarDivisao({ horarioTreino: null, treinos: [] })).toEqual({ ok: false, erro: 'Cadastre pelo menos um treino.' });
+    expect(validarDivisao(revisaoDoRascunho(null))).toEqual({ ok: false, erro: 'Cadastre pelo menos um treino.' });
   });
 
   it('exercício em branco pede nome, depois grupo e equipamento', () => {
-    const comBranco = { ...completa.treinos[0]!, exercicios: [exercicioEmBranco('e1')] };
+    const comBranco = { ...completa.treinos[0]!, exercicios: [exercicioEmBranco('e1', null)] };
     expect(validarDivisao({ ...completa, treinos: [comBranco] })).toMatchObject({ ok: false, erro: expect.stringMatching(/falta o nome/) });
-    const comNome = { ...comBranco, exercicios: [{ ...exercicioEmBranco('e1'), nome: 'Remada' }] };
+    const comNome = { ...comBranco, exercicios: [{ ...exercicioEmBranco('e1', null), nome: 'Remada' }] };
     expect(validarDivisao({ ...completa, treinos: [comNome] })).toMatchObject({ ok: false, erro: expect.stringMatching(/grupo muscular/) });
   });
 

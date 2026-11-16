@@ -97,7 +97,14 @@ export const arquivoDeConversas = z.object({
     z.object({
       nome: z.string(),
       respostas: z.array(z.string()).min(1), // o que a pessoa responde, em ordem
-      esperado: z.object({ horarioTreino: z.string().nullable(), treinos: z.array(treinoEsperado) }),
+      esperado: z.object({
+        // Perfil (tarefa 8.3): o que a pessoa não disse tem que vir null.
+        nome: z.string().nullable(),
+        objetivo: z.string().nullable(),
+        tempoDeTreino: z.string().nullable(),
+        horarioTreino: z.string().nullable(),
+        treinos: z.array(treinoEsperado),
+      }),
     }),
   ),
 });
@@ -105,6 +112,9 @@ export const arquivoDeConversas = z.object({
 export type RascunhoEsperado = z.infer<typeof arquivoDeConversas>['conversas'][number]['esperado'];
 
 interface RascunhoObtido {
+  nome: string | null;
+  objetivo: string | null;
+  tempoDeTreino: string | null;
   horarioTreino: string | null;
   treinos: { nome: string; diasSemana: number[]; exercicios: { cargaKg: number | null; porLado: boolean }[] }[];
 }
@@ -119,6 +129,11 @@ export function avaliarConversa(esperado: RascunhoEsperado, obtido: RascunhoObti
     return ['a conversa não terminou com um rascunho'];
   }
   const problemas: string[] = [];
+  for (const campo of ['nome', 'objetivo', 'tempoDeTreino'] as const) {
+    if (obtido[campo] !== esperado[campo]) {
+      problemas.push(`${campo}: esperado ${esperado[campo]}, veio ${obtido[campo]}`);
+    }
+  }
   if (obtido.horarioTreino !== esperado.horarioTreino) {
     problemas.push(`horário: esperado ${esperado.horarioTreino}, veio ${obtido.horarioTreino}`);
   }

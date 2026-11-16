@@ -59,7 +59,9 @@ describe('evals/frases.json', () => {
 });
 
 describe('avaliarConversa', () => {
+  const SEM_PERFIL = { nome: null, objetivo: null, tempoDeTreino: null };
   const esperado = {
+    ...SEM_PERFIL,
     horarioTreino: '18:00',
     treinos: [
       { diasSemana: [1, 4], exerciciosComCarga: 2 },
@@ -70,7 +72,8 @@ describe('avaliarConversa', () => {
 
   it('aprova com os mesmos dias (em qualquer ordem), cargas e horário', () => {
     const obtido = {
-      horarioTreino: '18:00',
+      ...SEM_PERFIL,
+    horarioTreino: '18:00',
       treinos: [
         { nome: 'Peito', diasSemana: [4, 1], exercicios: [exercicio(20), exercicio(14), exercicio(null)] },
         { nome: 'Costas', diasSemana: [2], exercicios: [exercicio(30)] },
@@ -81,6 +84,7 @@ describe('avaliarConversa', () => {
 
   it('aponta horário, treino faltando e carga faltando', () => {
     const obtido = {
+      ...SEM_PERFIL,
       horarioTreino: null,
       treinos: [{ nome: 'Peito', diasSemana: [1, 4], exercicios: [exercicio(20), exercicio(null)] }],
     };
@@ -93,8 +97,9 @@ describe('avaliarConversa', () => {
   });
 
   it('com `cargas`, confere a carga de cada exercício na ordem', () => {
-    const comCargas = { horarioTreino: null, treinos: [{ diasSemana: [1], exerciciosComCarga: 2, cargas: [45, 18] }] };
+    const comCargas = { ...SEM_PERFIL, horarioTreino: null, treinos: [{ diasSemana: [1], exerciciosComCarga: 2, cargas: [45, 18] }] };
     const obtido = (primeira: number) => ({
+      ...SEM_PERFIL,
       horarioTreino: null,
       treinos: [{ nome: 'Peito', diasSemana: [1], exercicios: [exercicio(primeira), exercicio(18)] }],
     });
@@ -104,15 +109,26 @@ describe('avaliarConversa', () => {
 
   it('com `porLado`, confere a marca de cada exercício na ordem', () => {
     const comMarcas = {
+      ...SEM_PERFIL,
       horarioTreino: null,
       treinos: [{ diasSemana: [3], exerciciosComCarga: 2, cargas: [20, 55], porLado: [true, false] }],
     };
     const obtido = (marca: boolean) => ({
+      ...SEM_PERFIL,
       horarioTreino: null,
       treinos: [{ nome: 'Perna', diasSemana: [3], exercicios: [exercicio(20, marca), exercicio(55)] }],
     });
     expect(avaliarConversa(comMarcas, obtido(true))).toEqual([]);
     expect(avaliarConversa(comMarcas, obtido(false))).toEqual(['Perna: por lado [false,false], esperado [true,false]']);
+  });
+
+  it('confere o perfil, campo a campo', () => {
+    const comPerfil = { nome: 'Bia', objetivo: 'forca', tempoDeTreino: null, horarioTreino: null, treinos: [] };
+    expect(avaliarConversa(comPerfil, { ...comPerfil })).toEqual([]);
+    expect(avaliarConversa(comPerfil, { ...comPerfil, nome: null, tempoDeTreino: 'mais_de_3_anos' })).toEqual([
+      'nome: esperado Bia, veio null',
+      'tempoDeTreino: esperado null, veio mais_de_3_anos',
+    ]);
   });
 
   it('sem rascunho, reprova', () => {

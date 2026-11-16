@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
@@ -9,12 +9,14 @@ import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
 import { adicionarExercicioExistente, cadastrarExercicio } from '@/db/operacoes';
+import { obterObjetivo } from '@/db/repositorios/config';
 import { listarExercicios, listarExerciciosDoTreino, type Exercicio } from '@/db/repositorios/exercicios';
 import { paraDataLocal } from '@/domain/datas';
 import { calcularProxima } from '@/domain/progressao';
 import { lerNumero, textoMeta } from '@/domain/textos';
 import {
   EQUIPAMENTOS,
+  faixaDeReps,
   GRUPOS_MUSCULARES,
   INCREMENTO_PADRAO_KG,
   LIMITE_FALHAS_PADRAO,
@@ -53,6 +55,17 @@ export default function TelaNovoExercicio() {
   const [erro, setErro] = useState<string | null>(null);
   const [existentes, setExistentes] = useState<Exercicio[]>([]);
   const gravar = useGravacao(); // trava contra toque duplo
+
+  // A faixa de reps começa na do objetivo da pessoa (§5.1). Só ao abrir a
+  // tela: depois disso vale o que ela ajustar no formulário.
+  useEffect(() => {
+    obterObjetivo(db).then((objetivo) => {
+      const faixa = faixaDeReps(objetivo);
+      setRepsMin(faixa.repsMin);
+      setRepsMax(faixa.repsMax);
+      setReps(faixa.repsMin);
+    });
+  }, [db]);
 
   useFocusEffect(
     useCallback(() => {

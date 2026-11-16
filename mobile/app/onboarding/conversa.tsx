@@ -96,7 +96,8 @@ export default function TelaConversa() {
             <TextInput
               value={texto}
               onChangeText={setTexto}
-              placeholder="seg peito e tríceps: supino reto 20kg 3x10..."
+              // A primeira pergunta é a do perfil; as seguintes, sobre o treino.
+              placeholder={perguntas === 1 ? 'Lucas, 2 anos, hipertrofia' : 'seg peito e tríceps: supino reto 20kg 3x10...'}
               placeholderTextColor={cores.textoSecundario}
               multiline
               maxLength={LIMITE_DO_TEXTO}

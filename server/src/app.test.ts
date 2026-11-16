@@ -94,7 +94,7 @@ describe('POST /v1/registro/interpretar', () => {
 
 describe('POST /v1/onboarding/conversa', () => {
   const pedido = { mensagens: [{ papel: 'assistente', texto: 'Em quais dias você treina?' }, { papel: 'usuario', texto: 'seg e qua' }], rascunho: null };
-  const resposta = { rascunho: { horarioTreino: null, treinos: [] }, proximaPergunta: 'E o que treina?', completo: false };
+  const resposta = { rascunho: { nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null, treinos: [] }, proximaPergunta: 'E o que treina?', completo: false };
 
   it('repassa a conversa e devolve o rascunho', async () => {
     const conversar = vi.fn().mockResolvedValue({ ok: true, valor: resposta });

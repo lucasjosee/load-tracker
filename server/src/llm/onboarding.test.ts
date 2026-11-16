@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PedidoOnboarding, RespostaOnboarding } from '../contrato';
 
 import type { ClienteLLM } from './cliente';
-import { aplicarRegras, contarPerguntas, conversarOnboarding, montarConteudo } from './onboarding';
+import { aplicarRegras, contarPerguntas, conversarOnboarding, montarConteudo, PROMPT_ONBOARDING } from './onboarding';
 
 const PEDIDO: PedidoOnboarding = {
   mensagens: [
@@ -16,7 +16,7 @@ const PEDIDO: PedidoOnboarding = {
 
 const RESPOSTA: RespostaOnboarding = {
   rascunho: {
-    horarioTreino: null,
+    nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null,
     treinos: [
       { nome: 'Peito e tríceps', diasSemana: [1], exercicios: [] },
       { nome: 'Costas e bíceps', diasSemana: [2], exercicios: [] },
@@ -57,7 +57,7 @@ describe('aplicarRegras (§8.4)', () => {
     const duplicado: RespostaOnboarding = {
       ...RESPOSTA,
       rascunho: {
-        horarioTreino: null,
+        nome: null, objetivo: null, tempoDeTreino: null, horarioTreino: null,
         treinos: [
           { nome: 'A', diasSemana: [1, 1, 3], exercicios: [] },
           { nome: 'B', diasSemana: [3, 5], exercicios: [] },
@@ -67,14 +67,22 @@ describe('aplicarRegras (§8.4)', () => {
     expect(aplicarRegras(duplicado, 1).rascunho.treinos.map((t) => t.diasSemana)).toEqual([[1, 3], [5]]);
   });
 
-  it('depois de 6 perguntas a conversa termina', () => {
-    expect(aplicarRegras(RESPOSTA, 6)).toMatchObject({ completo: true, proximaPergunta: null });
-    expect(aplicarRegras(RESPOSTA, 5)).toMatchObject({ completo: false });
+  it('depois de 7 perguntas a conversa termina', () => {
+    expect(aplicarRegras(RESPOSTA, 7)).toMatchObject({ completo: true, proximaPergunta: null });
+    expect(aplicarRegras(RESPOSTA, 6)).toMatchObject({ completo: false });
   });
 
   it('completo nunca vem com pergunta, e sem pergunta é completo', () => {
     expect(aplicarRegras({ ...RESPOSTA, completo: true }, 2).proximaPergunta).toBeNull();
     expect(aplicarRegras({ ...RESPOSTA, proximaPergunta: null }, 2).completo).toBe(true);
+  });
+});
+
+describe('PROMPT_ONBOARDING', () => {
+  it('manda registrar o perfil sem insistir e sem decidir a faixa de reps', () => {
+    expect(PROMPT_ONBOARDING).toContain('Regras do perfil');
+    expect(PROMPT_ONBOARDING).toContain('você não pergunta de novo');
+    expect(PROMPT_ONBOARDING).not.toMatch(/faixa de rep/i);
   });
 });
 
@@ -86,7 +94,7 @@ describe('montarConteudo e contarPerguntas', () => {
   it('inclui o rascunho atual e a conversa entre tags', () => {
     const texto = montarConteudo({ ...PEDIDO, rascunho: RESPOSTA.rascunho });
     expect(texto).toContain('"nome":"Perna"');
-    expect(texto).toContain('Perguntas já feitas: 1 de 6');
+    expect(texto).toContain('Perguntas já feitas: 1 de 7');
     expect(texto).toMatch(/<conversa>\nassistente: .*\nusuario: .*\n<\/conversa>/);
   });
 });

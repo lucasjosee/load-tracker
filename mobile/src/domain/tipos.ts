@@ -49,6 +49,25 @@ export const NOMES_DOS_EQUIPAMENTOS: Record<Equipamento, string> = {
   outro: 'Outro',
 };
 
+// Perfil da pessoa, perguntado no onboarding (§3.1). O objetivo escolhe a
+// faixa de reps padrão; o tempo de treino fica só registrado.
+export const OBJETIVOS = ['forca', 'hipertrofia'] as const;
+export type Objetivo = (typeof OBJETIVOS)[number];
+
+export const NOMES_DOS_OBJETIVOS: Record<Objetivo, string> = {
+  forca: 'Força',
+  hipertrofia: 'Hipertrofia',
+};
+
+export const TEMPOS_DE_TREINO = ['menos_de_1_ano', 'de_1_a_3_anos', 'mais_de_3_anos'] as const;
+export type TempoDeTreino = (typeof TEMPOS_DE_TREINO)[number];
+
+export const NOMES_DOS_TEMPOS_DE_TREINO: Record<TempoDeTreino, string> = {
+  menos_de_1_ano: 'Menos de 1 ano',
+  de_1_a_3_anos: '1 a 3 anos',
+  mais_de_3_anos: 'Mais de 3 anos',
+};
+
 // Regras de progressão de um exercício (§5.1). `limiteFalhas` não tem coluna
 // no banco: no MVP é sempre o padrão.
 export interface ConfigExercicio {
@@ -103,11 +122,30 @@ export const REPS_MAX_PADRAO = 12;
 export const SERIES_ALVO_PADRAO = 3;
 export const LIMITE_FALHAS_PADRAO = 3;
 
-// Configuração inicial de um exercício novo daquele equipamento (§5.1, §5.2).
-export function configPadrao(equipamento: Equipamento): ConfigExercicio {
+export interface FaixaDeReps {
+  repsMin: number;
+  repsMax: number;
+}
+
+// §5.1: a faixa de reps com que um exercício novo nasce, conforme o objetivo.
+// Tabela fixa: a IA registra o objetivo, mas quem escolhe a faixa é o app.
+export const FAIXA_DE_REPS_POR_OBJETIVO: Record<Objetivo, FaixaDeReps> = {
+  forca: { repsMin: 4, repsMax: 6 },
+  hipertrofia: { repsMin: REPS_MIN_PADRAO, repsMax: REPS_MAX_PADRAO },
+};
+
+// Sem objetivo informado, vale a faixa padrão (8–12).
+export function faixaDeReps(objetivo: Objetivo | null): FaixaDeReps {
+  return objetivo === null ? { repsMin: REPS_MIN_PADRAO, repsMax: REPS_MAX_PADRAO } : FAIXA_DE_REPS_POR_OBJETIVO[objetivo];
+}
+
+// Configuração inicial de um exercício novo: o incremento vem do equipamento
+// (§5.2) e a faixa de reps, do objetivo da pessoa (§5.1).
+export function configPadrao(equipamento: Equipamento, objetivo: Objetivo | null): ConfigExercicio {
+  const faixa = faixaDeReps(objetivo);
   return {
-    repsMin: REPS_MIN_PADRAO,
-    repsMax: REPS_MAX_PADRAO,
+    repsMin: faixa.repsMin,
+    repsMax: faixa.repsMax,
     seriesAlvo: SERIES_ALVO_PADRAO,
     incrementoKg: INCREMENTO_PADRAO_KG[equipamento],
     limiteFalhas: LIMITE_FALHAS_PADRAO,
@@ -123,4 +161,8 @@ export function ehGrupoMuscular(valor: string): valor is GrupoMuscular {
 
 export function ehEquipamento(valor: string): valor is Equipamento {
   return (EQUIPAMENTOS as readonly string[]).includes(valor);
+}
+
+export function ehObjetivo(valor: string): valor is Objetivo {
+  return (OBJETIVOS as readonly string[]).includes(valor);
 }

@@ -2,14 +2,16 @@ import {
   configPadrao,
   ehEquipamento,
   ehGrupoMuscular,
+  ehObjetivo,
   EQUIPAMENTOS,
+  faixaDeReps,
   GRUPOS_MUSCULARES,
   INCREMENTO_PADRAO_KG,
 } from './tipos';
 
 describe('configPadrao', () => {
-  it('usa faixa 8–12, 3 séries e limite de 3 falhas (§5.1)', () => {
-    expect(configPadrao('halter')).toEqual({
+  it('sem objetivo, usa faixa 8–12, 3 séries e limite de 3 falhas (§5.1)', () => {
+    expect(configPadrao('halter', null)).toEqual({
       repsMin: 8,
       repsMax: 12,
       seriesAlvo: 3,
@@ -26,13 +28,34 @@ describe('configPadrao', () => {
     ['peso_corporal', 0],
     ['outro', 2],
   ] as const)('%s começa com incremento de %d kg (§5.2)', (equipamento, incremento) => {
-    expect(configPadrao(equipamento).incrementoKg).toBe(incremento);
+    expect(configPadrao(equipamento, null).incrementoKg).toBe(incremento);
   });
 
   it('tem incremento padrão para todos os equipamentos', () => {
     for (const equipamento of EQUIPAMENTOS) {
       expect(INCREMENTO_PADRAO_KG[equipamento]).toBeGreaterThanOrEqual(0);
     }
+  });
+});
+
+describe('faixaDeReps (§5.1)', () => {
+  it('força usa 4–6; hipertrofia e sem objetivo usam 8–12', () => {
+    expect(faixaDeReps('forca')).toEqual({ repsMin: 4, repsMax: 6 });
+    expect(faixaDeReps('hipertrofia')).toEqual({ repsMin: 8, repsMax: 12 });
+    expect(faixaDeReps(null)).toEqual({ repsMin: 8, repsMax: 12 });
+  });
+
+  it('o objetivo muda a faixa do exercício novo, sem mexer no incremento', () => {
+    expect(configPadrao('maquina', 'forca')).toMatchObject({ repsMin: 4, repsMax: 6, incrementoKg: 5 });
+  });
+});
+
+describe('ehObjetivo', () => {
+  it('aceita os objetivos da lista e recusa o resto', () => {
+    expect(ehObjetivo('forca')).toBe(true);
+    expect(ehObjetivo('hipertrofia')).toBe(true);
+    expect(ehObjetivo('força')).toBe(false);
+    expect(ehObjetivo('')).toBe(false);
   });
 });
 
