@@ -1,32 +1,49 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { SecaoAvisos } from '@/components/SecaoAvisos';
+import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
 import { escolherArquivoDeBackup, exportarBackup, restaurarBackup, VERSAO_DO_BANCO } from '@/db/backup';
+import { obterConfig, salvarConfig } from '@/db/repositorios/config';
 import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
 import { lerBackup, resumoDoBackup } from '@/domain/backup';
 import { listarDiasPorExtenso, paraDataLocal } from '@/domain/datas';
+import {
+  DESCANSO_MAXIMO_S,
+  DESCANSO_MINIMO_S,
+  DESCANSO_PADRAO_S,
+  formatarDescanso,
+  lerDuracaoDoDescanso,
+  PASSO_DO_DESCANSO_S,
+} from '@/domain/descanso';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaDivisao() {
   const db = useSQLiteContext();
   const [treinos, setTreinos] = useState<TreinoComDias[] | null>(null);
+  const [descansoS, setDescansoS] = useState(DESCANSO_PADRAO_S);
 
   // useFocusEffect roda ao abrir a aba e toda vez que ela volta a aparecer
   // (ex.: depois de editar um treino), então a lista nunca fica velha.
   useFocusEffect(
     useCallback(() => {
       listarTreinos(db).then(setTreinos);
+      obterConfig(db, 'descanso_segundos').then((texto) => setDescansoS(lerDuracaoDoDescanso(texto)));
     }, [db]),
   );
 
   if (treinos === null) {
     return <Tela titulo="Divisão">{null}</Tela>;
+  }
+
+  async function mudarDescanso(segundos: number) {
+    setDescansoS(segundos);
+    await salvarConfig(db, 'descanso_segundos', String(segundos));
   }
 
   async function exportar() {
@@ -110,6 +127,24 @@ export default function TelaDivisao() {
 
       <SecaoAvisos onMudou={() => reagendarNotificacoes(db)} />
 
+      <Secao titulo="Descanso">
+        <View style={styles.linha}>
+          <Text style={styles.rotulo}>Tempo entre séries</Text>
+          <Stepper
+            valor={descansoS}
+            onMudar={mudarDescanso}
+            passo={PASSO_DO_DESCANSO_S}
+            minimo={DESCANSO_MINIMO_S}
+            maximo={DESCANSO_MAXIMO_S}
+            formatar={formatarDescanso}
+            rotulo="tempo de descanso"
+          />
+        </View>
+        <Text style={estilosComuns.textoSecundario}>
+          O cronômetro fica em cada cartão da aba Hoje e vibra quando o tempo acaba, com o app aberto.
+        </Text>
+      </Secao>
+
       <Secao titulo="Dados">
         <Text style={estilosComuns.textoSecundario}>
           Tudo fica só neste iPhone. Exporte de vez em quando e salve em Arquivos ou no iCloud.
@@ -123,5 +158,7 @@ export default function TelaDivisao() {
 
 const styles = StyleSheet.create({
   nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
+  linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  rotulo: { fontSize: 17, color: cores.texto, flexShrink: 1 },
   pressionado: { opacity: 0.6 },
 });

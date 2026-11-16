@@ -17,6 +17,7 @@ import {
 import type { Realizado } from '@/domain/tipos';
 
 import { Botao } from './Botao';
+import { CronometroDeDescanso } from './CronometroDeDescanso';
 import { PainelAjuste } from './PainelAjuste';
 import { ReguaDeReps } from './ReguaDeReps';
 import { Selo } from './Selo';
@@ -28,12 +29,13 @@ interface Props {
   onCheckin: (realizado: Realizado) => void;
   onDesfazer: () => void;
   onAbrir: () => void; // toque no nome: detalhe do exercício (histórico e gráficos)
+  descansoS: number; // duração do cronômetro de descanso
 }
 
 // Um exercício na aba Hoje (§3.2). A meta é o herói do cartão: número grande,
 // sozinho na linha, para ser lido de relance entre uma série e outra. Depois
 // do check-in o cartão encolhe para uma linha e sai do caminho.
-export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props) {
+export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir, descansoS }: Props) {
   const { exercicio, estado, mudanca, feitoHoje, estagnacao, ultimaSessao, recordeHoje } = item;
   const [ajustando, setAjustando] = useState(false);
 
@@ -137,6 +139,7 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props)
           <Botao titulo="Pulei" variante="secundario" peso={1} desabilitado={estado === null} onPress={() => onCheckin('PULOU')} />
         </View>
       )}
+      <CronometroDeDescanso duracaoS={descansoS} />
     </View>
   );
 }

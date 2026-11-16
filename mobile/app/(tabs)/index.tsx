@@ -12,7 +12,9 @@ import { estilosComuns, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
+import { obterConfig } from '@/db/repositorios/config';
 import { paraDataLocal } from '@/domain/datas';
+import { lerDuracaoDoDescanso } from '@/domain/descanso';
 import { avisoDeTreinoPerdidoVisivel, resumirSessao, type TreinoIdentificado } from '@/domain/hoje';
 import { progressoDoTreino } from '@/domain/regua';
 import {
@@ -27,7 +29,7 @@ import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaHoje() {
   const db = useSQLiteContext();
-  const [hoje, setHoje] = useState<{ data: string; conteudo: Hoje } | null>(null);
+  const [hoje, setHoje] = useState<{ data: string; conteudo: Hoje; descansoS: number } | null>(null);
   // Treino escolhido na hora pelo "Fazer hoje?" (§3.5); null = o normal do
   // dia. Guarda a data junto para a escolha não valer no dia seguinte, se o
   // app ficar aberto de um dia para o outro.
@@ -43,7 +45,11 @@ export default function TelaHoje() {
     // outro, voltar para a aba já mostra o treino do dia novo.
     const data = paraDataLocal(new Date());
     const treinoEscolhido = escolhido?.data === data ? escolhido.treinoId : null;
-    setHoje({ data, conteudo: await carregarHoje(db, data, treinoEscolhido) });
+    const [conteudo, descanso] = await Promise.all([
+      carregarHoje(db, data, treinoEscolhido),
+      obterConfig(db, 'descanso_segundos'),
+    ]);
+    setHoje({ data, conteudo, descansoS: lerDuracaoDoDescanso(descanso) });
   }, [db, escolhido]);
 
   useFocusEffect(
@@ -65,7 +71,7 @@ export default function TelaHoje() {
   if (hoje === null) {
     return <Tela titulo="Hoje">{null}</Tela>;
   }
-  const { data, conteudo } = hoje;
+  const { data, conteudo, descansoS } = hoje;
 
   const aviso =
     conteudo.perdido !== null && avisoDeTreinoPerdidoVisivel(avisoDispensadoEm, data) ? (
@@ -172,6 +178,7 @@ export default function TelaHoje() {
           onCheckin={(realizado) => checkin(item, realizado)}
           onDesfazer={() => desfazer(item)}
           onAbrir={() => router.push({ pathname: '/exercicio/[id]', params: { id: item.exercicio.id } })}
+          descansoS={descansoS}
         />
       ))}
 

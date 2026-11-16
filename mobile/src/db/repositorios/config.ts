@@ -6,7 +6,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 // quem lê converte. Todas as chaves usadas pelo app ficam listadas aqui.
 export type ChaveDeConfig =
   | 'horario_notificacao' // 'HH:MM' do aviso do treino
-  | 'onboarding_concluido'; // '1' depois do onboarding
+  | 'onboarding_concluido' // '1' depois do onboarding
+  | 'descanso_segundos'; // duração do cronômetro de descanso (domain/descanso.ts)
 
 export async function obterConfig(db: SQLiteDatabase, chave: ChaveDeConfig): Promise<string | null> {
   const linha = await db.getFirstAsync<{ valor: string }>('SELECT valor FROM config WHERE chave = ?', chave);
