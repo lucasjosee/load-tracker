@@ -8,7 +8,7 @@ import { SecaoAvisos } from '@/components/SecaoAvisos';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { preencherDadosFicticios, SEMANAS_DE_HISTORICO } from '@/db/dadosFicticios';
+import { prepararParaRefazerOnboarding, preencherDadosFicticios, SEMANAS_DE_HISTORICO } from '@/db/dadosFicticios';
 import { escolherArquivoDeBackup, exportarBackup, restaurarBackup, VERSAO_DO_BANCO } from '@/db/backup';
 import { obterConfig, salvarConfig } from '@/db/repositorios/config';
 import { listarTreinos, type TreinoComDias } from '@/db/repositorios/treinos';
@@ -22,12 +22,14 @@ import {
   lerDuracaoDoDescanso,
   PASSO_DO_DESCANSO_S,
 } from '@/domain/descanso';
+import { useRefazerOnboarding } from '@/hooks/onboarding';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaDivisao() {
   const db = useSQLiteContext();
   const [treinos, setTreinos] = useState<TreinoComDias[] | null>(null);
   const [descansoS, setDescansoS] = useState(DESCANSO_PADRAO_S);
+  const refazerOnboarding = useRefazerOnboarding();
 
   // useFocusEffect roda ao abrir a aba e toda vez que ela volta a aparecer
   // (ex.: depois de editar um treino), então a lista nunca fica velha.
@@ -124,6 +126,32 @@ export default function TelaDivisao() {
     );
   }
 
+  // Também só em desenvolvimento: no Expo Go o seed pula o onboarding, e sem
+  // isto não haveria como ver o primeiro uso do app.
+  function refazer() {
+    Alert.alert(
+      'Refazer o onboarding?',
+      'A divisão e o histórico deste iPhone serão apagados, e o app volta para a tela de boas-vindas.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar e refazer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await prepararParaRefazerOnboarding(db);
+            } catch {
+              Alert.alert('Não foi possível apagar', 'Nada foi alterado.');
+              return;
+            }
+            await reagendarNotificacoes(db); // sem treinos, cancela os avisos agendados
+            refazerOnboarding();
+          },
+        },
+      ],
+    );
+  }
+
   const diasComTreino = treinos.flatMap((treino) => treino.dias);
   const diasDeDescanso = [0, 1, 2, 3, 4, 5, 6].filter((dia) => !diasComTreino.includes(dia));
 
@@ -184,9 +212,11 @@ export default function TelaDivisao() {
       {__DEV__ && (
         <Secao titulo="Desenvolvimento">
           <Text style={estilosComuns.textoSecundario}>
-            Só aparece no Expo Go. Apaga tudo e grava {SEMANAS_DE_HISTORICO} semanas de treinos inventados.
+            Só aparece no Expo Go. Os dois botões apagam a divisão e o histórico: o primeiro grava{' '}
+            {SEMANAS_DE_HISTORICO} semanas de treinos inventados, o segundo volta ao primeiro uso do app.
           </Text>
           <Botao titulo="Preencher com dados fictícios" variante="perigo" onPress={preencherFicticios} />
+          <Botao titulo="Refazer onboarding" variante="perigo" onPress={refazer} />
         </Secao>
       )}
     </Tela>

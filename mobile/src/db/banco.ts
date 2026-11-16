@@ -4,7 +4,7 @@ import { paraDataLocal } from '@/domain/datas';
 
 import { MIGRACOES, migracoesPendentes } from './migracoes';
 import { gravarExercicioNovo } from './operacoes';
-import { salvarConfig } from './repositorios/config';
+import { obterConfig, salvarConfig } from './repositorios/config';
 import { proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
 import { definirTreinoDoDia, inserirTreino } from './repositorios/treinos';
 import { deveAplicarSeed, DIVISAO_SEED, type TreinoSeed } from './seed';
@@ -50,7 +50,8 @@ async function aplicarSeedSeBancoVazio(db: SQLiteDatabase): Promise<void> {
   const linha = await db.getFirstAsync<{ treinos: number; exercicios: number }>(
     'SELECT (SELECT COUNT(*) FROM treino) AS treinos, (SELECT COUNT(*) FROM exercicio) AS exercicios',
   );
-  if (!deveAplicarSeed(linha?.treinos ?? 0, linha?.exercicios ?? 0)) {
+  const dispensado = (await obterConfig(db, 'seed_dispensado')) === '1';
+  if (!deveAplicarSeed(linha?.treinos ?? 0, linha?.exercicios ?? 0, dispensado)) {
     return;
   }
   // Tudo ou nada: um seed pela metade deixaria o banco "não vazio" e o seed

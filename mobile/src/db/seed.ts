@@ -17,8 +17,11 @@ import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
 // O seed só entra em banco recém-criado. Olhar só os treinos não basta: quem
 // exclui todos os treinos para refazer a divisão continua com os exercícios
 // e o histórico, e o seed criaria outros com os mesmos nomes, zerados.
-export function deveAplicarSeed(totalDeTreinos: number, totalDeExercicios: number): boolean {
-  return totalDeTreinos === 0 && totalDeExercicios === 0;
+//
+// `dispensado` vem do botão "Refazer onboarding": ali o banco fica vazio de
+// propósito, e o seed regravar a divisão esconderia o onboarding de novo.
+export function deveAplicarSeed(totalDeTreinos: number, totalDeExercicios: number, dispensado = false): boolean {
+  return !dispensado && totalDeTreinos === 0 && totalDeExercicios === 0;
 }
 
 export interface ExercicioSeed {

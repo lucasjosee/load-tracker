@@ -6,6 +6,7 @@ import { CHANCE_DE_FALTAR, realizadoFicticio, sorteador } from '@/domain/fictici
 
 import { gravarDivisao } from './banco';
 import { aplicarRealizado } from './operacoes';
+import { salvarConfig } from './repositorios/config';
 import { obterEstado } from './repositorios/estadoProgressao';
 import { listarExerciciosDoTreino } from './repositorios/exercicios';
 import { iniciarSessao } from './repositorios/sessoes';
@@ -28,13 +29,7 @@ export async function preencherDadosFicticios(db: SQLiteDatabase, hoje: string):
   const sorteio = sorteador(SEMENTE);
 
   await emTransacao(db, async (txn) => {
-    // Dos filhos para os pais, como no restaurar backup. A config (horário
-    // do aviso, descanso) fica: não tem a ver com o histórico.
-    for (const tabela of [...TABELAS_DO_BACKUP].reverse()) {
-      if (tabela !== 'config') {
-        await txn.execAsync(`DELETE FROM ${tabela}`);
-      }
-    }
+    await apagarDivisaoEHistorico(txn);
 
     await gravarDivisao(txn, DIVISAO_SEED, inicio);
     // O histórico é ordenado por `criado_em`, que os repositórios preenchem
@@ -65,6 +60,27 @@ export async function preencherDadosFicticios(db: SQLiteDatabase, hoje: string):
       await txn.runAsync('UPDATE sessao SET iniciada_em = ?, finalizada_em = ? WHERE id = ?', quando, quando, sessao.id);
     }
   });
+}
+
+// Ferramenta de desenvolvimento: deixa o app como no primeiro uso, para ver o
+// onboarding no Expo Go. Lá o seed grava a divisão sozinho quando o banco
+// está vazio, então é preciso dispensá-lo, senão ele volta ao abrir o app.
+export async function prepararParaRefazerOnboarding(db: SQLiteDatabase): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    await apagarDivisaoEHistorico(txn);
+    await salvarConfig(txn, 'seed_dispensado', '1');
+    await salvarConfig(txn, 'onboarding_concluido', '0');
+  });
+}
+
+// Dos filhos para os pais, como no restaurar backup. A config (horário do
+// aviso, descanso) fica: não tem a ver com a divisão nem com o histórico.
+async function apagarDivisaoEHistorico(txn: SQLiteDatabase): Promise<void> {
+  for (const tabela of [...TABELAS_DO_BACKUP].reverse()) {
+    if (tabela !== 'config') {
+      await txn.execAsync(`DELETE FROM ${tabela}`);
+    }
+  }
 }
 
 // Todo treino inventado acontece às 18h do dia dele.

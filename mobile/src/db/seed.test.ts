@@ -55,6 +55,10 @@ describe('deveAplicarSeed', () => {
     expect(deveAplicarSeed(0, 12)).toBe(false);
   });
 
+  it('banco vazio para refazer o onboarding: o seed fica de fora', () => {
+    expect(deveAplicarSeed(0, 0, true)).toBe(false);
+  });
+
   it('com treinos: não regrava', () => {
     expect(deveAplicarSeed(5, 12)).toBe(false);
   });
