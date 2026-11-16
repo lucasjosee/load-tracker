@@ -7,5 +7,8 @@ export const OPCOES_DE_NAVEGACAO = {
   headerStyle: { backgroundColor: cores.fundo },
   headerTintColor: cores.texto, // título e seta de voltar
   headerShadowVisible: false,
+  // Só a seta no botão de voltar. O nome da tela anterior (`headerBackTitle`)
+  // continua valendo: é o que o iOS mostra no menu ao segurar a seta.
+  headerBackButtonDisplayMode: 'minimal',
   contentStyle: { backgroundColor: cores.fundo },
 } as const;
