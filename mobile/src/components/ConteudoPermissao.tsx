@@ -42,6 +42,6 @@ export function ConteudoPermissao({ onTerminar }: Props) {
 
 const styles = StyleSheet.create({
   tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', backgroundColor: cores.fundo },
-  titulo: { fontSize: 28, fontWeight: '700' },
+  titulo: { fontSize: 28, fontWeight: '700', color: cores.texto },
   botoes: { gap: espaco.pequeno },
 });

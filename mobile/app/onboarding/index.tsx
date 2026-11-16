@@ -33,7 +33,7 @@ export default function TelaBoasVindas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', backgroundColor: cores.fundo },
-  titulo: { fontSize: 34, fontWeight: '800' },
-  frase: { fontSize: 22, fontWeight: '600' },
+  titulo: { fontSize: 34, fontWeight: '800', color: cores.texto },
+  frase: { fontSize: 22, fontWeight: '600', color: cores.texto },
   botoes: { gap: espaco.pequeno, marginTop: espaco.grande },
 });

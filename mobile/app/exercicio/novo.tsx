@@ -216,6 +216,6 @@ const styles = StyleSheet.create({
   rotulo: { fontSize: 17, color: cores.texto },
   campoCurto: { minWidth: 96, textAlign: 'right' },
   previa: { fontSize: 17, fontWeight: '600', color: cores.primaria },
-  nomeExistente: { fontSize: 17 },
+  nomeExistente: { fontSize: 17, color: cores.texto },
   pressionado: { opacity: 0.6 },
 });

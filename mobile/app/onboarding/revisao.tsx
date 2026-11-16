@@ -205,6 +205,6 @@ const styles = StyleSheet.create({
   nomeTreino: { fontWeight: '600', backgroundColor: cores.fundo },
   exercicio: { gap: 8, padding: 12, borderRadius: 10, backgroundColor: cores.fundo },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  rotulo: { fontSize: 16 },
+  rotulo: { fontSize: 16, color: cores.texto },
   campoCurto: { minWidth: 96, textAlign: 'right' },
 });

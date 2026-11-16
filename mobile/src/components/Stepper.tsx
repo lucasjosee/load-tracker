@@ -58,11 +58,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: cores.superficie,
+    backgroundColor: cores.superficieAlta,
     alignItems: 'center',
     justifyContent: 'center',
   },
   apagado: { opacity: 0.4 },
   sinal: { fontSize: 22, color: cores.primaria, fontWeight: '600' },
-  valor: { minWidth: 56, textAlign: 'center', fontSize: 17, fontVariant: ['tabular-nums'] },
+  valor: { minWidth: 56, textAlign: 'center', fontSize: 17, fontVariant: ['tabular-nums'], color: cores.texto },
 });

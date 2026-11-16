@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { cores } from '@/components/tema';
+import { cores, raio } from '@/components/tema';
 import { carregarEvolucao, type Evolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
 import { frasesDeFeedback, textoDoGrupo, textoEstagnacao } from '@/domain/textos';
@@ -83,11 +83,11 @@ export default function TelaEvolucao() {
 
 const styles = StyleSheet.create({
   topo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  nome: { fontSize: 17, fontWeight: '600' },
+  nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
   contagem: { fontSize: 14, color: cores.textoSecundario },
   subiu: { color: cores.sobe },
   pressionado: { opacity: 0.6 },
   frase: { fontSize: 17, fontWeight: '600', color: cores.sobe },
-  alerta: { padding: 12, borderRadius: 12, backgroundColor: cores.aviso },
+  alerta: { padding: 12, borderRadius: raio, backgroundColor: cores.aviso },
   textoAlerta: { fontSize: 15, color: cores.texto },
 });

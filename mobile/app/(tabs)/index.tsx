@@ -179,7 +179,7 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 
 const styles = StyleSheet.create({
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  descanso: { fontSize: 28, fontWeight: '700', marginTop: 16 },
+  descanso: { fontSize: 28, fontWeight: '700', marginTop: 16, color: cores.texto },
   proximo: { fontSize: 17, color: cores.texto },
   finalizado: { fontSize: 16, color: cores.sobe, fontWeight: '600', textAlign: 'center', marginTop: 8 },
   aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 16, gap: 10 },

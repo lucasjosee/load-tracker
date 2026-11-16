@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from './Botao';
 import { Stepper } from './Stepper';
+import { cores } from './tema';
 
 interface Props {
   reps: number[]; // uma posição por série
@@ -39,6 +40,6 @@ export function EditorDeSeries({ reps, onMudar }: Props) {
 const styles = StyleSheet.create({
   lista: { gap: 8 },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rotulo: { fontSize: 16 },
+  rotulo: { fontSize: 16, color: cores.texto },
   botoes: { flexDirection: 'row', gap: 8 },
 });

@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 
+import { OPCOES_DE_NAVEGACAO } from '@/components/navegacao';
 import { inicializarBanco, NOME_DO_BANCO } from '@/db/banco';
 import { precisaDeOnboarding } from '@/db/operacoes';
 import { ContextoFimDoOnboarding } from '@/hooks/onboarding';
@@ -38,7 +39,7 @@ function Navegacao() {
 
   return (
     <ContextoFimDoOnboarding.Provider value={() => setEmOnboarding(false)}>
-      <Stack>
+      <Stack screenOptions={OPCOES_DE_NAVEGACAO}>
         <Stack.Protected guard={!emOnboarding}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="treino/novo" options={{ title: 'Novo treino', presentation: 'modal' }} />

@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 999,
-    backgroundColor: cores.superficie,
+    backgroundColor: cores.superficieAlta,
   },
   chipMarcado: { backgroundColor: cores.primaria },
   texto: { fontSize: 15, color: cores.texto },

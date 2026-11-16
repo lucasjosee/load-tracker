@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
   revisar: { borderWidth: 2, borderColor: cores.desce, borderRadius: raio },
   aviso: { fontSize: 14, color: cores.desce, fontWeight: '600' },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  nome: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
+  nome: { fontSize: 17, fontWeight: '600', flexShrink: 1, color: cores.texto },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rotulo: { fontSize: 16 },
+  rotulo: { fontSize: 16, color: cores.texto },
   campoCurto: { minWidth: 96, textAlign: 'right' },
 });

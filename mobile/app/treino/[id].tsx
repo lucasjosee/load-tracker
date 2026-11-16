@@ -205,7 +205,7 @@ function BotaoIcone({ simbolo, rotulo, onPress, desabilitado = false }: BotaoIco
 const styles = StyleSheet.create({
   linhaExercicio: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   infoExercicio: { flex: 1, gap: 2 },
-  nomeExercicio: { fontSize: 17 },
+  nomeExercicio: { fontSize: 17, color: cores.texto },
   botaoIcone: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   simbolo: { fontSize: 18, color: cores.primaria },
   apagado: { opacity: 0.3 },

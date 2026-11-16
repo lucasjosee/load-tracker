@@ -45,11 +45,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   primario: { backgroundColor: cores.primaria },
-  secundario: { backgroundColor: cores.superficie },
-  perigo: { backgroundColor: cores.superficie },
+  // `superficieAlta` e não `superficie`: muitos botões ficam dentro de um
+  // cartão, e com a cor do cartão eles sumiriam.
+  secundario: { backgroundColor: cores.superficieAlta },
+  perigo: { backgroundColor: cores.superficieAlta },
   apagado: { opacity: 0.5 },
   texto: { fontSize: 16, fontWeight: '600' },
   texto_primario: { color: cores.textoSobrePrimaria },
-  texto_secundario: { color: cores.primaria },
+  texto_secundario: { color: cores.texto },
   texto_perigo: { color: cores.perigo },
 });

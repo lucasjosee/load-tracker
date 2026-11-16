@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { escalarPontos, paraPolyline } from './escala';
-import { cores } from './tema';
+import { cores, raioDoCartao } from './tema';
 
 const ALTURA = 140;
 const MARGEM = 8;
@@ -55,7 +55,7 @@ export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
 }
 
 const styles = StyleSheet.create({
-  caixa: { gap: 6, padding: 16, borderRadius: 12, backgroundColor: cores.superficie },
+  caixa: { gap: 6, padding: 16, borderRadius: raioDoCartao, backgroundColor: cores.superficie },
   topo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   titulo: { fontSize: 15, fontWeight: '600', color: cores.textoSecundario },
   atual: { fontSize: 20, fontWeight: '700', color: cores.texto },

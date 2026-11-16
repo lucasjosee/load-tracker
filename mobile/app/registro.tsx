@@ -141,5 +141,5 @@ export default function TelaRegistro() {
 
 const styles = StyleSheet.create({
   texto: { minHeight: 100, textAlignVertical: 'top' },
-  aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 12, fontSize: 15 },
+  aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 12, fontSize: 15, color: cores.texto },
 });

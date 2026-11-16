@@ -43,6 +43,6 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, onS
 const styles = StyleSheet.create({
   painel: { gap: 8, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderColor: cores.borda },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rotulo: { fontSize: 16 },
+  rotulo: { fontSize: 16, color: cores.texto },
   botoes: { flexDirection: 'row', gap: 8 },
 });

@@ -101,7 +101,7 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
 const styles = StyleSheet.create({
   feito: { opacity: 0.85 },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  nome: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
+  nome: { fontSize: 17, fontWeight: '600', flexShrink: 1, color: cores.texto },
   selos: { flexDirection: 'row', gap: 4 },
   alerta: { fontSize: 14, color: cores.desce },
   meta: { fontSize: 22, fontWeight: '700', color: cores.texto, marginTop: 2 },

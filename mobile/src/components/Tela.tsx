@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { cores, espaco } from './tema';
+import { cores, espaco, raio, raioDoCartao, tipografia } from './tema';
 
 interface Props {
   titulo?: string;
@@ -46,29 +46,24 @@ export function Secao({ titulo, children }: SecaoProps) {
 const styles = StyleSheet.create({
   fundo: { backgroundColor: cores.fundo },
   conteudo: { padding: espaco.grande, gap: espaco.medio, paddingBottom: 48 },
-  titulo: { fontSize: 32, fontWeight: '700', marginBottom: espaco.pequeno },
+  titulo: { ...tipografia.titulo, marginBottom: espaco.pequeno },
   secao: { gap: espaco.pequeno, marginTop: espaco.pequeno },
-  tituloSecao: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: cores.textoSecundario,
-    textTransform: 'uppercase',
-  },
+  tituloSecao: { ...tipografia.tituloDeSecao, textTransform: 'uppercase', letterSpacing: 0.5 },
 });
 
 export const estilosComuns = StyleSheet.create({
   cartao: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: raioDoCartao,
     backgroundColor: cores.superficie,
     gap: 4,
   },
-  textoSecundario: { fontSize: 15, color: cores.textoSecundario },
+  textoSecundario: tipografia.secundario,
   campo: {
-    fontSize: 17,
+    ...tipografia.corpo, // sem a cor, o texto digitado sairia preto no fundo escuro
     paddingVertical: 12,
     paddingHorizontal: 14,
-    borderRadius: 10,
+    borderRadius: raio,
     backgroundColor: cores.superficie,
   },
   erro: { fontSize: 15, color: cores.perigo },
