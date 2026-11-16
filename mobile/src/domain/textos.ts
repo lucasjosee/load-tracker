@@ -48,23 +48,31 @@ export function lerNumero(texto: string): number | null {
   return Number(normalizado);
 }
 
-// '12 kg × 8'. Em peso corporal (carga 0) a carga não diz nada: '13 reps'.
-export function textoMeta(estado: Pick<EstadoProgressao, 'cargaKg' | 'repsAlvo'>): string {
+// A carga como a pessoa a lê na academia: '20 kg', ou '20 kg lado' quando o
+// exercício é anotado por lado (§5.2). O app nunca soma os dois lados: o
+// número da tela é o que vai em cada lado da barra.
+export function formatarCarga(kg: number, porLado = false): string {
+  return porLado ? `${formatarKg(kg)} kg lado` : `${formatarKg(kg)} kg`;
+}
+
+// '12 kg × 8' ou '20 kg lado × 8'. Em peso corporal (carga 0) a carga não
+// diz nada: '13 reps'.
+export function textoMeta(estado: Pick<EstadoProgressao, 'cargaKg' | 'repsAlvo'>, porLado = false): string {
   if (estado.cargaKg === 0) {
     return `${estado.repsAlvo} reps`;
   }
-  return `${formatarKg(estado.cargaKg)} kg × ${estado.repsAlvo}`;
+  return `${formatarCarga(estado.cargaKg, porLado)} × ${estado.repsAlvo}`;
 }
 
 // O que foi feito: '22,5 kg × 9, 9, 8'. Peso corporal: '12, 12, 10 reps'.
-export function textoRealizado(cargaKg: number, reps: readonly number[]): string {
+export function textoRealizado(cargaKg: number, reps: readonly number[], porLado = false): string {
   if (reps.length === 0) {
     return 'nenhuma série';
   }
   if (cargaKg === 0) {
     return `${reps.join(', ')} reps`;
   }
-  return `${formatarKg(cargaKg)} kg × ${reps.join(', ')}`;
+  return `${formatarCarga(cargaKg, porLado)} × ${reps.join(', ')}`;
 }
 
 export function textoSeries(series: number): string {
@@ -82,9 +90,10 @@ export function motivoDaMeta(
   estado: EstadoProgressao,
   mudanca: MudancaDeMeta | null,
   config: ConfigExercicio,
+  porLado = false,
 ): string {
   if (mudanca === null || mudanca.cargaDe === null) {
-    return `Ponto de partida: ${textoMeta(estado)}.`;
+    return `Ponto de partida: ${textoMeta(estado, porLado)}.`;
   }
   switch (mudanca.tipo) {
     case 'aumento_reps':
@@ -201,8 +210,8 @@ export function textoDoGrupo(variacao: number | null, seriesNaSemana: number): s
 
 // Uma linha da linha do tempo do exercício (§3.6), ex.: "↑ 12 kg × 8".
 // A data vai separada, na frente.
-export function textoDoEvento(mudanca: MudancaDeMeta): string {
-  const meta = textoMeta({ cargaKg: mudanca.cargaPara, repsAlvo: mudanca.repsPara });
+export function textoDoEvento(mudanca: MudancaDeMeta, porLado = false): string {
+  const meta = textoMeta({ cargaKg: mudanca.cargaPara, repsAlvo: mudanca.repsPara }, porLado);
   if (mudanca.cargaDe === null) {
     return `Início: ${meta}`;
   }

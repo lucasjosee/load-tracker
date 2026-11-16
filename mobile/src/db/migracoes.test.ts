@@ -39,6 +39,22 @@ describe('migracoesPendentes', () => {
     expect(v2?.sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i);
   });
 
+  it('a v3 cria a coluna carga_por_lado e esvazia o banco, sem derrubar tabela', () => {
+    const v3 = MIGRACOES.find((m) => m.versao === 3);
+    expect(v3?.sql).toContain('ALTER TABLE exercicio ADD COLUMN carga_por_lado INTEGER NOT NULL DEFAULT 0');
+    expect(v3?.sql).not.toMatch(/DROP|CREATE TABLE/i);
+    // Filhos antes dos pais: apagar `exercicio` antes de `registro` violaria a chave estrangeira.
+    const posicao = (tabela: string) => v3?.sql.indexOf(`DELETE FROM ${tabela};`) ?? -1;
+    for (const tabela of ['evento', 'serie', 'registro', 'sessao', 'estado_progressao', 'treino_exercicio', 'treino_dia', 'exercicio', 'treino', 'config']) {
+      expect(posicao(tabela)).toBeGreaterThan(-1);
+    }
+    expect(posicao('evento')).toBeLessThan(posicao('registro'));
+    expect(posicao('registro')).toBeLessThan(posicao('exercicio'));
+    expect(posicao('registro')).toBeLessThan(posicao('sessao'));
+    expect(posicao('treino_exercicio')).toBeLessThan(posicao('exercicio'));
+    expect(posicao('exercicio')).toBeLessThan(posicao('treino'));
+  });
+
   it('a lista real do app está bem numerada', () => {
     expect(() => migracoesPendentes(0, MIGRACOES)).not.toThrow();
   });

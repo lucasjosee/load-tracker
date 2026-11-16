@@ -51,6 +51,9 @@ export const itemInterpretado = z.object({
   grupoMuscular,
   equipamento,
   cargaKg,
+  // A anotação diz "lado" / "cada lado": cargaKg é o peso de UM lado, como foi
+  // escrito, e o app mostra "20 kg lado" (§5.2). O servidor nunca dobra a carga.
+  porLado: z.boolean(),
   reps: z.array(reps).min(1).max(20), // uma posição por série
   confianca: z.enum(['alta', 'media', 'baixa']),
 });
@@ -76,6 +79,7 @@ export const exercicioDoRascunho = z.object({
   grupoMuscular,
   equipamento,
   cargaKg: cargaKg.nullable(),
+  porLado: z.boolean(), // como em itemInterpretado
   series: z.number().int().min(1).max(20).nullable(),
   reps: z.number().int().min(1).max(200).nullable(),
 });

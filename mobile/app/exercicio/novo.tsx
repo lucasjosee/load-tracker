@@ -1,7 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { Opcoes } from '@/components/Opcoes';
@@ -47,6 +47,7 @@ export default function TelaNovoExercicio() {
   // não é número); só viram número na validação.
   const [incremento, setIncremento] = useState('');
   const [carga, setCarga] = useState('');
+  const [porLado, setPorLado] = useState(false);
   const [reps, setReps] = useState(REPS_MIN_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
   const [existentes, setExistentes] = useState<Exercicio[]>([]);
@@ -78,6 +79,7 @@ export default function TelaNovoExercicio() {
     repsMax,
     seriesAlvo: series,
     incrementoKg: lerNumero(incremento),
+    porLado,
     cargaKg: lerNumero(carga),
     reps,
   });
@@ -131,7 +133,7 @@ export default function TelaNovoExercicio() {
       </Secao>
 
       <Secao titulo="Como você faz hoje">
-        <Linha rotulo="Carga (kg)">
+        <Linha rotulo={porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}>
           <TextInput
             value={carga}
             onChangeText={setCarga}
@@ -140,6 +142,13 @@ export default function TelaNovoExercicio() {
             style={[estilosComuns.campo, styles.campoCurto]}
           />
         </Linha>
+        <Linha rotulo="Carga por lado">
+          <Switch value={porLado} onValueChange={setPorLado} accessibilityLabel="carga por lado" />
+        </Linha>
+        <Text style={estilosComuns.textoSecundario}>
+          Ligue quando você anota o peso de um lado só da barra ou da máquina. O app mostra &quot;20 kg lado&quot; e não soma
+          os dois; o incremento também é por lado.
+        </Text>
         <Linha rotulo="Reps por série">
           <Stepper valor={reps} onMudar={setReps} minimo={1} maximo={50} rotulo="reps atuais" />
         </Linha>
@@ -164,14 +173,11 @@ export default function TelaNovoExercicio() {
             style={[estilosComuns.campo, styles.campoCurto]}
           />
         </Linha>
-        <Text style={estilosComuns.textoSecundario}>
-          Anote a carga sempre do mesmo jeito neste exercício: por halter, total da barra ou por lado.
-        </Text>
       </Secao>
 
       {primeiraMeta !== null && (
         <Text style={styles.previa}>
-          Primeira meta: {textoMeta(primeiraMeta)} × {series}
+          Primeira meta: {textoMeta(primeiraMeta, porLado)} × {series}
         </Text>
       )}
       {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}

@@ -31,6 +31,7 @@ export interface DadosDoExercicio {
   repsMax: number;
   seriesAlvo: number;
   incrementoKg: number | null;
+  porLado: boolean;
   cargaKg: number | null;
   reps: number; // reps atuais, em todas as séries
 }
@@ -44,6 +45,7 @@ export interface ExercicioValidado {
   repsMax: number;
   seriesAlvo: number;
   incrementoKg: number;
+  porLado: boolean;
   cargaKg: number;
   reps: number;
 }
@@ -61,6 +63,8 @@ export interface DadosDasRegras {
   repsMax: number;
   seriesAlvo: number;
   incrementoKg: number | null;
+  // A carga deste exercício é anotada por lado (§5.2). Só muda o rótulo.
+  porLado: boolean;
 }
 
 export interface RegrasValidadas {
@@ -71,6 +75,7 @@ export interface RegrasValidadas {
   repsMax: number;
   seriesAlvo: number;
   incrementoKg: number;
+  porLado: boolean;
 }
 
 export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas> {
@@ -106,6 +111,7 @@ export function validarRegras(dados: DadosDasRegras): Validacao<RegrasValidadas>
       repsMax: dados.repsMax,
       seriesAlvo: dados.seriesAlvo,
       incrementoKg,
+      porLado: dados.porLado,
     },
   };
 }

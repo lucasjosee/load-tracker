@@ -10,6 +10,9 @@ export const META = 0.9; // ≥ 90% em cada métrica (§8.5)
 const itemEsperado = z.object({
   exercicioId: z.string().nullable(), // null = exercício que não está na lista
   cargaKg: z.number(),
+  // Anotação com "lado": a carga fica como foi escrita e a marca vem ligada
+  // (§8.3). Omitido no gabarito = false.
+  porLado: z.boolean().default(false),
   reps: z.array(z.number().int()),
 });
 
@@ -47,7 +50,8 @@ export function avaliarFrase(esperados: readonly ItemEsperado[], obtidos: readon
     if (obtido === undefined) {
       return;
     }
-    acertos.carga += Number(obtido.cargaKg === esperado.cargaKg);
+    // A marca "por lado" faz parte da carga: 20 e "20 lado" são pesos diferentes.
+    acertos.carga += Number(obtido.cargaKg === esperado.cargaKg && obtido.porLado === esperado.porLado);
     acertos.reps += Number(iguais(obtido.reps, esperado.reps));
     acertos.associacao += Number(obtido.exercicioId === esperado.exercicioId);
   });
@@ -82,8 +86,10 @@ const treinoEsperado = z.object({
   diasSemana: z.array(z.number().int()),
   exerciciosComCarga: z.number().int(), // quantos exercícios, no mínimo, com carga
   // Opcional: a carga de cada exercício, na ordem em que a pessoa escreveu.
-  // Serve para conferir as regras de carga ("lado" = dobro, dois números).
+  // Serve para conferir as regras de carga ("lado" fica como escrito, dois números).
   cargas: z.array(z.number()).optional(),
+  // Opcional: na mesma ordem, quais exercícios devem vir marcados "por lado".
+  porLado: z.array(z.boolean()).optional(),
 });
 
 export const arquivoDeConversas = z.object({
@@ -100,7 +106,7 @@ export type RascunhoEsperado = z.infer<typeof arquivoDeConversas>['conversas'][n
 
 interface RascunhoObtido {
   horarioTreino: string | null;
-  treinos: { nome: string; diasSemana: number[]; exercicios: { cargaKg: number | null }[] }[];
+  treinos: { nome: string; diasSemana: number[]; exercicios: { cargaKg: number | null; porLado: boolean }[] }[];
 }
 
 const mesmosDias = (a: readonly number[], b: readonly number[]) =>
@@ -133,6 +139,12 @@ export function avaliarConversa(esperado: RascunhoEsperado, obtido: RascunhoObti
       const obtidas = achado.exercicios.map((e) => e.cargaKg ?? -1); // -1 = sem carga
       if (!iguais(obtidas, treino.cargas)) {
         problemas.push(`${achado.nome}: cargas [${obtidas}], esperado [${treino.cargas}]`);
+      }
+    }
+    if (treino.porLado !== undefined) {
+      const obtidas = achado.exercicios.map((e) => e.porLado);
+      if (obtidas.length !== treino.porLado.length || obtidas.some((marca, i) => marca !== treino.porLado?.[i])) {
+        problemas.push(`${achado.nome}: por lado [${obtidas}], esperado [${treino.porLado}]`);
       }
     }
   }

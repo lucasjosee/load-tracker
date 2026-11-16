@@ -6,7 +6,7 @@ import type { RespostaInterpretar } from './contrato';
 const TOKEN = 'token-de-teste';
 const RESPOSTA: RespostaInterpretar = {
   itens: [
-    { exercicioId: 'ex_01', nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra', cargaKg: 20, reps: [10, 10, 10], confianca: 'alta' },
+    { exercicioId: 'ex_01', nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra', cargaKg: 20, porLado: false, reps: [10, 10, 10], confianca: 'alta' },
   ],
   naoEntendido: [],
 };

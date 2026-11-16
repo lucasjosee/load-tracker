@@ -1,7 +1,7 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { GraficoDeLinha } from '@/components/GraficoDeLinha';
@@ -16,7 +16,7 @@ import { definirAtivo } from '@/db/repositorios/exercicios';
 import { formatarDiaMes } from '@/domain/datas';
 import { forcaDaSessao } from '@/domain/metricas';
 import {
-  formatarKg,
+  formatarCarga,
   formatarNumero,
   lerNumero,
   motivoDaMeta,
@@ -48,6 +48,7 @@ interface Formulario {
   repsMax: number;
   seriesAlvo: number;
   incremento: string;
+  porLado: boolean;
 }
 
 function formularioDe(detalhe: DetalheDoExercicio): Formulario {
@@ -60,6 +61,7 @@ function formularioDe(detalhe: DetalheDoExercicio): Formulario {
     repsMax: exercicio.repsMax,
     seriesAlvo: exercicio.seriesAlvo,
     incremento: String(exercicio.incrementoKg).replace('.', ','),
+    porLado: exercicio.porLado,
   };
 }
 
@@ -138,12 +140,13 @@ export default function TelaExercicio() {
         <View style={estilosComuns.cartao}>
           <View style={styles.topo}>
             <Text style={styles.meta}>
-              {textoMeta(estado)} <Text style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Text>
+              {textoMeta(estado, exercicio.porLado)}{' '}
+              <Text style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Text>
             </Text>
             <Selo selo={seloDaMeta(ultimaMudanca)} />
           </View>
           <Text style={estilosComuns.textoSecundario}>
-            {motivoDaMeta(estado, ultimaMudanca, configDoExercicio(exercicio))}
+            {motivoDaMeta(estado, ultimaMudanca, configDoExercicio(exercicio), exercicio.porLado)}
           </Text>
         </View>
       )}
@@ -160,7 +163,7 @@ export default function TelaExercicio() {
           titulo="Carga"
           valores={sessoes.map((sessao) => sessao.cargaKg)}
           rotulos={datas}
-          formatar={(v) => `${formatarKg(v)} kg`}
+          formatar={(v) => formatarCarga(v, exercicio.porLado)}
         />
       )}
 
@@ -169,7 +172,7 @@ export default function TelaExercicio() {
         {[...eventos].reverse().map((evento) => (
           <View key={evento.id} style={styles.evento}>
             <Text style={styles.dataDoEvento}>{formatarDiaMes(evento.data)}</Text>
-            <Text style={styles.textoDoEvento}>{textoDoEvento(evento)}</Text>
+            <Text style={styles.textoDoEvento}>{textoDoEvento(evento, exercicio.porLado)}</Text>
           </View>
         ))}
       </Secao>
@@ -229,6 +232,17 @@ export default function TelaExercicio() {
             style={[estilosComuns.campo, styles.campoCurto]}
           />
         </View>
+        <View style={styles.linha}>
+          <Text style={styles.rotulo}>Carga por lado</Text>
+          <Switch
+            value={formulario.porLado}
+            onValueChange={(porLado) => setFormulario({ ...formulario, porLado })}
+            accessibilityLabel="carga por lado"
+          />
+        </View>
+        <Text style={estilosComuns.textoSecundario}>
+          Só muda o rótulo (&quot;20 kg lado&quot;). As cargas já registradas não são convertidas.
+        </Text>
         {mensagem !== null && (
           <Text style={mensagem.erro ? estilosComuns.erro : styles.salvo}>{mensagem.texto}</Text>
         )}

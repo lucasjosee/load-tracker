@@ -14,6 +14,7 @@ export interface ItemSugerido {
   grupoMuscular: GrupoMuscular;
   equipamento: Equipamento;
   cargaKg: number;
+  porLado: boolean;
   reps: number[];
   confianca: 'alta' | 'media' | 'baixa';
 }
@@ -26,6 +27,9 @@ export interface ItemEmEdicao {
   grupoMuscular: GrupoMuscular | null;
   equipamento: Equipamento | null;
   carga: string; // texto digitado: "12,5"
+  // Carga anotada por lado (§5.2). Só vale para exercício novo: num que já
+  // existe, quem manda é a marca do cadastro, não o que a IA sugeriu.
+  porLado: boolean;
   reps: number[]; // uma posição por série
   revisar: boolean; // a IA teve pouca confiança: a tela destaca
 }
@@ -37,6 +41,7 @@ export type ItemConfirmado =
       nome: string;
       grupoMuscular: GrupoMuscular;
       equipamento: Equipamento;
+      porLado: boolean;
       cargaKg: number;
       reps: number[];
     };
@@ -55,6 +60,7 @@ export function itensDaSugestao(itens: readonly ItemSugerido[], idsConhecidos: r
       grupoMuscular: item.grupoMuscular,
       equipamento: item.equipamento,
       carga: String(item.cargaKg).replace('.', ','),
+      porLado: item.porLado,
       reps: [...item.reps],
       revisar: desconhecido || item.confianca === 'baixa',
     };
@@ -70,6 +76,7 @@ export function itemEmBranco(chave: string): ItemEmEdicao {
     grupoMuscular: null,
     equipamento: null,
     carga: '',
+    porLado: false,
     reps: [8, 8, 8],
     revisar: false,
   };
@@ -96,7 +103,15 @@ function validarItem(item: ItemEmEdicao, posicao: number): Validacao<ItemConfirm
   }
   return {
     ok: true,
-    valor: { tipo: 'novo', nome, grupoMuscular: item.grupoMuscular, equipamento: item.equipamento, cargaKg, reps: item.reps },
+    valor: {
+      tipo: 'novo',
+      nome,
+      grupoMuscular: item.grupoMuscular,
+      equipamento: item.equipamento,
+      porLado: item.porLado,
+      cargaKg,
+      reps: item.reps,
+    },
   };
 }
 

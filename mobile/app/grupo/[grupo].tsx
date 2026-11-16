@@ -39,7 +39,7 @@ export default function TelaGrupo() {
         >
           <Text style={styles.nome}>{exercicio.nome}</Text>
           <Text style={estilosComuns.textoSecundario}>
-            {estado === null ? 'Sem meta' : `Meta: ${textoMeta(estado)}`} ·{' '}
+            {estado === null ? 'Sem meta' : `Meta: ${textoMeta(estado, exercicio.porLado)}`} ·{' '}
             {variacao === null ? `${sessoes} ${sessoes === 1 ? 'sessão' : 'sessões'}` : `${formatarPercentual(variacao)} de força`}
           </Text>
         </Pressable>

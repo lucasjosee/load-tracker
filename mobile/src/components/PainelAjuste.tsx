@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { formatarKg } from '@/domain/textos';
+import { formatarCarga } from '@/domain/textos';
 
 import { Botao } from './Botao';
 import { EditorDeSeries } from './EditorDeSeries';
@@ -12,13 +12,14 @@ interface Props {
   cargaInicial: number;
   repsIniciais: number[]; // uma posição por série, já com a meta
   passoKg: number;
+  porLado: boolean; // o stepper mostra "20 kg lado" (§5.2)
   onSalvar: (cargaKg: number, reps: number[]) => void;
   onCancelar: () => void;
 }
 
 // "Ajustar" (§3.2): steppers da carga e das reps de cada série, já
 // preenchidos com a meta, para mudar só o que foi diferente.
-export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, onSalvar, onCancelar }: Props) {
+export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, onSalvar, onCancelar }: Props) {
   const [carga, setCarga] = useState(cargaInicial);
   const [reps, setReps] = useState(repsIniciais);
 
@@ -26,7 +27,7 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, onSalvar, on
     <View style={styles.painel}>
       <View style={styles.linha}>
         <Text style={styles.rotulo}>Carga</Text>
-        <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => `${formatarKg(kg)} kg`} rotulo="carga" />
+        <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => formatarCarga(kg, porLado)} rotulo="carga" />
       </View>
 
       <EditorDeSeries reps={reps} onMudar={setReps} />

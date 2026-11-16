@@ -55,10 +55,10 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
       {feitoHoje !== null ? (
         <>
           <Text style={styles.resultado}>
-            {feitoHoje.resultado === 'pulou' ? 'Pulado' : `✓ ${textoRealizado(feitoHoje.cargaKg, feitoHoje.reps)}`}
+            {feitoHoje.resultado === 'pulou' ? 'Pulado' : `✓ ${textoRealizado(feitoHoje.cargaKg, feitoHoje.reps, exercicio.porLado)}`}
           </Text>
           {estado !== null && feitoHoje.resultado !== 'pulou' && (
-            <Text style={estilosComuns.textoSecundario}>Próxima vez: {textoMeta(estado)}</Text>
+            <Text style={estilosComuns.textoSecundario}>Próxima vez: {textoMeta(estado, exercicio.porLado)}</Text>
           )}
           <View style={styles.botoes}>
             <Botao titulo="Desfazer" variante="secundario" compacto onPress={onDesfazer} />
@@ -69,9 +69,10 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
       ) : (
         <>
           <Text style={styles.meta}>
-            {textoMeta(estado)} <Text style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Text>
+            {textoMeta(estado, exercicio.porLado)}{' '}
+            <Text style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Text>
           </Text>
-          <Text style={estilosComuns.textoSecundario}>{motivoDaMeta(estado, mudanca, configDoExercicio(exercicio))}</Text>
+          <Text style={estilosComuns.textoSecundario}>{motivoDaMeta(estado, mudanca, configDoExercicio(exercicio), exercicio.porLado)}</Text>
         </>
       )}
 
@@ -88,6 +89,7 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer }: Props) {
           cargaInicial={estado?.cargaKg ?? 0}
           repsIniciais={Array.from({ length: exercicio.seriesAlvo }, () => estado?.repsAlvo ?? exercicio.repsMin)}
           passoKg={exercicio.incrementoKg > 0 ? exercicio.incrementoKg : 1}
+          porLado={exercicio.porLado}
           onSalvar={salvarAjuste}
           onCancelar={() => setAjustando(false)}
         />

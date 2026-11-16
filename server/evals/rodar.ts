@@ -34,7 +34,7 @@ for (const frase of frases) {
   console.log(`${tudoCerto ? '✓' : '✗'} ${emUmaLinha(frase.texto)}`);
   if (!tudoCerto) {
     console.log(`    esperado: ${JSON.stringify(frase.esperado)}`);
-    console.log(`    obtido:   ${resultado.ok ? JSON.stringify(obtidos.map(({ exercicioId, cargaKg, reps }) => ({ exercicioId, cargaKg, reps }))) : resultado.motivo}`);
+    console.log(`    obtido:   ${resultado.ok ? JSON.stringify(obtidos.map(({ exercicioId, cargaKg, porLado, reps }) => ({ exercicioId, cargaKg, porLado, reps }))) : resultado.motivo}`);
     if (resultado.ok && resultado.valor.naoEntendido.length > 0) {
       console.log(`    não entendido: ${JSON.stringify(resultado.valor.naoEntendido)}`);
     }

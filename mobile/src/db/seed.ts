@@ -8,10 +8,9 @@
 // - Reps atuais = 8 (início da faixa). Como no onboarding (§3.1), essa carga
 //   vira a "última sessão" e o motor calcula a primeira meta: carga × 9.
 // - Carga anotada "por lado" (barra, máquina de anilha, cross de dois cabos)
-//   entra como o TOTAL, o dobro do número anotado: "22,5 lado" = 45. É a
-//   mesma regra que a IA usa no registro rápido (§8.3); se o seed guardasse
-//   22,5 e o registro trouxesse 45, o app veria um salto de carga que não houve.
-//   Halter fica com o peso de um halter (§5.2).
+//   entra como está no bloco de notas, com a marca `porLado`: "22,5 lado" é
+//   22,5, e o app mostra "22,5 kg lado" (§5.2). É a mesma regra que a IA usa
+//   no registro rápido (§8.3). Halter é o peso de um halter, sem a marca.
 
 import type { Equipamento, GrupoMuscular } from '@/domain/tipos';
 
@@ -27,6 +26,7 @@ export interface ExercicioSeed {
   grupoMuscular: GrupoMuscular;
   equipamento: Equipamento;
   incrementoKg: number;
+  porLado: boolean;
   repsMin: number;
   repsMax: number;
   seriesAlvo: number;
@@ -49,19 +49,20 @@ export interface TreinoSeed {
 const INCREMENTO = {
   halter: 2, // halteres de 2 em 2 kg: 10, 14, 16, 18
   polia: 3.5, // a maioria das cargas de cross é múltipla de 3,5: 17,5 · 24,5 · 28
-  porLado: 5, // barra e máquinas de anilha: uma anilha de 2,5 de cada lado sobe 5 no total
-  crossDuplo: 7, // cross de dois cabos: um passo de 3,5 em cada lado
+  anilha: 2.5, // barra e máquinas de anilha, por lado: uma anilha de 2,5 de cada lado
   pino: 5, // máquinas de pino: padrão da §5.2
 };
 
-const PADRAO = { repsMin: 8, repsMax: 12, seriesAlvo: 4, repsAtuais: 8 };
+const PADRAO = { repsMin: 8, repsMax: 12, seriesAlvo: 4, repsAtuais: 8, porLado: false };
+// Exercícios anotados por lado: espalhado DEPOIS do PADRAO, troca só a marca.
+const POR_LADO = { ...PADRAO, porLado: true };
 
 // Legs e Lower usam os mesmos exercícios, então a progressão deles é uma só.
 const PERNAS: ExercicioSeed[] = [
   { nome: 'Agachamento livre', grupoMuscular: 'quadriceps', equipamento: 'barra',
-    incrementoKg: INCREMENTO.porLado, cargaKg: 40, ...PADRAO },
+    incrementoKg: INCREMENTO.anilha, cargaKg: 20, ...POR_LADO },
   { nome: 'Panturrilha em pé', grupoMuscular: 'panturrilha', equipamento: 'maquina',
-    incrementoKg: INCREMENTO.porLado, cargaKg: 50, ...PADRAO },
+    incrementoKg: INCREMENTO.anilha, cargaKg: 25, ...POR_LADO },
   { nome: 'Panturrilha na máquina', grupoMuscular: 'panturrilha', equipamento: 'maquina',
     incrementoKg: INCREMENTO.pino, cargaKg: 115, ...PADRAO },
 ];
@@ -72,11 +73,11 @@ export const DIVISAO_SEED: readonly TreinoSeed[] = [
     nome: 'Push',
     exercicios: [
       { nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra',
-        incrementoKg: INCREMENTO.porLado, cargaKg: 45, ...PADRAO },
+        incrementoKg: INCREMENTO.anilha, cargaKg: 22.5, ...POR_LADO },
       { nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter',
         incrementoKg: INCREMENTO.halter, cargaKg: 18, ...PADRAO },
       { nome: 'Inclinado no cross', grupoMuscular: 'peito', equipamento: 'polia',
-        incrementoKg: INCREMENTO.crossDuplo, cargaKg: 40, ...PADRAO },
+        incrementoKg: INCREMENTO.polia, cargaKg: 20, ...POR_LADO },
       { nome: 'Desenvolvimento', grupoMuscular: 'ombros', equipamento: 'halter',
         incrementoKg: INCREMENTO.halter, cargaKg: 14, ...PADRAO },
       { nome: 'Tríceps no triângulo para baixo', grupoMuscular: 'triceps', equipamento: 'polia',
@@ -114,7 +115,7 @@ export const DIVISAO_SEED: readonly TreinoSeed[] = [
     nome: 'Upper',
     exercicios: [
       { nome: 'Supino reto na máquina', grupoMuscular: 'peito', equipamento: 'maquina',
-        incrementoKg: INCREMENTO.porLado, cargaKg: 65, ...PADRAO },
+        incrementoKg: INCREMENTO.anilha, cargaKg: 32.5, ...POR_LADO },
       { nome: 'Supino inclinado na máquina', grupoMuscular: 'peito', equipamento: 'maquina',
         incrementoKg: INCREMENTO.pino, cargaKg: 75, ...PADRAO },
       { nome: 'Pulldown na máquina', grupoMuscular: 'costas', equipamento: 'maquina',

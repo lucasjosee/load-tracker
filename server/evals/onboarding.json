@@ -62,9 +62,9 @@
       "esperado": {
         "horarioTreino": "19:00",
         "treinos": [
-          { "diasSemana": [1], "exerciciosComCarga": 4, "cargas": [45, 18, 75, 40] },
-          { "diasSemana": [2], "exerciciosComCarga": 3, "cargas": [28, 31, 17.5] },
-          { "diasSemana": [3], "exerciciosComCarga": 3, "cargas": [40, 80, 55] }
+          { "diasSemana": [1], "exerciciosComCarga": 4, "cargas": [22.5, 18, 75, 20], "porLado": [true, false, false, true] },
+          { "diasSemana": [2], "exerciciosComCarga": 3, "cargas": [28, 31, 17.5], "porLado": [false, false, false] },
+          { "diasSemana": [3], "exerciciosComCarga": 3, "cargas": [20, 40, 55], "porLado": [true, true, false] }
         ]
       }
     }

@@ -27,7 +27,7 @@ async function carregarDivisao(db: SQLiteDatabase): Promise<Map<number, TreinoDo
       const estado = estados.get(exercicio.id);
       // Exercício inativo ou sem meta não entra no texto.
       return exercicio.ativo && estado !== undefined
-        ? [{ nome: exercicio.nome, estado, mudanca: mudancas.get(exercicio.id) ?? null }]
+        ? [{ nome: exercicio.nome, porLado: exercicio.porLado, estado, mudanca: mudancas.get(exercicio.id) ?? null }]
         : [];
     });
     divisao.set(diaSemana, { nome: treino.nome, itens });

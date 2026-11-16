@@ -23,6 +23,7 @@ describe('validarExercicio', () => {
     repsMax: 12,
     seriesAlvo: 4,
     incrementoKg: 2.5,
+    porLado: true,
     cargaKg: 22.5,
     reps: 8,
   };
@@ -61,6 +62,7 @@ describe('validarRegras', () => {
     repsMax: 15,
     seriesAlvo: 3,
     incrementoKg: 1,
+    porLado: false,
   };
 
   it('aceita e limpa o nome', () => {

@@ -8,6 +8,7 @@ import type { EstadoProgressao, MudancaDeMeta } from './tipos';
 
 export interface ItemDoAviso {
   nome: string;
+  porLado: boolean; // carga anotada por lado (§5.2): o texto diz "20 kg lado"
   estado: Pick<EstadoProgressao, 'cargaKg' | 'repsAlvo'>;
   mudanca: MudancaDeMeta | null;
 }
@@ -42,7 +43,7 @@ export function textoDoAvisoDeTreino(treino: TreinoDoAviso): TextoDoAviso {
   // a ordem do treino se mantém.
   const ordenados = [...treino.itens].sort((a, b) => Number(mudouCarga(b)) - Number(mudouCarga(a)));
   const partes = ordenados.slice(0, EXERCICIOS_NO_AVISO).map((item) => {
-    const meta = `${item.nome} ${textoMeta(item.estado)}`;
+    const meta = `${item.nome} ${textoMeta(item.estado, item.porLado)}`;
     return mudouCarga(item) ? `${meta} (${seloDaMeta(item.mudanca).texto})` : meta;
   });
   const restantes = treino.itens.length - partes.length;

@@ -7,20 +7,27 @@ import frases from './frases.json';
 import conversas from './onboarding.json';
 
 function obtido(exercicioId: string | null, cargaKg: number, reps: number[]): ItemInterpretado {
-  return { exercicioId, nome: 'X', grupoMuscular: 'peito', equipamento: 'barra', cargaKg, reps, confianca: 'alta' };
+  return { exercicioId, nome: 'X', grupoMuscular: 'peito', equipamento: 'barra', cargaKg, porLado: false, reps, confianca: 'alta' };
 }
 
 describe('avaliarFrase', () => {
   it('conta acerto de carga, reps e associação separadamente', () => {
-    const esperados = [{ exercicioId: 'supino', cargaKg: 22.5, reps: [9, 9, 8] }];
+    const esperados = [{ exercicioId: 'supino', cargaKg: 22.5, porLado: false, reps: [9, 9, 8] }];
     expect(avaliarFrase(esperados, [obtido('supino', 22.5, [9, 9, 8])])).toEqual({ itens: 1, carga: 1, reps: 1, associacao: 1 });
     expect(avaliarFrase(esperados, [obtido(null, 22, [9, 9, 8])])).toEqual({ itens: 1, carga: 0, reps: 1, associacao: 0 });
   });
 
+  it('a marca "por lado" faz parte da carga: número certo sem a marca é erro de carga', () => {
+    const esperados = [{ exercicioId: 'agachamento', cargaKg: 20, porLado: true, reps: [8, 8] }];
+    const comMarca = { ...obtido('agachamento', 20, [8, 8]), porLado: true };
+    expect(avaliarFrase(esperados, [comMarca])).toEqual({ itens: 1, carga: 1, reps: 1, associacao: 1 });
+    expect(avaliarFrase(esperados, [obtido('agachamento', 20, [8, 8])])).toEqual({ itens: 1, carga: 0, reps: 1, associacao: 1 });
+  });
+
   it('item esperado que não veio é erro nas três métricas', () => {
     const esperados = [
-      { exercicioId: 'a', cargaKg: 10, reps: [8] },
-      { exercicioId: null, cargaKg: 14, reps: [12, 12, 12] },
+      { exercicioId: 'a', cargaKg: 10, porLado: false, reps: [8] },
+      { exercicioId: null, cargaKg: 14, porLado: false, reps: [12, 12, 12] },
     ];
     expect(avaliarFrase(esperados, [obtido('a', 10, [8])])).toEqual({ itens: 2, carga: 1, reps: 1, associacao: 1 });
   });
@@ -59,7 +66,7 @@ describe('avaliarConversa', () => {
       { diasSemana: [2], exerciciosComCarga: 1 },
     ],
   };
-  const exercicio = (cargaKg: number | null) => ({ cargaKg });
+  const exercicio = (cargaKg: number | null, porLado = false) => ({ cargaKg, porLado });
 
   it('aprova com os mesmos dias (em qualquer ordem), cargas e horário', () => {
     const obtido = {
@@ -93,6 +100,19 @@ describe('avaliarConversa', () => {
     });
     expect(avaliarConversa(comCargas, obtido(45))).toEqual([]);
     expect(avaliarConversa(comCargas, obtido(22.5))).toEqual(['Peito: cargas [22.5,18], esperado [45,18]']);
+  });
+
+  it('com `porLado`, confere a marca de cada exercício na ordem', () => {
+    const comMarcas = {
+      horarioTreino: null,
+      treinos: [{ diasSemana: [3], exerciciosComCarga: 2, cargas: [20, 55], porLado: [true, false] }],
+    };
+    const obtido = (marca: boolean) => ({
+      horarioTreino: null,
+      treinos: [{ nome: 'Perna', diasSemana: [3], exercicios: [exercicio(20, marca), exercicio(55)] }],
+    });
+    expect(avaliarConversa(comMarcas, obtido(true))).toEqual([]);
+    expect(avaliarConversa(comMarcas, obtido(false))).toEqual(['Perna: por lado [false,false], esperado [true,false]']);
   });
 
   it('sem rascunho, reprova', () => {

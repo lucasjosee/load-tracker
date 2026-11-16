@@ -114,9 +114,34 @@ const V2_FALHAS_ANTES_DO_REGISTRO = `
 ALTER TABLE registro ADD COLUMN meta_falhas INTEGER;
 `;
 
+// A carga passa a ser guardada como a pessoa anota: num exercício "por lado",
+// 20 é o que vai em cada lado da barra, e o app mostra "20 kg lado" em vez de
+// somar os dois (§5.2). A coluna só marca quais exercícios são assim.
+//
+// Até a v2 essas cargas estavam gravadas em dobro (o total). Não dá para
+// saber, só pelo banco, quais linhas dividir por dois; como o uso real ainda
+// não tinha começado, esta migração apaga os dados e o seed recria a divisão
+// com os valores por lado. A ordem dos DELETE vai dos filhos para os pais,
+// por causa das chaves estrangeiras.
+const V3_CARGA_POR_LADO = `
+ALTER TABLE exercicio ADD COLUMN carga_por_lado INTEGER NOT NULL DEFAULT 0 CHECK (carga_por_lado IN (0, 1));
+
+DELETE FROM evento;
+DELETE FROM serie;
+DELETE FROM registro;
+DELETE FROM sessao;
+DELETE FROM estado_progressao;
+DELETE FROM treino_exercicio;
+DELETE FROM treino_dia;
+DELETE FROM exercicio;
+DELETE FROM treino;
+DELETE FROM config;
+`;
+
 export const MIGRACOES: readonly Migracao[] = [
   { versao: 1, sql: V1_SCHEMA_INICIAL },
   { versao: 2, sql: V2_FALHAS_ANTES_DO_REGISTRO },
+  { versao: 3, sql: V3_CARGA_POR_LADO },
 ];
 
 // Devolve, em ordem, as migrações que ainda não foram aplicadas no aparelho.

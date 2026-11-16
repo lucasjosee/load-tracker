@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import type { Exercicio } from '@/db/repositorios/exercicios';
 import type { ItemEmEdicao } from '@/domain/registroRapido';
@@ -47,6 +47,11 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
     );
   }
 
+  // Em exercício que já existe, quem diz se a carga é por lado é o cadastro
+  // dele; o que a IA sugeriu só vale para exercício novo.
+  const existente = exercicios.find((e) => e.id === item.exercicioId);
+  const porLado = existente === undefined ? item.porLado : existente.porLado;
+
   return (
     <View style={[estilosComuns.cartao, styles.item, item.revisar && styles.revisar]}>
       {item.revisar && <Text style={styles.aviso}>Confira: a IA ficou em dúvida neste.</Text>}
@@ -80,11 +85,19 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
             selecionados={item.equipamento === null ? [] : [item.equipamento]}
             onAlternar={(equipamento: Equipamento) => onMudar({ ...item, equipamento })}
           />
+          <View style={styles.linha}>
+            <Text style={styles.rotulo}>Carga por lado</Text>
+            <Switch
+              value={item.porLado}
+              onValueChange={(novoPorLado) => onMudar({ ...item, porLado: novoPorLado })}
+              accessibilityLabel="carga por lado"
+            />
+          </View>
         </>
       )}
 
       <View style={styles.linha}>
-        <Text style={styles.rotulo}>Carga (kg)</Text>
+        <Text style={styles.rotulo}>{porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Text>
         <TextInput
           value={item.carga}
           onChangeText={(carga) => onMudar({ ...item, carga })}

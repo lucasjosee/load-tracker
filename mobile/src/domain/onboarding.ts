@@ -25,6 +25,7 @@ export interface RascunhoSugerido {
       grupoMuscular: GrupoMuscular;
       equipamento: Equipamento;
       cargaKg: number | null;
+      porLado: boolean;
       series: number | null;
       reps: number | null;
     }[];
@@ -37,6 +38,7 @@ export interface ExercicioEmRevisao {
   grupoMuscular: GrupoMuscular | null;
   equipamento: Equipamento | null;
   carga: string; // texto digitado
+  porLado: boolean; // carga anotada por lado (§5.2)
   series: number;
   reps: number;
 }
@@ -61,6 +63,7 @@ export interface ExercicioConfirmado {
   repsMax: number;
   seriesAlvo: number;
   incrementoKg: number;
+  porLado: boolean;
   cargaKg: number; // carga atual: vira o registro de onboarding
   reps: number; // reps atuais, em todas as séries
 }
@@ -88,6 +91,7 @@ export function revisaoDoRascunho(rascunho: RascunhoSugerido | null): DivisaoEmR
         grupoMuscular: exercicio.grupoMuscular,
         equipamento: exercicio.equipamento,
         carga: exercicio.cargaKg === null ? '' : String(exercicio.cargaKg).replace('.', ','),
+        porLado: exercicio.porLado,
         series: exercicio.series ?? SERIES_ALVO_PADRAO,
         reps: exercicio.reps ?? REPS_MIN_PADRAO,
       })),
@@ -106,6 +110,7 @@ export function exercicioEmBranco(chave: string): ExercicioEmRevisao {
     grupoMuscular: null,
     equipamento: null,
     carga: '',
+    porLado: false,
     series: SERIES_ALVO_PADRAO,
     reps: REPS_MIN_PADRAO,
   };
@@ -137,6 +142,7 @@ function validarExercicioDaRevisao(exercicio: ExercicioEmRevisao, onde: string):
       repsMax: padrao.repsMax,
       seriesAlvo: exercicio.series,
       incrementoKg: padrao.incrementoKg,
+      porLado: exercicio.porLado,
       cargaKg,
       reps: exercicio.reps,
     },

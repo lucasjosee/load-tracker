@@ -152,7 +152,7 @@ export default function TelaTreino() {
               >
                 <Text style={styles.nomeExercicio}>{exercicio.nome}</Text>
                 <Text style={estilosComuns.textoSecundario}>
-                  {estado === undefined ? 'Sem meta' : textoMeta(estado)} · {textoSeries(exercicio.seriesAlvo)}
+                  {estado === undefined ? 'Sem meta' : textoMeta(estado, exercicio.porLado)} · {textoSeries(exercicio.seriesAlvo)}
                 </Text>
               </Pressable>
               <BotaoIcone rotulo={`Subir ${exercicio.nome}`} simbolo="↑" desabilitado={indice === 0} onPress={() => mover(exercicio, -1)} />

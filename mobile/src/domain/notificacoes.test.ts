@@ -9,11 +9,11 @@ import {
 const PUSH: TreinoDoAviso = {
   nome: 'Push',
   itens: [
-    { nome: 'Crucifixo', estado: { cargaKg: 14, repsAlvo: 11 }, mudanca: { tipo: 'aumento_reps', cargaDe: 14, cargaPara: 14, repsDe: 10, repsPara: 11 } },
-    { nome: 'Supino inclinado', estado: { cargaKg: 12, repsAlvo: 8 }, mudanca: { tipo: 'aumento_carga', cargaDe: 10, cargaPara: 12, repsDe: 12, repsPara: 8 } },
-    { nome: 'Desenvolvimento', estado: { cargaKg: 14, repsAlvo: 9 }, mudanca: null },
-    { nome: 'Tríceps corda', estado: { cargaKg: 17.5, repsAlvo: 9 }, mudanca: null },
-    { nome: 'Tríceps testa', estado: { cargaKg: 10, repsAlvo: 9 }, mudanca: null },
+    { porLado: false, nome: 'Crucifixo', estado: { cargaKg: 14, repsAlvo: 11 }, mudanca: { tipo: 'aumento_reps', cargaDe: 14, cargaPara: 14, repsDe: 10, repsPara: 11 } },
+    { porLado: false, nome: 'Supino inclinado', estado: { cargaKg: 12, repsAlvo: 8 }, mudanca: { tipo: 'aumento_carga', cargaDe: 10, cargaPara: 12, repsDe: 12, repsPara: 8 } },
+    { porLado: false, nome: 'Desenvolvimento', estado: { cargaKg: 14, repsAlvo: 9 }, mudanca: null },
+    { porLado: false, nome: 'Tríceps corda', estado: { cargaKg: 17.5, repsAlvo: 9 }, mudanca: null },
+    { porLado: false, nome: 'Tríceps testa', estado: { cargaKg: 10, repsAlvo: 9 }, mudanca: null },
   ],
 };
 
@@ -28,6 +28,14 @@ describe('textoDoAvisoDeTreino (§6)', () => {
   it('sem "e mais" quando cabe tudo', () => {
     const curto = { nome: 'Legs', itens: PUSH.itens.slice(2, 3) };
     expect(textoDoAvisoDeTreino(curto).corpo).toBe('Desenvolvimento 14 kg × 9');
+  });
+
+  it('exercício por lado diz "lado" e não soma os dois (§5.2)', () => {
+    const legs: TreinoDoAviso = {
+      nome: 'Legs',
+      itens: [{ porLado: true, nome: 'Agachamento', estado: { cargaKg: 20, repsAlvo: 9 }, mudanca: null }],
+    };
+    expect(textoDoAvisoDeTreino(legs).corpo).toBe('Agachamento 20 kg lado × 9');
   });
 
   it('treino sem exercícios', () => {

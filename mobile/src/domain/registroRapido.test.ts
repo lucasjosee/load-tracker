@@ -1,8 +1,8 @@
 import { itemEmBranco, itensDaSugestao, validarItens, type ItemEmEdicao, type ItemSugerido } from './registroRapido';
 
 const SUGERIDOS: ItemSugerido[] = [
-  { exercicioId: 'ex_01', nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 12.5, reps: [8, 8, 7], confianca: 'alta' },
-  { exercicioId: null, nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 14, reps: [12], confianca: 'baixa' },
+  { exercicioId: 'ex_01', nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 12.5, porLado: false, reps: [8, 8, 7], confianca: 'alta' },
+  { exercicioId: null, nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 14, porLado: false, reps: [12], confianca: 'baixa' },
 ];
 
 describe('itensDaSugestao', () => {
@@ -22,9 +22,17 @@ describe('validarItens', () => {
       ok: true,
       valor: [
         { tipo: 'existente', exercicioId: 'ex_01', cargaKg: 12.5, reps: [8, 8, 7] },
-        { tipo: 'novo', nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 14, reps: [12] },
+        { tipo: 'novo', nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', porLado: false, cargaKg: 14, reps: [12] },
       ],
     });
+  });
+
+  it('exercício novo leva a marca "por lado"; no existente quem manda é o cadastro', () => {
+    const resultado = validarItens([{ ...existente, porLado: true }, { ...novo, porLado: true }]);
+    expect(resultado).toMatchObject({ ok: true, valor: [{ tipo: 'existente' }, { tipo: 'novo', porLado: true }] });
+    if (resultado.ok) {
+      expect(resultado.valor[0]).not.toHaveProperty('porLado');
+    }
   });
 
   it('diz qual item tem problema', () => {
@@ -56,6 +64,7 @@ describe('itensDaSugestao: exercicioId que o app não conhece', () => {
     nome: 'Supino reto',
     grupoMuscular: 'peito',
     equipamento: 'barra',
+    porLado: true,
     cargaKg: 20,
     reps: [10, 10, 10],
     confianca: 'alta',

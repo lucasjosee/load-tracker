@@ -14,8 +14,8 @@ const RASCUNHO: RascunhoSugerido = {
       nome: 'Peito e tríceps',
       diasSemana: [1, 4],
       exercicios: [
-        { nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra', cargaKg: 22.5, series: 4, reps: 8 },
-        { nome: 'Tríceps corda', grupoMuscular: 'triceps', equipamento: 'polia', cargaKg: null, series: null, reps: null },
+        { nome: 'Supino reto', grupoMuscular: 'peito', equipamento: 'barra', cargaKg: 22.5, porLado: true, series: 4, reps: 8 },
+        { nome: 'Tríceps corda', grupoMuscular: 'triceps', equipamento: 'polia', cargaKg: null, porLado: false, series: null, reps: null },
       ],
     },
   ],
@@ -54,9 +54,12 @@ describe('validarDivisao', () => {
         repsMax: 12,
         seriesAlvo: 3,
         incrementoKg: 5,
+        porLado: false,
         cargaKg: 20,
         reps: 8,
       });
+      // "22,5 lado" chega da IA como 22,5 com a marca; nada é dobrado (§8.4).
+      expect(resultado.valor.treinos[0]?.exercicios[0]).toMatchObject({ nome: 'Supino reto', cargaKg: 22.5, porLado: true });
     }
   });
 

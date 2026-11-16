@@ -13,8 +13,8 @@ const PEDIDO: PedidoInterpretar = {
 
 const VALIDA: RespostaInterpretar = {
   itens: [
-    { exercicioId: 'ex_01', nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 10, reps: [8, 8, 7], confianca: 'alta' },
-    { exercicioId: null, nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 14, reps: [12, 12, 12], confianca: 'media' },
+    { exercicioId: 'ex_01', nome: 'Supino inclinado com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 10, porLado: false, reps: [8, 8, 7], confianca: 'alta' },
+    { exercicioId: null, nome: 'Crucifixo com halteres', grupoMuscular: 'peito', equipamento: 'halter', cargaKg: 14, porLado: false, reps: [12, 12, 12], confianca: 'media' },
   ],
   naoEntendido: [],
 };

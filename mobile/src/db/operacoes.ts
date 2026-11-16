@@ -279,6 +279,7 @@ export async function registrarItens(
           repsMax: padrao.repsMax,
           seriesAlvo: item.reps.length,
           incrementoKg: padrao.incrementoKg,
+          porLado: item.porLado,
         });
       }
       if (exercicio === null) {

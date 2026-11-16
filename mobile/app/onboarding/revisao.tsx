@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { Opcoes } from '@/components/Opcoes';
@@ -140,13 +140,21 @@ export default function TelaRevisao() {
                   onAlternar={(equipamento) => mudarExercicio(treino, exercicio.chave, { equipamento })}
                 />
                 <View style={styles.linha}>
-                  <Text style={styles.rotulo}>Carga (kg)</Text>
+                  <Text style={styles.rotulo}>{exercicio.porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Text>
                   <TextInput
                     value={exercicio.carga}
                     onChangeText={(carga) => mudarExercicio(treino, exercicio.chave, { carga })}
                     keyboardType="decimal-pad"
                     placeholder="?"
                     style={[estilosComuns.campo, styles.campoCurto]}
+                  />
+                </View>
+                <View style={styles.linha}>
+                  <Text style={styles.rotulo}>Carga por lado</Text>
+                  <Switch
+                    value={exercicio.porLado}
+                    onValueChange={(porLado) => mudarExercicio(treino, exercicio.chave, { porLado })}
+                    accessibilityLabel="carga por lado"
                   />
                 </View>
                 <View style={styles.linha}>

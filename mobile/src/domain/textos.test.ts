@@ -1,4 +1,5 @@
 import {
+  formatarCarga,
   formatarKg,
   formatarNumero,
   formatarPercentual,
@@ -232,6 +233,24 @@ describe('textoDoGrupo', () => {
   it('variação e séries da semana', () => {
     expect(textoDoGrupo(0.08, 14)).toBe('+8% em 4 semanas · 14 séries esta semana');
     expect(textoDoGrupo(null, 1)).toBe('Sem histórico ainda · 1 série esta semana');
+  });
+});
+
+// §5.2: exercício anotado por lado mostra o número de um lado, nunca a soma.
+describe('carga por lado', () => {
+  it('formatarCarga acrescenta "lado" só quando o exercício é por lado', () => {
+    expect(formatarCarga(22.5)).toBe('22,5 kg');
+    expect(formatarCarga(22.5, true)).toBe('22,5 kg lado');
+  });
+
+  it('meta, realizado e evento usam o mesmo rótulo', () => {
+    expect(textoMeta({ cargaKg: 20, repsAlvo: 10 }, true)).toBe('20 kg lado × 10');
+    expect(textoRealizado(20, [10, 9, 9], true)).toBe('20 kg lado × 10, 9, 9');
+    expect(textoDoEvento(mudanca('aumento_carga', [20, 12], [22.5, 8]), true)).toBe('↑ carga: 22,5 kg lado × 8');
+  });
+
+  it('peso corporal continua sem carga, mesmo com a marca ligada', () => {
+    expect(textoMeta({ cargaKg: 0, repsAlvo: 13 }, true)).toBe('13 reps');
   });
 });
 
