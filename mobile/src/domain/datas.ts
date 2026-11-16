@@ -55,6 +55,7 @@ export function formatarDiaMes(data: string): string {
 // Índice = dia da semana (0 = domingo).
 export const NOMES_DOS_DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 export const NOMES_CURTOS_DOS_DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+export const LETRAS_DOS_DIAS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 // Os dias na ordem em que aparecem na tela: segunda primeiro, domingo por último.
 export const DIAS_A_PARTIR_DE_SEGUNDA = [1, 2, 3, 4, 5, 6, 0];

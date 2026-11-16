@@ -1,22 +1,24 @@
+import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { CartaoExercicio } from '@/components/CartaoExercicio';
+import { FaixaDaSemana } from '@/components/FaixaDaSemana';
+import { ResumoDoTreino } from '@/components/ResumoDoTreino';
 import { estilosComuns, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
-import { avisoDeTreinoPerdidoVisivel, type TreinoIdentificado } from '@/domain/hoje';
+import { avisoDeTreinoPerdidoVisivel, resumirSessao, type TreinoIdentificado } from '@/domain/hoje';
 import { progressoDoTreino } from '@/domain/regua';
 import {
   textoDoDia,
   textoProximoTreino,
   textoResumoDaSemana,
-  textoResumoDaSessao,
   textoTreinoPerdido,
 } from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
@@ -81,11 +83,17 @@ export default function TelaHoje() {
         {aviso}
         <Text style={styles.descanso}>Descanso</Text>
         {conteudo.proximo !== null && (
-          <Text style={styles.proximo}>Próximo treino · {textoProximoTreino(conteudo.proximo)}</Text>
+          <View style={estilosComuns.cartao}>
+            <Text style={styles.rotuloDoProximo}>Próximo treino</Text>
+            <Text style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Text>
+          </View>
         )}
-        <Text style={estilosComuns.textoSecundario}>
-          {textoResumoDaSemana(conteudo.treinosNaSemana, conteudo.seriesNaSemana)}
-        </Text>
+        <View style={[estilosComuns.cartao, styles.semana]}>
+          <FaixaDaSemana dias={conteudo.semana} />
+          <Text style={estilosComuns.textoSecundario}>
+            {textoResumoDaSemana(conteudo.treinosNaSemana, conteudo.seriesNaSemana)}
+          </Text>
+        </View>
         <Botao titulo="+ Registro rápido" variante="secundario" onPress={() => router.push('/registro')} />
       </Tela>
     );
@@ -113,7 +121,8 @@ export default function TelaHoje() {
       // Reagendar com o treino finalizado já tira o lembrete das 21h de hoje
       // e atualiza os textos dos próximos dias com as metas novas (§6).
       await reagendarNotificacoes(db);
-      Alert.alert('Treino finalizado', textoResumoDaSessao(conteudo.tiposDaSessao));
+      // O resumo aparece na própria tela, no lugar do botão (ResumoDoTreino).
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     });
 
   return (
@@ -167,7 +176,7 @@ export default function TelaHoje() {
       ))}
 
       {sessao !== null && sessao.finalizadaEm !== null ? (
-        <Text style={styles.finalizado}>Treino finalizado · {textoResumoDaSessao(conteudo.tiposDaSessao)}</Text>
+        <ResumoDoTreino resumo={resumirSessao(conteudo.tiposDaSessao)} />
       ) : (
         conteudo.itens.length > 0 && (
           // Sem nenhum check-in ainda não existe sessão para finalizar.
@@ -204,9 +213,10 @@ const styles = StyleSheet.create({
   segmento: { flex: 1, height: 6, borderRadius: 3, backgroundColor: cores.superficieAlta },
   segmentoFeito: { backgroundColor: cores.primaria },
   textoDoProgresso: { fontSize: 13, fontWeight: '500', color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
-  descanso: { fontSize: 28, fontWeight: '700', marginTop: 16, color: cores.texto },
-  proximo: { fontSize: 17, color: cores.texto },
-  finalizado: { fontSize: 16, color: cores.sobe, fontWeight: '600', textAlign: 'center', marginTop: 8 },
+  descanso: { fontSize: 40, fontWeight: '800', letterSpacing: -1, marginTop: 8, color: cores.texto },
+  rotuloDoProximo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
+  proximo: { fontSize: 22, fontWeight: '700', color: cores.texto },
+  semana: { padding: 18, gap: 16 },
   aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 16, gap: 10 },
   textoAviso: { fontSize: 16, color: cores.texto },
   botoesAviso: { flexDirection: 'row', gap: 8 },

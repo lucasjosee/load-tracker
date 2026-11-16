@@ -7,7 +7,7 @@ import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
 import { carregarEvolucao, type Evolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
-import { frasesDeFeedback, textoDoGrupo, textoEstagnacao } from '@/domain/textos';
+import { formatarPercentual, frasesDeFeedback, textoDoGrupo, textoEstagnacao } from '@/domain/textos';
 import { NOMES_DOS_GRUPOS } from '@/domain/tipos';
 
 // Aba Evolução (§3.6): cada grupo muscular com a variação de força em ~4
@@ -63,17 +63,23 @@ export default function TelaEvolucao() {
             key={resumo.grupo}
             accessibilityRole="button"
             onPress={() => router.push({ pathname: '/grupo/[grupo]', params: { grupo: resumo.grupo } })}
-            style={({ pressed }) => [estilosComuns.cartao, pressed && styles.pressionado]}
+            accessibilityLabel={`${NOMES_DOS_GRUPOS[resumo.grupo]}: ${textoDoGrupo(resumo.variacao, resumo.seriesNaSemana)}`}
+            style={({ pressed }) => [estilosComuns.cartao, styles.grupo, pressed && styles.pressionado]}
           >
-            <View style={styles.topo}>
+            <View style={styles.textosDoGrupo}>
               <Text style={styles.nome}>{NOMES_DOS_GRUPOS[resumo.grupo]}</Text>
-              <Text style={styles.contagem}>
-                {resumo.exercicios} {resumo.exercicios === 1 ? 'exercício' : 'exercícios'}
+              <Text style={estilosComuns.textoSecundario}>
+                {resumo.exercicios} {resumo.exercicios === 1 ? 'exercício' : 'exercícios'} · {resumo.seriesNaSemana}{' '}
+                {resumo.seriesNaSemana === 1 ? 'série' : 'séries'} esta semana
               </Text>
             </View>
-            <Text style={[estilosComuns.textoSecundario, (resumo.variacao ?? 0) > 0 && styles.subiu]}>
-              {textoDoGrupo(resumo.variacao, resumo.seriesNaSemana)}
-            </Text>
+            {/* A variação é o número da tela: grande, à direita, com a cor dizendo a direção. */}
+            <View style={styles.variacao}>
+              <Text style={[styles.percentual, { color: corDaVariacao(resumo.variacao) }]}>
+                {resumo.variacao === null ? '—' : formatarPercentual(resumo.variacao)}
+              </Text>
+              <Text style={styles.periodo}>{resumo.variacao === null ? 'sem histórico' : '4 semanas'}</Text>
+            </View>
           </Pressable>
         ))}
       </Secao>
@@ -81,11 +87,19 @@ export default function TelaEvolucao() {
   );
 }
 
+// Subiu = cor de marca; caiu = âmbar; parado ou sem histórico = cinza.
+function corDaVariacao(variacao: number | null): string {
+  const pontos = variacao === null ? 0 : Math.round(variacao * 100);
+  return pontos > 0 ? cores.sobe : pontos < 0 ? cores.desce : cores.mantem;
+}
+
 const styles = StyleSheet.create({
-  topo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  grupo: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 18 },
+  textosDoGrupo: { flex: 1, gap: 2 },
   nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
-  contagem: { fontSize: 14, color: cores.textoSecundario },
-  subiu: { color: cores.sobe },
+  variacao: { alignItems: 'flex-end' },
+  percentual: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
+  periodo: { fontSize: 12, color: cores.textoSecundario },
   pressionado: { opacity: 0.6 },
   frase: { fontSize: 17, fontWeight: '600', color: cores.sobe },
   alerta: { padding: 12, borderRadius: raio, backgroundColor: cores.aviso },

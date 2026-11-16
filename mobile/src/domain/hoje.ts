@@ -1,6 +1,7 @@
 // Regras da aba Hoje que não dependem de tela nem de banco (§3.2, §3.4).
 
-import { diaDaSemana, somarDias } from './datas';
+import { diaDaSemana, inicioDaSemana, somarDias } from './datas';
+import type { Evento } from './tipos';
 
 export interface TreinoNoDia {
   diaSemana: number;
@@ -62,4 +63,60 @@ export function outroTreinoDoDia(
 // amanhã, se houver outro treino perdido, o aviso volta.
 export function avisoDeTreinoPerdidoVisivel(dispensadoEm: string | null, hoje: string): boolean {
   return dispensadoEm !== hoje;
+}
+
+// A semana atual, de segunda a domingo, para a faixa do dia de descanso (§3.4).
+// - 'treinado': houve pelo menos um exercício registrado naquele dia;
+// - 'perdido': era dia de treino, já passou e nada foi registrado;
+// - 'planejado': dia de treino de hoje em diante, ainda sem registro;
+// - 'descanso': dia sem treino na divisão.
+export type SituacaoDoDia = 'treinado' | 'perdido' | 'planejado' | 'descanso';
+
+export interface DiaDaFaixa {
+  data: string; // 'YYYY-MM-DD'
+  diaSemana: number;
+  situacao: SituacaoDoDia;
+  ehHoje: boolean;
+}
+
+export function faixaDaSemana(
+  hoje: string,
+  diasComTreino: readonly number[], // dias da semana que têm treino na divisão
+  datasTreinadas: readonly string[], // datas com registro
+): DiaDaFaixa[] {
+  const segunda = inicioDaSemana(hoje);
+  return Array.from({ length: 7 }, (_, indice) => {
+    const data = somarDias(segunda, indice);
+    const dia = diaDaSemana(data);
+    let situacao: SituacaoDoDia = 'descanso';
+    if (datasTreinadas.includes(data)) {
+      // Treinar num dia de descanso também conta: o que vale é o que foi feito.
+      situacao = 'treinado';
+    } else if (diasComTreino.includes(dia)) {
+      // Datas 'YYYY-MM-DD' comparam certo como texto.
+      situacao = data < hoje ? 'perdido' : 'planejado';
+    }
+    return { data, diaSemana: dia, situacao, ehHoje: data === hoje };
+  });
+}
+
+// Os números do resumo ao finalizar o treino (§3.2). Um item por exercício
+// registrado; "Pulei" chega como 'sem_mudanca'.
+export interface ResumoDaSessao {
+  progressoes: number; // subiu reps ou carga
+  aumentosDeCarga: number; // dos que progrediram, quantos subiram a carga
+  mantidos: number;
+  deloads: number;
+  pulados: number;
+}
+
+export function resumirSessao(tipos: readonly Evento[]): ResumoDaSessao {
+  const contar = (...procurados: Evento[]) => tipos.filter((tipo) => procurados.includes(tipo)).length;
+  return {
+    progressoes: contar('aumento_reps', 'aumento_carga'),
+    aumentosDeCarga: contar('aumento_carga'),
+    mantidos: contar('manteve'),
+    deloads: contar('deload'),
+    pulados: contar('sem_mudanca'),
+  };
 }

@@ -174,6 +174,19 @@ export async function contarSessoesComRegistroDesde(db: SQLiteDatabase, desde: s
   return linha?.total ?? 0;
 }
 
+// As datas, desde `desde`, em que houve pelo menos um exercício feito.
+export async function listarDatasComRegistroDesde(db: SQLiteDatabase, desde: string): Promise<string[]> {
+  const linhas = await db.getAllAsync<{ data: string }>(
+    `SELECT DISTINCT s.data AS data
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+      WHERE s.data >= ? AND r.resultado <> 'pulou'
+      ORDER BY s.data`,
+    desde,
+  );
+  return linhas.map((linha) => linha.data);
+}
+
 // Ids dos registros de um exercício feitos em sessões de um dia, do mais
 // novo para o mais velho. O registro de onboarding não tem sessão e fica de
 // fora: ele é o ponto de partida, não um treino daquele dia.

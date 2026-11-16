@@ -1,4 +1,11 @@
-import { avisoDeTreinoPerdidoVisivel, outroTreinoDoDia, proximoTreino, treinoPerdido } from './hoje';
+import {
+  avisoDeTreinoPerdidoVisivel,
+  faixaDaSemana,
+  outroTreinoDoDia,
+  proximoTreino,
+  resumirSessao,
+  treinoPerdido,
+} from './hoje';
 
 const DIVISAO = [
   { diaSemana: 1, nome: 'Push' },
@@ -87,5 +94,62 @@ describe('outroTreinoDoDia', () => {
 
   it('dia de descanso não tem treino do dia', () => {
     expect(outroTreinoDoDia('peito', null)).toBeNull();
+  });
+});
+
+describe('faixaDaSemana (§3.4)', () => {
+  // Quinta 05/11/2026. Treina segunda (1), quarta (3) e sexta (5).
+  const HOJE = '2026-11-05';
+  const DIVISAO = [1, 3, 5];
+
+  it('vai de segunda a domingo e marca o dia de hoje', () => {
+    const faixa = faixaDaSemana(HOJE, DIVISAO, []);
+    expect(faixa.map((d) => d.data)).toEqual([
+      '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08',
+    ]);
+    expect(faixa.map((d) => d.diaSemana)).toEqual([1, 2, 3, 4, 5, 6, 0]);
+    expect(faixa.filter((d) => d.ehHoje).map((d) => d.data)).toEqual([HOJE]);
+  });
+
+  it('separa treinado, perdido, planejado e descanso', () => {
+    const faixa = faixaDaSemana(HOJE, DIVISAO, ['2026-11-02']);
+    expect(faixa.map((d) => d.situacao)).toEqual([
+      'treinado', // segunda: registrou
+      'descanso',
+      'perdido', // quarta: era dia de treino, já passou, sem registro
+      'descanso', // hoje, quinta
+      'planejado', // sexta
+      'descanso',
+      'descanso',
+    ]);
+  });
+
+  it('dia de treino de hoje ainda sem registro é planejado, não perdido', () => {
+    const quarta = faixaDaSemana('2026-11-04', DIVISAO, []);
+    expect(quarta[2]).toMatchObject({ situacao: 'planejado', ehHoje: true });
+  });
+
+  it('treinar num dia de descanso conta como treinado', () => {
+    expect(faixaDaSemana(HOJE, DIVISAO, ['2026-11-03'])[1]?.situacao).toBe('treinado');
+  });
+
+  it('no domingo a semana ainda é a que começou na segunda anterior', () => {
+    expect(faixaDaSemana('2026-11-08', DIVISAO, [])[0]?.data).toBe('2026-11-02');
+  });
+});
+
+describe('resumirSessao', () => {
+  it('conta cada tipo, e os aumentos de carga dentro das progressões', () => {
+    expect(resumirSessao(['aumento_reps', 'aumento_carga', 'manteve', 'deload', 'sem_mudanca', 'aumento_carga'])).toEqual({
+      progressoes: 3,
+      aumentosDeCarga: 2,
+      mantidos: 1,
+      deloads: 1,
+      pulados: 1,
+    });
+  });
+
+  it('sessão vazia', () => {
+    expect(resumirSessao([])).toEqual({ progressoes: 0, aumentosDeCarga: 0, mantidos: 0, deloads: 0, pulados: 0 });
   });
 });

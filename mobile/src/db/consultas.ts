@@ -9,6 +9,8 @@ import {
   treinoPerdido,
   type ProximoTreino,
   type TreinoIdentificado,
+  faixaDaSemana,
+  type DiaDaFaixa,
 } from '@/domain/hoje';
 import {
   contarAumentosDeCargaNoMes,
@@ -28,6 +30,7 @@ import { listarExercicios, listarExerciciosDoTreino, obterExercicio, type Exerci
 import {
   contarRegistrosDaData,
   contarSessoesComRegistroDesde,
+  listarDatasComRegistroDesde,
   listarHistorico,
   listarRegistrosDaSessao,
   type SessaoDoHistorico,
@@ -68,7 +71,13 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
       itens: ItemDoTreino[];
       tiposDaSessao: Evento[]; // para o resumo ao finalizar
     }
-  | { tipo: 'descanso'; proximo: ProximoTreino | null; treinosNaSemana: number; seriesNaSemana: number }
+  | {
+      tipo: 'descanso';
+      proximo: ProximoTreino | null;
+      treinosNaSemana: number;
+      seriesNaSemana: number;
+      semana: DiaDaFaixa[]; // segunda a domingo
+    }
 );
 
 async function buscarTreinoPerdido(db: SQLiteDatabase, hoje: string, treinoDeHojeId: string | null) {
@@ -108,10 +117,11 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
 
   if (treino === null) {
     const semana = inicioDaSemana(hoje);
-    const [divisao, treinosNaSemana, series] = await Promise.all([
+    const [divisao, treinosNaSemana, series, datasTreinadas] = await Promise.all([
       listarTreinosPorDia(db),
       contarSessoesComRegistroDesde(db, semana),
       listarSeriesDesde(db, semana),
+      listarDatasComRegistroDesde(db, semana),
     ]);
     const porGrupo = seriesDaSemana(series, hoje);
     return {
@@ -123,6 +133,11 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
       ),
       treinosNaSemana,
       seriesNaSemana: Object.values(porGrupo).reduce((total, n) => total + n, 0),
+      semana: faixaDaSemana(
+        hoje,
+        divisao.map((d) => d.diaSemana),
+        datasTreinadas,
+      ),
     };
   }
 
@@ -166,6 +181,7 @@ export interface ExercicioNaEvolucao {
   estado: EstadoProgressao | null;
   variacao: number | null; // ~4 semanas (§7)
   sessoes: number; // quantas sessões no histórico (com o onboarding)
+  forcas: number[]; // força estimada de cada sessão, em ordem: o minigráfico
   estagnacao: Estagnacao | null;
 }
 
@@ -196,11 +212,13 @@ export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promis
     exercicios: exercicios.map((exercicio) => {
       const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
       const estado = estados.get(exercicio.id) ?? null;
+      const pontos = pontosDeForca(sessoes, pesoCorporal(exercicio));
       return {
         exercicio,
         estado,
-        variacao: variacaoDoExercicio(pontosDeForca(sessoes, pesoCorporal(exercicio))),
+        variacao: variacaoDoExercicio(pontos),
         sessoes: sessoes.length,
+        forcas: pontos.map((ponto) => ponto.valor),
         estagnacao: estagnacaoDe(exercicio, estado, historico),
       };
     }),

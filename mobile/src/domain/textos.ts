@@ -2,7 +2,7 @@
 // porque também são usados pelas notificações e porque assim têm teste.
 
 import { diaDaSemana, formatarDiaMes, NOMES_DOS_DIAS } from './datas';
-import type { ProximoTreino } from './hoje';
+import { resumirSessao, type ProximoTreino } from './hoje';
 import type { Estagnacao } from './metricas';
 import {
   NOMES_DOS_GRUPOS,
@@ -183,12 +183,12 @@ export function textoResumoDaSemana(treinos: number, series: number): string {
 // Resumo ao finalizar o treino (§3.2): "3 progressões, 2 mantidos".
 // Um item por exercício registrado; "Pulei" chega como 'sem_mudanca'.
 export function textoResumoDaSessao(tipos: readonly Evento[]): string {
-  const contar = (...procurados: Evento[]) => tipos.filter((t) => procurados.includes(t)).length;
+  const resumo = resumirSessao(tipos);
   const partes = [
-    [contar('aumento_reps', 'aumento_carga'), 'progressão', 'progressões'],
-    [contar('manteve'), 'mantido', 'mantidos'],
-    [contar('deload'), 'deload', 'deloads'],
-    [contar('sem_mudanca'), 'pulado', 'pulados'],
+    [resumo.progressoes, 'progressão', 'progressões'],
+    [resumo.mantidos, 'mantido', 'mantidos'],
+    [resumo.deloads, 'deload', 'deloads'],
+    [resumo.pulados, 'pulado', 'pulados'],
   ] as const;
   const texto = partes
     .filter(([n]) => n > 0)
