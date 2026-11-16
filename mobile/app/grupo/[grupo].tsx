@@ -4,11 +4,12 @@ import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MiniGrafico } from '@/components/MiniGrafico';
+import { Selo } from '@/components/Selo';
 import { estilosComuns, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
 import { carregarEvolucao, type ExercicioNaEvolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
-import { formatarPercentual, textoMeta } from '@/domain/textos';
+import { formatarPercentual, textoEstagnacao, textoMeta } from '@/domain/textos';
 import { ehGrupoMuscular, NOMES_DOS_GRUPOS } from '@/domain/tipos';
 
 // Exercícios de um grupo muscular, com a variação de cada um (§3.6).
@@ -31,7 +32,7 @@ export default function TelaGrupo() {
   return (
     <Tela>
       <Stack.Screen options={{ title: titulo }} />
-      {exercicios?.map(({ exercicio, estado, variacao, sessoes, forcas }) => (
+      {exercicios?.map(({ exercicio, estado, variacao, sessoes, forcas, estagnacao }) => (
         <Pressable
           key={exercicio.id}
           accessibilityRole="button"
@@ -39,11 +40,16 @@ export default function TelaGrupo() {
           style={({ pressed }) => [estilosComuns.cartao, styles.linha, pressed && styles.pressionado]}
         >
           <View style={styles.textos}>
-            <Text style={styles.nome}>{exercicio.nome}</Text>
+            <View style={styles.nomeComSelo}>
+              <Text style={styles.nome}>{exercicio.nome}</Text>
+              {estagnacao !== null && <Selo selo={{ texto: 'estagnado', direcao: 'desce' }} />}
+            </View>
             <Text style={estilosComuns.textoSecundario}>
               {estado === null ? 'Sem meta' : `Meta: ${textoMeta(estado, exercicio.porLado)}`} ·{' '}
               {variacao === null ? `${sessoes} ${sessoes === 1 ? 'sessão' : 'sessões'}` : `${formatarPercentual(variacao)} de força`}
             </Text>
+            {/* O motivo do selo. Só avisa: quem muda a meta é o motor (regra 2). */}
+            {estagnacao !== null && <Text style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Text>}
           </View>
           <MiniGrafico valores={forcas} />
         </Pressable>
@@ -55,6 +61,8 @@ export default function TelaGrupo() {
 const styles = StyleSheet.create({
   linha: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   textos: { flex: 1, gap: 4 },
-  nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
+  nomeComSelo: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  nome: { fontSize: 17, fontWeight: '600', color: cores.texto, flexShrink: 1 },
+  alerta: { fontSize: 14, lineHeight: 20, color: cores.desce },
   pressionado: { opacity: 0.6 },
 });

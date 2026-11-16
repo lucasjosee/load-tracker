@@ -13,6 +13,8 @@ import {
   textoDoDia,
   textoDoEvento,
   textoDoGrupo,
+  textoEstagnados,
+  textoPeriodoDaEvolucao,
   textoMeta,
   textoProximoTreino,
   textoRealizado,
@@ -291,5 +293,21 @@ describe('frasesDeFeedback', () => {
 
   it('sem evolução nem aumentos, nenhuma frase', () => {
     expect(frasesDeFeedback([{ grupo: 'peito', variacao: -0.02 }, { grupo: 'costas', variacao: 0.004 }], 0)).toEqual([]);
+  });
+});
+
+describe('textoEstagnados', () => {
+  it('concorda com a quantidade', () => {
+    expect(textoEstagnados(1)).toBe('1 estagnado');
+    expect(textoEstagnados(3)).toBe('3 estagnados');
+  });
+});
+
+describe('textoPeriodoDaEvolucao', () => {
+  it('sessões no dia de treino, semanas no descanso', () => {
+    expect(textoPeriodoDaEvolucao(11, 'sessao')).toBe('em 11 sessões');
+    expect(textoPeriodoDaEvolucao(1, 'sessao')).toBe('em 1 sessão');
+    expect(textoPeriodoDaEvolucao(12, 'semana')).toBe('em 12 semanas');
+    expect(textoPeriodoDaEvolucao(1, 'semana')).toBe('em 1 semana');
   });
 });

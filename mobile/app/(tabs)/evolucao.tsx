@@ -3,11 +3,13 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Selo } from '@/components/Selo';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { cores, raio } from '@/components/tema';
+import { cores } from '@/components/tema';
 import { carregarEvolucao, type Evolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
-import { formatarPercentual, frasesDeFeedback, textoDoGrupo, textoEstagnacao } from '@/domain/textos';
+import { formatarPercentual, frasesDeFeedback, textoDoGrupo, textoEstagnados } from '@/domain/textos';
+import type { GrupoMuscular } from '@/domain/tipos';
 import { NOMES_DOS_GRUPOS } from '@/domain/tipos';
 
 // Aba Evolução (§3.6): cada grupo muscular com a variação de força em ~4
@@ -27,7 +29,10 @@ export default function TelaEvolucao() {
   }
 
   const frases = frasesDeFeedback(evolucao.grupos, evolucao.aumentosNoMes);
-  const estagnados = evolucao.exercicios.filter((item) => item.estagnacao !== null);
+  // Estagnação não tem seção própria: aparece como selo no grupo em que está
+  // (§3.6) e, dentro do grupo, no exercício.
+  const estagnadosDo = (grupo: GrupoMuscular) =>
+    evolucao.exercicios.filter((item) => item.exercicio.grupoMuscular === grupo && item.estagnacao !== null).length;
 
   return (
     <Tela titulo="Evolução">
@@ -36,23 +41,6 @@ export default function TelaEvolucao() {
           {frase}
         </Text>
       ))}
-
-      {estagnados.length > 0 && (
-        <Secao titulo="Alertas">
-          {estagnados.map(({ exercicio, estagnacao }) =>
-            estagnacao === null ? null : (
-              <Pressable
-                key={exercicio.id}
-                accessibilityRole="button"
-                onPress={() => router.push({ pathname: '/exercicio/[id]', params: { id: exercicio.id } })}
-                style={({ pressed }) => [styles.alerta, pressed && styles.pressionado]}
-              >
-                <Text style={styles.textoAlerta}>⚠ {textoEstagnacao(exercicio.nome, estagnacao)}</Text>
-              </Pressable>
-            ),
-          )}
-        </Secao>
-      )}
 
       <Secao titulo="Grupos musculares">
         {evolucao.grupos.length === 0 && (
@@ -63,11 +51,18 @@ export default function TelaEvolucao() {
             key={resumo.grupo}
             accessibilityRole="button"
             onPress={() => router.push({ pathname: '/grupo/[grupo]', params: { grupo: resumo.grupo } })}
-            accessibilityLabel={`${NOMES_DOS_GRUPOS[resumo.grupo]}: ${textoDoGrupo(resumo.variacao, resumo.seriesNaSemana)}`}
+            accessibilityLabel={`${NOMES_DOS_GRUPOS[resumo.grupo]}: ${textoDoGrupo(resumo.variacao, resumo.seriesNaSemana)}${
+              estagnadosDo(resumo.grupo) > 0 ? `, ${textoEstagnados(estagnadosDo(resumo.grupo))}` : ''
+            }`}
             style={({ pressed }) => [estilosComuns.cartao, styles.grupo, pressed && styles.pressionado]}
           >
             <View style={styles.textosDoGrupo}>
-              <Text style={styles.nome}>{NOMES_DOS_GRUPOS[resumo.grupo]}</Text>
+              <View style={styles.nomeComSelo}>
+                <Text style={styles.nome}>{NOMES_DOS_GRUPOS[resumo.grupo]}</Text>
+                {estagnadosDo(resumo.grupo) > 0 && (
+                  <Selo selo={{ texto: textoEstagnados(estagnadosDo(resumo.grupo)), direcao: 'desce' }} />
+                )}
+              </View>
               <Text style={estilosComuns.textoSecundario}>
                 {resumo.exercicios} {resumo.exercicios === 1 ? 'exercício' : 'exercícios'} · {resumo.seriesNaSemana}{' '}
                 {resumo.seriesNaSemana === 1 ? 'série' : 'séries'} esta semana
@@ -96,12 +91,11 @@ function corDaVariacao(variacao: number | null): string {
 const styles = StyleSheet.create({
   grupo: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 18 },
   textosDoGrupo: { flex: 1, gap: 2 },
+  nomeComSelo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nome: { fontSize: 17, fontWeight: '600', color: cores.texto },
   variacao: { alignItems: 'flex-end' },
   percentual: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   periodo: { fontSize: 12, color: cores.textoSecundario },
   pressionado: { opacity: 0.6 },
   frase: { fontSize: 17, fontWeight: '600', color: cores.sobe },
-  alerta: { padding: 12, borderRadius: raio, backgroundColor: cores.aviso },
-  textoAlerta: { fontSize: 15, color: cores.texto },
 });

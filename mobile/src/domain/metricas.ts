@@ -207,3 +207,73 @@ export function resumirGrupos(
     return [{ grupo, variacao: variacaoDoGrupo(variacoes), seriesNaSemana: series[grupo], exercicios: doGrupo.length }];
   });
 }
+
+// ---------- Gráfico da aba Hoje (§7) ----------
+
+export interface PontoDeEvolucao {
+  data: string;
+  variacao: number; // contra o começo: 0,12 = +12%
+}
+
+// Os dias em que algum dos exercícios tem registro, sem repetir, em ordem.
+// São os pontos do gráfico de um treino: um por sessão.
+export function datasComRegistro(historico: readonly SessaoNoHistorico[], idsDosExercicios: readonly string[]): string[] {
+  const datas = historico.filter((sessao) => idsDosExercicios.includes(sessao.exercicioId)).map((sessao) => sessao.data);
+  return [...new Set(datas)].sort();
+}
+
+// O último dia (domingo) de cada semana, da semana de `de` até a de `ate`.
+// São os pontos do gráfico geral: um por semana.
+export function fimDasSemanas(de: string, ate: string): string[] {
+  const ultimo = somarDias(inicioDaSemana(ate), 6);
+  const fins: string[] = [];
+  for (let fim = somarDias(inicioDaSemana(de), 6); fim <= ultimo; fim = somarDias(fim, 7)) {
+    fins.push(fim);
+  }
+  return fins;
+}
+
+// Evolução da força de um conjunto de exercícios numa linha só.
+//
+// Os exercícios têm cargas muito diferentes (supino 22,5 kg, panturrilha
+// 115 kg), então somar ou tirar média dos quilos faria o mais pesado mandar
+// no gráfico. Por isso cada exercício é comparado com ele mesmo: a força da
+// sessão mais recente até aquela data, dividida pela força da primeira sessão
+// dele. O ponto é a média dessas razões, menos 1.
+//
+// Usar "a mais recente até a data" (e não só a do dia) faz um exercício pulado
+// num treino continuar valendo o que valia, em vez de derrubar a linha.
+// Um exercício que entra depois começa em 0% e puxa a média para baixo no dia
+// em que entra; é o preço de não reescrever o passado.
+//
+// `historico` e `datas` em ordem cronológica. Datas em que nenhum exercício
+// tem sessão ainda ficam de fora.
+export function evolucaoDaForca(
+  exercicios: readonly Pick<ExercicioDoResumo, 'id' | 'pesoCorporal'>[],
+  historico: readonly SessaoNoHistorico[],
+  datas: readonly string[],
+): PontoDeEvolucao[] {
+  const forcasPorExercicio = exercicios.map((exercicio) =>
+    pontosDeForca(
+      historico.filter((sessao) => sessao.exercicioId === exercicio.id),
+      exercicio.pesoCorporal,
+    ),
+  );
+
+  return datas.flatMap((data) => {
+    const razoes: number[] = [];
+    for (const pontos of forcasPorExercicio) {
+      const ateAData = pontos.filter((ponto) => ponto.data <= data);
+      const primeiro = ateAData[0];
+      const ultimo = ateAData[ateAData.length - 1];
+      // Sem sessão até a data, ou com força inicial 0, não há com o que comparar.
+      if (primeiro !== undefined && ultimo !== undefined && primeiro.valor > 0) {
+        razoes.push(ultimo.valor / primeiro.valor);
+      }
+    }
+    if (razoes.length === 0) {
+      return [];
+    }
+    return [{ data, variacao: razoes.reduce((soma, razao) => soma + razao, 0) / razoes.length - 1 }];
+  });
+}

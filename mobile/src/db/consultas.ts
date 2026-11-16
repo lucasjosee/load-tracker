@@ -14,6 +14,9 @@ import {
 } from '@/domain/hoje';
 import {
   contarAumentosDeCargaNoMes,
+  datasComRegistro,
+  evolucaoDaForca,
+  fimDasSemanas,
   detectarEstagnacao,
   ehRecordeDeCarga,
   pontosDeForca,
@@ -21,6 +24,7 @@ import {
   seriesDaSemana,
   variacaoDoExercicio,
   type Estagnacao,
+  type PontoDeEvolucao,
   type ResumoDoGrupo,
 } from '@/domain/metricas';
 import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
@@ -64,6 +68,11 @@ function estagnacaoDe(
   return detectarEstagnacao(estado?.falhas ?? 0, forcas);
 }
 
+// O que `evolucaoDaForca` precisa saber de cada exercício.
+function paraEvolucao(exercicios: readonly Exercicio[]) {
+  return exercicios.map((exercicio) => ({ id: exercicio.id, pesoCorporal: exercicio.equipamento === 'peso_corporal' }));
+}
+
 // União discriminada pelo campo `tipo`: dia de treino ou de descanso. Os
 // dois podem trazer o aviso de treino perdido (§3.5).
 export type Hoje = { perdido: TreinoIdentificado | null } & (
@@ -75,6 +84,7 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
       sessao: Sessao | null;
       itens: ItemDoTreino[];
       tiposDaSessao: Evento[]; // para o resumo ao finalizar
+      evolucao: PontoDeEvolucao[]; // força dos exercícios deste treino, um ponto por sessão (§7)
     }
   | {
       tipo: 'descanso';
@@ -82,6 +92,7 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
       treinosNaSemana: number;
       seriesNaSemana: number;
       semana: DiaDaFaixa[]; // segunda a domingo
+      evolucao: PontoDeEvolucao[]; // força de todos os exercícios, um ponto por semana (§7)
     }
 );
 
@@ -122,13 +133,20 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
 
   if (treino === null) {
     const semana = inicioDaSemana(hoje);
-    const [divisao, treinosNaSemana, series, datasTreinadas] = await Promise.all([
+    const [divisao, treinosNaSemana, series, datasTreinadas, todos, historico] = await Promise.all([
       listarTreinosPorDia(db),
       contarSessoesComRegistroDesde(db, semana),
       listarSeriesDesde(db, semana),
       listarDatasComRegistroDesde(db, semana),
+      listarExercicios(db),
+      listarHistorico(db),
     ]);
     const porGrupo = seriesDaSemana(series, hoje);
+    const ativos = todos.filter((exercicio) => exercicio.ativo);
+    const datas = datasComRegistro(
+      historico,
+      ativos.map((exercicio) => exercicio.id),
+    );
     return {
       tipo: 'descanso',
       perdido,
@@ -143,6 +161,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
         divisao.map((d) => d.diaSemana),
         datasTreinadas,
       ),
+      evolucao: datas.length === 0 ? [] : evolucaoDaForca(paraEvolucao(ativos), historico, fimDasSemanas(datas[0], hoje)),
     };
   }
 
@@ -156,6 +175,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     sessao === null ? Promise.resolve([]) : listarTiposDaSessao(db, sessao.id),
     listarHistorico(db),
   ]);
+  const ativos = exercicios.filter((exercicio) => exercicio.ativo);
   // Se o mesmo exercício foi registrado duas vezes na sessão, vale o último.
   const feitoPorExercicio = new Map(feitos.map((r) => [r.exercicioId, r]));
 
@@ -166,9 +186,15 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     treinoDoDia: outroTreinoDoDia(treino.id, doDia === null ? null : { id: doDia.id, nome: doDia.nome }),
     sessao,
     tiposDaSessao,
-    itens: exercicios
-      .filter((exercicio) => exercicio.ativo)
-      .map((exercicio) => {
+    evolucao: evolucaoDaForca(
+      paraEvolucao(ativos),
+      historico,
+      datasComRegistro(
+        historico,
+        ativos.map((exercicio) => exercicio.id),
+      ),
+    ),
+    itens: ativos.map((exercicio) => {
         const estado = estados.get(exercicio.id) ?? null;
         // O histórico vem do mais antigo para o mais recente.
         const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);

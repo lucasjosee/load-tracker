@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CartaoDeEvolucao } from '@/components/CartaoDeEvolucao';
 import { CartaoExercicio } from '@/components/CartaoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
@@ -19,6 +20,7 @@ import { avisoDeTreinoPerdidoVisivel, resumirSessao, type TreinoIdentificado } f
 import { progressoDoTreino } from '@/domain/regua';
 import {
   textoDoDia,
+  textoPeriodoDaEvolucao,
   textoProximoTreino,
   textoResumoDaSemana,
   textoTreinoPerdido,
@@ -94,6 +96,14 @@ export default function TelaHoje() {
             <Text style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Text>
           </View>
         )}
+        {/* No descanso não há cartões de exercício, então a evolução geral
+            ganha o espaço: gráfico grande, um ponto por semana. */}
+        <CartaoDeEvolucao
+          grande
+          rotulo="Força geral"
+          periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'semana')}
+          pontos={conteudo.evolucao}
+        />
         <View style={[estilosComuns.cartao, styles.semana]}>
           <FaixaDaSemana dias={conteudo.semana} />
           <Text style={estilosComuns.textoSecundario}>
@@ -157,6 +167,14 @@ export default function TelaHoje() {
             {progresso.feitos} de {progresso.total} {progresso.total === 1 ? 'exercício' : 'exercícios'}
           </Text>
         </View>
+      )}
+      {/* Compacto de propósito: o primeiro exercício continua na tela ao abrir o app. */}
+      {conteudo.itens.length > 0 && (
+        <CartaoDeEvolucao
+          rotulo={`Força no ${treino.nome}`}
+          periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'sessao')}
+          pontos={conteudo.evolucao}
+        />
       )}
       {aviso}
       {treinoDoDia !== null && (

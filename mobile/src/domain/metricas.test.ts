@@ -1,4 +1,7 @@
 import {
+  datasComRegistro,
+  evolucaoDaForca,
+  fimDasSemanas,
   contarAumentosDeCargaNoMes,
   detectarEstagnacao,
   e1rm,
@@ -194,5 +197,79 @@ describe('resumirGrupos', () => {
   it('o registro de onboarding não conta como série da semana', () => {
     const soOnboarding = [{ ...historico[0]!, data: '2026-11-03' }];
     expect(resumirGrupos(exercicios, soOnboarding, '2026-11-05')[0]?.seriesNaSemana).toBe(0);
+  });
+});
+
+describe('gráfico da aba Hoje', () => {
+  // Reps sempre iguais: a força estimada muda na mesma proporção da carga.
+  const sessao = (exercicioId: string, data: string, cargaKg: number) => ({
+    exercicioId,
+    data,
+    cargaKg,
+    reps: [10, 10, 10],
+    doOnboarding: false,
+  });
+  const A = { id: 'a', pesoCorporal: false };
+  const B = { id: 'b', pesoCorporal: false };
+
+  describe('datasComRegistro', () => {
+    it('junta os dias dos exercícios pedidos, sem repetir e em ordem', () => {
+      const historico = [sessao('a', '2026-11-02', 10), sessao('b', '2026-11-02', 50), sessao('c', '2026-11-05', 5), sessao('a', '2026-11-09', 10)];
+      expect(datasComRegistro(historico, ['a', 'b'])).toEqual(['2026-11-02', '2026-11-09']);
+      expect(datasComRegistro(historico, [])).toEqual([]);
+    });
+  });
+
+  describe('fimDasSemanas', () => {
+    it('devolve o domingo de cada semana, da primeira à última', () => {
+      // 04/11/2026 é quarta; 16/11/2026 é segunda.
+      expect(fimDasSemanas('2026-11-04', '2026-11-16')).toEqual(['2026-11-08', '2026-11-15', '2026-11-22']);
+    });
+
+    it('na mesma semana, um ponto só', () => {
+      expect(fimDasSemanas('2026-11-02', '2026-11-08')).toEqual(['2026-11-08']);
+    });
+  });
+
+  describe('evolucaoDaForca', () => {
+    it('compara cada exercício com a primeira sessão dele e tira a média', () => {
+      // "a" sobe 20% (10 → 12 kg); "b" sobe 10% (50 → 55 kg): média +15%.
+      const historico = [sessao('a', '2026-11-02', 10), sessao('b', '2026-11-02', 50), sessao('a', '2026-11-09', 12), sessao('b', '2026-11-09', 55)];
+      const pontos = evolucaoDaForca([A, B], historico, ['2026-11-02', '2026-11-09']);
+      expect(pontos.map((ponto) => ponto.data)).toEqual(['2026-11-02', '2026-11-09']);
+      expect(pontos[0].variacao).toBeCloseTo(0, 5);
+      expect(pontos[1].variacao).toBeCloseTo(0.15, 5);
+    });
+
+    it('exercício pulado num dia continua valendo a última sessão dele', () => {
+      const historico = [sessao('a', '2026-11-02', 10), sessao('b', '2026-11-02', 50), sessao('a', '2026-11-09', 12), sessao('a', '2026-11-16', 12)];
+      const pontos = evolucaoDaForca([A, B], historico, ['2026-11-09', '2026-11-16']);
+      expect(pontos[0].variacao).toBeCloseTo(0.1, 5); // (1,2 + 1,0) / 2
+      expect(pontos[1].variacao).toBeCloseTo(0.1, 5);
+    });
+
+    it('exercício que entra depois começa em 0% no dia em que entra', () => {
+      const historico = [sessao('a', '2026-11-02', 10), sessao('a', '2026-11-09', 12), sessao('b', '2026-11-16', 50)];
+      const pontos = evolucaoDaForca([A, B], historico, ['2026-11-09', '2026-11-16']);
+      expect(pontos[0].variacao).toBeCloseTo(0.2, 5);
+      expect(pontos[1].variacao).toBeCloseTo(0.1, 5);
+    });
+
+    it('datas sem nenhuma sessão ainda ficam de fora', () => {
+      const historico = [sessao('a', '2026-11-09', 10)];
+      expect(evolucaoDaForca([A], historico, ['2026-11-02', '2026-11-09'])).toEqual([{ data: '2026-11-09', variacao: 0 }]);
+      expect(evolucaoDaForca([], historico, ['2026-11-09'])).toEqual([]);
+    });
+
+    it('peso corporal conta pelo total de reps; força inicial 0 fica de fora', () => {
+      const corporal = { id: 'c', pesoCorporal: true };
+      const historico = [
+        { exercicioId: 'c', data: '2026-11-02', cargaKg: 0, reps: [10, 10], doOnboarding: false },
+        { exercicioId: 'c', data: '2026-11-09', cargaKg: 0, reps: [12, 12], doOnboarding: false },
+        { exercicioId: 'a', data: '2026-11-02', cargaKg: 0, reps: [10], doOnboarding: false },
+      ];
+      const pontos = evolucaoDaForca([corporal, A], historico, ['2026-11-09']);
+      expect(pontos[0].variacao).toBeCloseTo(0.2, 5);
+    });
   });
 });

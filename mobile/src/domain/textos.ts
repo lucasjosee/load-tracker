@@ -211,6 +211,18 @@ export function textoTreinoPerdido(nomeDoTreino: string): string {
   return `Você não registrou ${nomeDoTreino} ontem. Fazer hoje?`;
 }
 
+// Selo do grupo na aba Evolução: "1 estagnado", "2 estagnados".
+export function textoEstagnados(quantidade: number): string {
+  return `${quantidade} ${plural(quantidade, 'estagnado', 'estagnados')}`;
+}
+
+// Legenda do gráfico da aba Hoje: "em 11 sessões" (treino) ou "em 12 semanas"
+// (dia de descanso). `pontos` é quantos pontos o gráfico tem.
+export function textoPeriodoDaEvolucao(pontos: number, unidade: 'sessao' | 'semana'): string {
+  const nome = unidade === 'sessao' ? plural(pontos, 'sessão', 'sessões') : plural(pontos, 'semana', 'semanas');
+  return `em ${pontos} ${nome}`;
+}
+
 // Linha de um grupo na aba Evolução: "+8% em 4 semanas · 14 séries esta semana".
 export function textoDoGrupo(variacao: number | null, seriesNaSemana: number): string {
   const forca = variacao === null ? 'Sem histórico ainda' : `${formatarPercentual(variacao)} em 4 semanas`;
