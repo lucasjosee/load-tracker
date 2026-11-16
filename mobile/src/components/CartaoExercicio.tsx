@@ -5,7 +5,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ItemDoTreino } from '@/db/consultas';
 import { configDoExercicio } from '@/db/operacoes';
 import { reguaDeReps } from '@/domain/regua';
-import { motivoDaMeta, seloDaMeta, textoEstagnacao, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
+import {
+  motivoDaMeta,
+  seloDaMeta,
+  textoEstagnacao,
+  textoMeta,
+  textoRealizado,
+  textoSeries,
+  textoUltimaVez,
+} from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
 
 import { Botao } from './Botao';
@@ -26,7 +34,7 @@ interface Props {
 // sozinho na linha, para ser lido de relance entre uma série e outra. Depois
 // do check-in o cartão encolhe para uma linha e sai do caminho.
 export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props) {
-  const { exercicio, estado, mudanca, feitoHoje, estagnacao } = item;
+  const { exercicio, estado, mudanca, feitoHoje, estagnacao, ultimaSessao } = item;
   const [ajustando, setAjustando] = useState(false);
 
   if (feitoHoje !== null) {
@@ -108,6 +116,7 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props)
           repsIniciais={Array.from({ length: exercicio.seriesAlvo }, () => estado?.repsAlvo ?? exercicio.repsMin)}
           passoKg={exercicio.incrementoKg > 0 ? exercicio.incrementoKg : 1}
           porLado={exercicio.porLado}
+          ultimaVez={ultimaSessao === null ? null : textoUltimaVez(ultimaSessao, exercicio.porLado)}
           onSalvar={salvarAjuste}
           onCancelar={() => setAjustando(false)}
         />

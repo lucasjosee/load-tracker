@@ -13,18 +13,21 @@ interface Props {
   repsIniciais: number[]; // uma posição por série, já com a meta
   passoKg: number;
   porLado: boolean; // o stepper mostra "20 kg lado" (§5.2)
+  ultimaVez: string | null; // linha de referência; null = sem histórico
   onSalvar: (cargaKg: number, reps: number[]) => void;
   onCancelar: () => void;
 }
 
 // "Ajustar" (§3.2): steppers da carga e das reps de cada série, já
 // preenchidos com a meta, para mudar só o que foi diferente.
-export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, onSalvar, onCancelar }: Props) {
+export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, ultimaVez, onSalvar, onCancelar }: Props) {
   const [carga, setCarga] = useState(cargaInicial);
   const [reps, setReps] = useState(repsIniciais);
 
   return (
     <View style={styles.painel}>
+      {/* Só aqui, e não no cartão: é a hora em que a pessoa decide o que digitar. */}
+      {ultimaVez !== null && <Text style={styles.ultimaVez}>{ultimaVez}</Text>}
       <View style={styles.linha}>
         <Text style={styles.rotulo}>Carga</Text>
         <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => formatarCarga(kg, porLado)} rotulo="carga" />
@@ -43,6 +46,7 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, onS
 const styles = StyleSheet.create({
   painel: { gap: 8, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderColor: cores.borda },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ultimaVez: { fontSize: 14, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   rotulo: { fontSize: 16, color: cores.texto },
   botoes: { flexDirection: 'row', gap: 8 },
 });

@@ -20,6 +20,7 @@ import {
   textoResumoDaSessao,
   textoTreinoPerdido,
   textoSeries,
+  textoUltimaVez,
 } from './textos';
 import type { ConfigExercicio, MudancaDeMeta } from './tipos';
 
@@ -251,6 +252,18 @@ describe('carga por lado', () => {
 
   it('peso corporal continua sem carga, mesmo com a marca ligada', () => {
     expect(textoMeta({ cargaKg: 0, repsAlvo: 13 }, true)).toBe('13 reps');
+  });
+});
+
+describe('textoUltimaVez', () => {
+  it('mostra o dia e o que foi feito, com o rótulo de lado quando houver', () => {
+    const sessao = { data: '2026-11-12', cargaKg: 20, reps: [10, 9, 9] };
+    expect(textoUltimaVez(sessao)).toBe('Última vez (12/11): 20 kg × 10, 9, 9');
+    expect(textoUltimaVez(sessao, true)).toBe('Última vez (12/11): 20 kg lado × 10, 9, 9');
+  });
+
+  it('peso corporal mostra só as reps', () => {
+    expect(textoUltimaVez({ data: '2026-11-02', cargaKg: 0, reps: [12, 12, 10] })).toBe('Última vez (02/11): 12, 12, 10 reps');
   });
 });
 

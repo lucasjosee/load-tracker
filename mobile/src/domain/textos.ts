@@ -75,6 +75,15 @@ export function textoRealizado(cargaKg: number, reps: readonly number[], porLado
   return `${formatarCarga(cargaKg, porLado)} × ${reps.join(', ')}`;
 }
 
+// Linha do painel Ajustar: "Última vez (12/11): 20 kg lado × 10, 9, 9".
+// É a referência de quem vai digitar o que fez hoje.
+export function textoUltimaVez(
+  sessao: { data: string; cargaKg: number; reps: readonly number[] },
+  porLado = false,
+): string {
+  return `Última vez (${formatarDiaMes(sessao.data)}): ${textoRealizado(sessao.cargaKg, sessao.reps, porLado)}`;
+}
+
 export function textoSeries(series: number): string {
   return series === 1 ? '1 série' : `${series} séries`;
 }

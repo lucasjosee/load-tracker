@@ -45,6 +45,9 @@ export interface ItemDoTreino {
   estado: EstadoProgressao | null; // a meta de agora
   mudanca: MudancaDeMeta | null; // o evento que produziu a meta
   feitoHoje: Registro | null; // o check-in desta sessão, se já houve
+  // O registro mais recente do exercício (fora "Pulei"), para o painel
+  // Ajustar. Enquanto não há check-in hoje, é a sessão anterior.
+  ultimaSessao: SessaoDoHistorico | null;
   estagnacao: Estagnacao | null; // alerta da §7 (tarefa 5.3)
 }
 
@@ -165,11 +168,14 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
       .filter((exercicio) => exercicio.ativo)
       .map((exercicio) => {
         const estado = estados.get(exercicio.id) ?? null;
+        // O histórico vem do mais antigo para o mais recente.
+        const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
         return {
           exercicio,
           estado,
           mudanca: mudancas.get(exercicio.id) ?? null,
           feitoHoje: feitoPorExercicio.get(exercicio.id) ?? null,
+          ultimaSessao: sessoes[sessoes.length - 1] ?? null,
           estagnacao: estagnacaoDe(exercicio, estado, historico),
         };
       }),
