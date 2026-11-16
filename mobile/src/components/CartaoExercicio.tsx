@@ -34,7 +34,7 @@ interface Props {
 // sozinho na linha, para ser lido de relance entre uma série e outra. Depois
 // do check-in o cartão encolhe para uma linha e sai do caminho.
 export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props) {
-  const { exercicio, estado, mudanca, feitoHoje, estagnacao, ultimaSessao } = item;
+  const { exercicio, estado, mudanca, feitoHoje, estagnacao, ultimaSessao, recordeHoje } = item;
   const [ajustando, setAjustando] = useState(false);
 
   if (feitoHoje !== null) {
@@ -48,6 +48,7 @@ export function CartaoExercicio({ item, onCheckin, onDesfazer, onAbrir }: Props)
         }
         proxima={estado !== null && feitoHoje.resultado !== 'pulou' ? textoMeta(estado, exercicio.porLado) : null}
         pulado={feitoHoje.resultado === 'pulou'}
+        recorde={recordeHoje}
         onDesfazer={onDesfazer}
         onAbrir={onAbrir}
       />
@@ -137,22 +138,26 @@ interface FeitoProps {
   resumo: string;
   proxima: string | null;
   pulado: boolean;
+  recorde: boolean; // maior carga já usada no exercício (§7)
   onDesfazer: () => void;
   onAbrir: () => void;
 }
 
 // O cartão depois do check-in: uma linha só, com o que foi feito e a meta que
 // o motor acabou de calcular para a próxima vez.
-function CartaoFeito({ nome, resumo, proxima, pulado, onDesfazer, onAbrir }: FeitoProps) {
+function CartaoFeito({ nome, resumo, proxima, pulado, recorde, onDesfazer, onAbrir }: FeitoProps) {
   return (
     <View style={[estilosComuns.cartao, styles.feito]}>
       <View style={[styles.marca, pulado && styles.marcaPulado]}>
         <Text style={[styles.simboloDaMarca, pulado && styles.simboloPulado]}>{pulado ? '–' : '✓'}</Text>
       </View>
       <Pressable accessibilityRole="link" accessibilityHint="Abre o histórico do exercício" onPress={onAbrir} style={styles.textosDoFeito}>
-        <Text style={styles.nomeFeito} numberOfLines={1}>
-          {nome}
-        </Text>
+        <View style={styles.nomeComSelo}>
+          <Text style={styles.nomeFeito} numberOfLines={1}>
+            {nome}
+          </Text>
+          {recorde && <Selo selo={{ texto: 'recorde', direcao: 'sobe' }} />}
+        </View>
         <Text style={styles.resumo}>{proxima === null ? resumo : `${resumo} · próxima: ${proxima}`}</Text>
       </Pressable>
       <Pressable accessibilityRole="button" onPress={onDesfazer} hitSlop={8} style={styles.desfazer}>
@@ -196,7 +201,8 @@ const styles = StyleSheet.create({
   simboloDaMarca: { fontSize: 15, fontWeight: '800', color: cores.textoSobrePrimaria },
   simboloPulado: { color: cores.textoSecundario },
   textosDoFeito: { flex: 1, gap: 2 },
-  nomeFeito: { fontSize: 16, fontWeight: '600', color: cores.texto },
+  nomeComSelo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  nomeFeito: { fontSize: 16, fontWeight: '600', color: cores.texto, flexShrink: 1 },
   resumo: { fontSize: 14, lineHeight: 20, color: cores.textoSecundario },
   desfazer: { paddingVertical: 10, paddingHorizontal: 4 },
   textoDesfazer: { fontSize: 14, fontWeight: '600', color: cores.textoSecundario },

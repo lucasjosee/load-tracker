@@ -176,7 +176,10 @@ export default function TelaHoje() {
       ))}
 
       {sessao !== null && sessao.finalizadaEm !== null ? (
-        <ResumoDoTreino resumo={resumirSessao(conteudo.tiposDaSessao)} />
+        <ResumoDoTreino
+          resumo={resumirSessao(conteudo.tiposDaSessao)}
+          recordes={conteudo.itens.filter((item) => item.recordeHoje).length}
+        />
       ) : (
         conteudo.itens.length > 0 && (
           // Sem nenhum check-in ainda não existe sessão para finalizar.

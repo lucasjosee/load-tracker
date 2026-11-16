@@ -8,7 +8,12 @@ import { cores } from './tema';
 // O que aparece no lugar do botão "Finalizar treino" (§3.2): os números da
 // sessão em destaque. Só entram as contagens que não são zero, menos as
 // progressões, que aparecem sempre: é o número que importa.
-export function ResumoDoTreino({ resumo }: { resumo: ResumoDaSessao }) {
+interface Props {
+  resumo: ResumoDaSessao;
+  recordes: number; // exercícios em que a carga de hoje foi a maior do histórico (§7)
+}
+
+export function ResumoDoTreino({ resumo, recordes }: Props) {
   const numeros = [
     { valor: resumo.progressoes, rotulo: resumo.progressoes === 1 ? 'progressão' : 'progressões', cor: cores.sobe, sempre: true },
     { valor: resumo.mantidos, rotulo: resumo.mantidos === 1 ? 'mantido' : 'mantidos', cor: cores.texto, sempre: false },
@@ -27,6 +32,11 @@ export function ResumoDoTreino({ resumo }: { resumo: ResumoDaSessao }) {
           </View>
         ))}
       </View>
+      {recordes > 0 && (
+        <Text style={[styles.destaque, styles.recorde]}>
+          {recordes === 1 ? '1 recorde de carga hoje.' : `${recordes} recordes de carga hoje.`}
+        </Text>
+      )}
       {resumo.aumentosDeCarga > 0 && (
         <Text style={styles.destaque}>
           {resumo.aumentosDeCarga === 1
@@ -46,4 +56,5 @@ const styles = StyleSheet.create({
   valor: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
   rotulo: { fontSize: 14, color: cores.textoSecundario },
   destaque: { fontSize: 15, color: cores.texto },
+  recorde: { color: cores.sobe, fontWeight: '700' },
 });

@@ -2,6 +2,7 @@ import {
   contarAumentosDeCargaNoMes,
   detectarEstagnacao,
   e1rm,
+  ehRecordeDeCarga,
   forcaDaSessao,
   pontosDeForca,
   resumirGrupos,
@@ -121,6 +122,30 @@ describe('detectarEstagnacao', () => {
 
   it('com 3 sessões ou menos não há base para comparar', () => {
     expect(detectarEstagnacao(1, [12, 12, 12])).toBeNull();
+  });
+});
+
+describe('ehRecordeDeCarga (§7)', () => {
+  it('é recorde quando a carga passa todas as anteriores', () => {
+    expect(ehRecordeDeCarga(22.5, [20, 20, 20])).toBe(true);
+  });
+
+  it('repetir a maior carga não é recorde', () => {
+    expect(ehRecordeDeCarga(20, [18, 20, 20])).toBe(false);
+  });
+
+  it('voltar de um deload à carga de antes não é recorde; passar dela, sim', () => {
+    const historico = [10, 12, 12, 12, 10]; // subiu para 12, falhou 3 vezes, recuou para 10
+    expect(ehRecordeDeCarga(12, historico)).toBe(false);
+    expect(ehRecordeDeCarga(14, historico)).toBe(true);
+  });
+
+  it('a primeira sessão é o ponto de partida, não um recorde', () => {
+    expect(ehRecordeDeCarga(20, [])).toBe(false);
+  });
+
+  it('peso corporal (carga sempre 0) nunca tem recorde de carga', () => {
+    expect(ehRecordeDeCarga(0, [0, 0])).toBe(false);
   });
 });
 

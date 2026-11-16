@@ -118,6 +118,21 @@ export function detectarEstagnacao(falhas: number, forcas: readonly number[]): E
   return null;
 }
 
+// Recorde de carga (§7): a pessoa usou uma carga maior que todas as que já
+// tinha usado naquele exercício. `cargasAnteriores` são as das sessões de
+// antes, em qualquer ordem.
+//
+// Por que carga e não força estimada: na dupla progressão o e1RM sobe a cada
+// rep a mais, então quase todo "Bati" seria recorde e o aviso não diria nada.
+// A carga máxima só é passada de tempos em tempos, e voltar de um deload à
+// carga de antes não conta.
+//
+// Sem histórico não há o que superar (a primeira sessão é o ponto de
+// partida), e em peso corporal a carga é sempre 0, então nunca há recorde.
+export function ehRecordeDeCarga(cargaKg: number, cargasAnteriores: readonly number[]): boolean {
+  return cargasAnteriores.length > 0 && cargaKg > Math.max(...cargasAnteriores);
+}
+
 export interface EventoDatado {
   data: string;
   tipo: Evento;

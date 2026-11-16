@@ -15,6 +15,7 @@ import {
 import {
   contarAumentosDeCargaNoMes,
   detectarEstagnacao,
+  ehRecordeDeCarga,
   pontosDeForca,
   resumirGrupos,
   seriesDaSemana,
@@ -48,6 +49,7 @@ export interface ItemDoTreino {
   // O registro mais recente do exercício (fora "Pulei"), para o painel
   // Ajustar. Enquanto não há check-in hoje, é a sessão anterior.
   ultimaSessao: SessaoDoHistorico | null;
+  recordeHoje: boolean; // o check-in de hoje usou a maior carga do histórico (§7)
   estagnacao: Estagnacao | null; // alerta da §7 (tarefa 5.3)
 }
 
@@ -170,12 +172,22 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
         const estado = estados.get(exercicio.id) ?? null;
         // O histórico vem do mais antigo para o mais recente.
         const sessoes = historico.filter((sessao) => sessao.exercicioId === exercicio.id);
+        const feitoHoje = feitoPorExercicio.get(exercicio.id) ?? null;
+        // Com check-in hoje (fora "Pulei"), ele é a última sessão do
+        // histórico: as anteriores são todas menos ela.
+        const fezHoje = feitoHoje !== null && feitoHoje.resultado !== 'pulou';
         return {
           exercicio,
           estado,
           mudanca: mudancas.get(exercicio.id) ?? null,
-          feitoHoje: feitoPorExercicio.get(exercicio.id) ?? null,
+          feitoHoje,
           ultimaSessao: sessoes[sessoes.length - 1] ?? null,
+          recordeHoje:
+            fezHoje &&
+            ehRecordeDeCarga(
+              feitoHoje.cargaKg,
+              sessoes.slice(0, -1).map((sessao) => sessao.cargaKg),
+            ),
           estagnacao: estagnacaoDe(exercicio, estado, historico),
         };
       }),
