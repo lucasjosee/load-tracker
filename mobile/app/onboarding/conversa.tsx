@@ -1,8 +1,9 @@
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,10 +13,13 @@ import {
 } from 'react-native';
 
 import { conversarOnboarding, mensagemDaFalha } from '@/api/cliente';
-import { LIMITE_DO_TEXTO, PRIMEIRA_PERGUNTA, type Mensagem } from '@/api/contrato';
+import { LIMITE_DE_PERGUNTAS, LIMITE_DO_TEXTO, PRIMEIRA_PERGUNTA, type Mensagem } from '@/api/contrato';
+import { Balao, Digitando } from '@/components/Balao';
 import { Botao } from '@/components/Botao';
+import { RascunhoAoVivo } from '@/components/RascunhoAoVivo';
 import { estilosComuns } from '@/components/Tela';
-import { cores, espaco, raio } from '@/components/tema';
+import { cores, espaco } from '@/components/tema';
+import { resumirRascunho } from '@/domain/onboarding';
 import { useRascunho } from '@/hooks/onboarding';
 
 // Conversa com a IA (§3.1, passo 2). A cada resposta, o servidor devolve o
@@ -29,10 +33,12 @@ export default function TelaConversa() {
   const [falha, setFalha] = useState<string | null>(null);
   const rolagem = useRef<ScrollViewInstance>(null);
 
-  async function enviar() {
-    const conversa: Mensagem[] = [...mensagens, { papel: 'usuario', texto: texto.trim() }];
-    setMensagens(conversa);
-    setTexto('');
+  const perguntas = mensagens.filter((mensagem) => mensagem.papel === 'assistente').length;
+
+  // Separado do "enviar" para o "Tentar de novo" reenviar a mesma conversa,
+  // sem a pessoa digitar a resposta outra vez.
+  async function pedirProximaPergunta(conversa: Mensagem[]) {
+    setFalha(null);
     setEnviando(true);
     const resposta = await conversarOnboarding({ mensagens: conversa, rascunho });
     setEnviando(false);
@@ -41,6 +47,7 @@ export default function TelaConversa() {
       setFalha(mensagemDaFalha(resposta.falha));
       return;
     }
+    Haptics.selectionAsync(); // um toque leve: a resposta chegou
     setRascunho(resposta.valor.rascunho);
     if (resposta.valor.completo || resposta.valor.proximaPergunta === null) {
       router.push('/onboarding/revisao');
@@ -49,42 +56,71 @@ export default function TelaConversa() {
     setMensagens([...conversa, { papel: 'assistente', texto: resposta.valor.proximaPergunta }]);
   }
 
+  function enviar() {
+    const conversa: Mensagem[] = [...mensagens, { papel: 'usuario', texto: texto.trim() }];
+    setMensagens(conversa);
+    setTexto('');
+    pedirProximaPergunta(conversa);
+  }
+
+  const podeEnviar = !enviando && texto.trim() !== '';
+
   return (
     // Sobe o campo de texto junto com o teclado, para ele não ficar escondido.
     <KeyboardAvoidingView style={styles.tela} behavior="padding" keyboardVerticalOffset={100}>
+      <RascunhoAoVivo resumo={resumirRascunho(rascunho)} />
       <ScrollView
         ref={rolagem}
         contentContainerStyle={styles.lista}
+        keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => rolagem.current?.scrollToEnd({ animated: true })}
       >
+        <Text style={styles.contagem}>
+          Pergunta {perguntas} de até {LIMITE_DE_PERGUNTAS}
+        </Text>
         {mensagens.map((mensagem, indice) => (
-          <Text key={indice} style={[styles.balao, mensagem.papel === 'usuario' ? styles.usuario : styles.assistente]}>
-            {mensagem.texto}
-          </Text>
+          <Balao key={indice} papel={mensagem.papel} texto={mensagem.texto} />
         ))}
-        {enviando && <ActivityIndicator style={styles.carregando} />}
-        {falha !== null && <Text style={estilosComuns.erro}>{falha}</Text>}
+        {enviando && <Digitando />}
+        {falha !== null && (
+          <View style={styles.falha}>
+            <Text style={estilosComuns.erro}>{falha}</Text>
+            <Botao titulo="Tentar de novo" variante="secundario" compacto onPress={() => pedirProximaPergunta(mensagens)} />
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.rodape}>
-        {falha === null ? (
+        {falha === null && (
           <View style={styles.entrada}>
             <TextInput
               value={texto}
               onChangeText={setTexto}
               placeholder="seg peito e tríceps: supino reto 20kg 3x10..."
+              placeholderTextColor={cores.textoSecundario}
               multiline
               maxLength={LIMITE_DO_TEXTO}
               editable={!enviando}
               style={[estilosComuns.campo, styles.campo]}
             />
-            <Botao titulo="Enviar" compacto desabilitado={enviando || texto.trim() === ''} onPress={enviar} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Enviar"
+              accessibilityState={{ disabled: !podeEnviar }}
+              disabled={!podeEnviar}
+              onPress={enviar}
+              hitSlop={6}
+              style={({ pressed }) => [styles.enviar, (pressed || !podeEnviar) && styles.enviarApagado]}
+            >
+              <Text style={styles.setaDeEnviar}>↑</Text>
+            </Pressable>
           </View>
-        ) : null}
+        )}
         {/* Sempre dá para sair da conversa e terminar no formulário. */}
         <Botao
           titulo={rascunho === null ? 'Preencher manualmente' : 'Revisar e completar à mão'}
           variante="secundario"
+          compacto
           desabilitado={enviando}
           onPress={() => router.push('/onboarding/revisao')}
         />
@@ -96,11 +132,19 @@ export default function TelaConversa() {
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.fundo },
   lista: { padding: espaco.grande, gap: espaco.pequeno },
-  balao: { fontSize: 16, padding: 12, borderRadius: raio, maxWidth: '85%', overflow: 'hidden' },
-  assistente: { alignSelf: 'flex-start', backgroundColor: cores.superficie, color: cores.texto },
-  usuario: { alignSelf: 'flex-end', backgroundColor: cores.primaria, color: cores.textoSobrePrimaria },
-  carregando: { alignSelf: 'flex-start', margin: 8 },
+  contagem: { alignSelf: 'center', fontSize: 12, color: cores.textoSecundario, marginBottom: 4, fontVariant: ['tabular-nums'] },
+  falha: { gap: espaco.pequeno, alignItems: 'flex-start' },
   rodape: { padding: espaco.medio, gap: espaco.pequeno, borderTopWidth: StyleSheet.hairlineWidth, borderColor: cores.borda },
   entrada: { flexDirection: 'row', alignItems: 'flex-end', gap: espaco.pequeno },
-  campo: { flex: 1, maxHeight: 120 },
+  campo: { flex: 1, maxHeight: 120, borderRadius: 22 },
+  enviar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.primaria,
+  },
+  enviarApagado: { opacity: 0.4 },
+  setaDeEnviar: { fontSize: 22, fontWeight: '800', color: cores.textoSobrePrimaria },
 });

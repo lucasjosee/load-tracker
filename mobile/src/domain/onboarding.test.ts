@@ -1,5 +1,8 @@
 import {
   exercicioEmBranco,
+  resumirRascunho,
+  textoDoResumoDoRascunho,
+  textoDoTreinoNoResumo,
   revisaoDoRascunho,
   treinoEmBranco,
   validarDivisao,
@@ -92,5 +95,47 @@ describe('validarDivisao', () => {
 
   it('recusa horário fora de HH:MM', () => {
     expect(validarDivisao({ ...completa, horarioTreino: '18h' })).toMatchObject({ ok: false, erro: expect.stringMatching(/Horário/) });
+  });
+});
+
+describe('resumirRascunho', () => {
+  it('sem rascunho, tudo vazio', () => {
+    expect(resumirRascunho(null)).toEqual({ diasComTreino: [], treinos: [], exercicios: 0, horarioTreino: null });
+  });
+
+  it('conta exercícios, os que estão sem carga e junta os dias a partir da segunda', () => {
+    const resumo = resumirRascunho({
+      ...RASCUNHO,
+      treinos: [...RASCUNHO.treinos, { nome: 'Perna', diasSemana: [0, 3], exercicios: [] }],
+    });
+    expect(resumo.treinos).toEqual([
+      { nome: 'Peito e tríceps', diasSemana: [1, 4], exercicios: 2, semCarga: 1 },
+      { nome: 'Perna', diasSemana: [3, 0], exercicios: 0, semCarga: 0 },
+    ]);
+    expect(resumo.diasComTreino).toEqual([1, 3, 4, 0]);
+    expect(resumo.exercicios).toBe(2);
+    expect(resumo.horarioTreino).toBe('18:00');
+  });
+});
+
+describe('textoDoResumoDoRascunho', () => {
+  it('antes da primeira resposta, explica o que vai aparecer', () => {
+    expect(textoDoResumoDoRascunho(resumirRascunho(null))).toBe('Sua divisão aparece aqui conforme você responde.');
+  });
+
+  it('treinos, exercícios e o horário, se já houver', () => {
+    expect(textoDoResumoDoRascunho(resumirRascunho(RASCUNHO))).toBe('1 treino · 2 exercícios · 18:00');
+    expect(textoDoResumoDoRascunho({ diasComTreino: [1], treinos: [
+      { nome: 'A', diasSemana: [1], exercicios: 1, semCarga: 0 },
+      { nome: 'B', diasSemana: [], exercicios: 0, semCarga: 0 },
+    ], exercicios: 1, horarioTreino: null })).toBe('2 treinos · 1 exercício');
+  });
+});
+
+describe('textoDoTreinoNoResumo', () => {
+  it('dias curtos, exercícios e o que falta', () => {
+    expect(textoDoTreinoNoResumo({ nome: 'Push', diasSemana: [1, 4], exercicios: 6, semCarga: 2 })).toBe('seg, qui · 6 exercícios · 2 sem carga');
+    expect(textoDoTreinoNoResumo({ nome: 'Push', diasSemana: [6], exercicios: 1, semCarga: 0 })).toBe('sáb · 1 exercício');
+    expect(textoDoTreinoNoResumo({ nome: 'Push', diasSemana: [], exercicios: 0, semCarga: 0 })).toBe('sem dia · sem exercícios ainda');
   });
 });

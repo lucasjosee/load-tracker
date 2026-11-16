@@ -2,6 +2,7 @@
 // branco, no "Preencher manualmente") vira uma divisão editável; depois de
 // validada, ela é gravada de uma vez.
 
+import { NOMES_CURTOS_DOS_DIAS, ordenarDias } from './datas';
 import { horarioDoAviso, lerHorario, type Horario } from './horario';
 import { lerNumero } from './textos';
 import {
@@ -185,4 +186,68 @@ export function validarDivisao(divisao: DivisaoEmRevisao): Validacao<DivisaoConf
     treinos.push({ nome: treino.nome.trim(), diasSemana: [...treino.diasSemana], exercicios });
   }
   return { ok: true, valor: { horarioDoAviso: horario === null ? null : horarioDoAviso(horario), treinos } };
+}
+
+// ---------- Rascunho ao vivo na conversa (§3.1, passo 2) ----------
+
+export interface TreinoNoResumo {
+  nome: string;
+  diasSemana: number[]; // a partir da segunda
+  exercicios: number;
+  semCarga: number; // exercícios que a pessoa citou sem dizer a carga
+}
+
+// O que a conversa já descobriu, para mostrar na tela enquanto a pessoa
+// responde: ela vê a divisão se formando e percebe o que ainda falta.
+export interface ResumoDoRascunho {
+  diasComTreino: number[]; // 0 = domingo … 6 = sábado
+  treinos: TreinoNoResumo[];
+  exercicios: number;
+  horarioTreino: string | null;
+}
+
+export function resumirRascunho(rascunho: RascunhoSugerido | null): ResumoDoRascunho {
+  const treinos = (rascunho?.treinos ?? []).map((treino) => ({
+    nome: treino.nome,
+    diasSemana: ordenarDias(treino.diasSemana),
+    exercicios: treino.exercicios.length,
+    semCarga: treino.exercicios.filter((exercicio) => exercicio.cargaKg === null).length,
+  }));
+  return {
+    diasComTreino: ordenarDias([...new Set(treinos.flatMap((treino) => treino.diasSemana))]),
+    treinos,
+    exercicios: treinos.reduce((total, treino) => total + treino.exercicios, 0),
+    horarioTreino: rascunho?.horarioTreino ?? null,
+  };
+}
+
+// Linha de cima do painel: "3 treinos · 12 exercícios · 18:00".
+export function textoDoResumoDoRascunho(resumo: ResumoDoRascunho): string {
+  if (resumo.treinos.length === 0) {
+    return 'Sua divisão aparece aqui conforme você responde.';
+  }
+  const partes = [
+    `${resumo.treinos.length} ${resumo.treinos.length === 1 ? 'treino' : 'treinos'}`,
+    `${resumo.exercicios} ${resumo.exercicios === 1 ? 'exercício' : 'exercícios'}`,
+  ];
+  if (resumo.horarioTreino !== null) {
+    partes.push(resumo.horarioTreino);
+  }
+  return partes.join(' · ');
+}
+
+// Linha de um treino no painel: "seg, qui · 6 exercícios · 2 sem carga".
+export function textoDoTreinoNoResumo(treino: TreinoNoResumo): string {
+  const partes = [
+    treino.diasSemana.length === 0
+      ? 'sem dia'
+      : treino.diasSemana.map((dia) => NOMES_CURTOS_DOS_DIAS[dia].toLowerCase()).join(', '),
+    treino.exercicios === 0
+      ? 'sem exercícios ainda'
+      : `${treino.exercicios} ${treino.exercicios === 1 ? 'exercício' : 'exercícios'}`,
+  ];
+  if (treino.semCarga > 0) {
+    partes.push(`${treino.semCarga} sem carga`);
+  }
+  return partes.join(' · ');
 }
