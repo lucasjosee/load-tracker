@@ -2,6 +2,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { montarCalendario, SEMANAS_DO_CALENDARIO, type Calendario } from '@/domain/calendario';
 import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
 import { duracaoTipica, segundosDeTreino } from '@/domain/duracao';
 import {
@@ -41,6 +42,7 @@ import {
   listarDatasComRegistroDesde,
   listarHistorico,
   listarRegistrosDaSessao,
+  listarRegistrosPorDia,
   type SessaoDoHistorico,
   listarSeriesDesde,
   type Registro,
@@ -268,6 +270,7 @@ export interface ExercicioNaEvolucao {
 }
 
 export interface Evolucao {
+  calendario: Calendario; // um ano de treinos, dia a dia (§3.6)
   grupos: ResumoDoGrupo[];
   exercicios: ExercicioNaEvolucao[];
   aumentosNoMes: number;
@@ -276,16 +279,24 @@ export interface Evolucao {
 // Tudo o que a aba Evolução e a tela do grupo mostram (§3.6). Só exercícios
 // ativos; o histórico dos arquivados continua guardado.
 export async function carregarEvolucao(db: SQLiteDatabase, hoje: string): Promise<Evolucao> {
-  const [todos, historico, estados, eventos] = await Promise.all([
+  const [todos, historico, estados, eventos, divisao, registrosPorDia] = await Promise.all([
     listarExercicios(db),
     listarHistorico(db),
     listarEstados(db),
     listarEventos(db),
+    listarTreinosPorDia(db),
+    // Só o que o calendário mostra: da primeira segunda dele em diante.
+    listarRegistrosPorDia(db, somarDias(inicioDaSemana(hoje), -(SEMANAS_DO_CALENDARIO - 1) * 7)),
   ]);
   const exercicios = todos.filter((exercicio) => exercicio.ativo);
   const pesoCorporal = (exercicio: Exercicio) => exercicio.equipamento === 'peso_corporal';
 
   return {
+    calendario: montarCalendario(
+      hoje,
+      divisao.map((d) => d.diaSemana),
+      registrosPorDia,
+    ),
     grupos: resumirGrupos(
       exercicios.map((e) => ({ id: e.id, grupoMuscular: e.grupoMuscular, pesoCorporal: pesoCorporal(e) })),
       historico,

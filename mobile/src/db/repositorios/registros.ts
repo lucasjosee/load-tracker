@@ -187,6 +187,24 @@ export async function listarDatasComRegistroDesde(db: SQLiteDatabase, desde: str
   return linhas.map((linha) => linha.data);
 }
 
+// Por dia, desde `desde`: quantos exercícios foram registrados (fora os
+// pulados) e quantos bateram a meta. É o que o calendário de treinos pinta.
+// Em SQL uma comparação vale 1 ou 0, então somá-la conta os verdadeiros.
+export async function listarRegistrosPorDia(
+  db: SQLiteDatabase,
+  desde: string,
+): Promise<{ data: string; total: number; batidas: number }[]> {
+  return db.getAllAsync<{ data: string; total: number; batidas: number }>(
+    `SELECT s.data AS data, COUNT(*) AS total, SUM(r.resultado = 'bateu') AS batidas
+       FROM registro r
+       JOIN sessao s ON s.id = r.sessao_id
+      WHERE s.data >= ? AND r.resultado <> 'pulou'
+      GROUP BY s.data
+      ORDER BY s.data`,
+    desde,
+  );
+}
+
 // Ids dos registros de um exercício feitos em sessões de um dia, do mais
 // novo para o mais velho. O registro de onboarding não tem sessão e fica de
 // fora: ele é o ponto de partida, não um treino daquele dia.

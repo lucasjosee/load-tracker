@@ -17,6 +17,7 @@ export const cores = {
   textoSecundario: '#A0A6AD',
   primaria: '#C8F031',
   primariaSuave: '#374020', // a primária a ~18% sobre o cartão: pontos já feitos da régua
+  primariaMedia: '#84A322', // entre a suave e a cheia: o tom do meio do calendário de treinos
   textoSobrePrimaria: '#0E0F11',
   perigo: '#FF6B5E',
   sobe: '#C8F031',

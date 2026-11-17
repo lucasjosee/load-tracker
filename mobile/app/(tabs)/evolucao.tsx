@@ -3,6 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { CalendarioDeTreinos } from '@/components/CalendarioDeTreinos';
 import { Selo } from '@/components/Selo';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
@@ -12,8 +13,8 @@ import { formatarPercentual, frasesDeFeedback, textoDoGrupo, textoEstagnados } f
 import type { GrupoMuscular } from '@/domain/tipos';
 import { NOMES_DOS_GRUPOS } from '@/domain/tipos';
 
-// Aba Evolução (§3.6): cada grupo muscular com a variação de força em ~4
-// semanas e as séries da semana. Toque no grupo → exercícios do grupo.
+// Aba Evolução (§3.6): o calendário de treinos do ano e cada grupo muscular
+// com a variação de força em ~4 semanas e as séries da semana. Toque no grupo → exercícios do grupo.
 export default function TelaEvolucao() {
   const db = useSQLiteContext();
   const [evolucao, setEvolucao] = useState<Evolucao | null>(null);
@@ -41,6 +42,8 @@ export default function TelaEvolucao() {
           {frase}
         </Text>
       ))}
+
+      <CalendarioDeTreinos calendario={evolucao.calendario} />
 
       <Secao titulo="Grupos musculares">
         {evolucao.grupos.length === 0 && (
