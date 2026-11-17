@@ -80,7 +80,7 @@ export default function TelaRevisao() {
     }
     gravar(async () => {
       await salvarDivisaoDoOnboarding(db, validacao.valor, paraDataLocal(new Date()));
-      router.replace('/onboarding/permissao');
+      router.replace('/onboarding/fecho');
     });
   }
 

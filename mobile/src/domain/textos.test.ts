@@ -17,6 +17,8 @@ import {
   textoPeriodoDaEvolucao,
   textoMeta,
   textoProximoTreino,
+  textoDoFecho,
+  textoPrimeiroTreino,
   textoRealizado,
   textoResumoDaSemana,
   textoResumoDaSessao,
@@ -204,6 +206,19 @@ describe('textos da aba Hoje', () => {
   it('textoProximoTreino diz "Amanhã" ou o dia da semana', () => {
     expect(textoProximoTreino({ data: '2026-11-06', diaSemana: 5, nome: 'Upper', emDias: 1 })).toBe('Amanhã: Upper');
     expect(textoProximoTreino({ data: '2026-11-09', diaSemana: 1, nome: 'Push', emDias: 4 })).toBe('Segunda: Push');
+  });
+
+  it('textoDoFecho usa o nome quando há', () => {
+    expect(textoDoFecho('Lucas')).toBe('Tudo pronto, Lucas.');
+    expect(textoDoFecho(null)).toBe('Tudo pronto.');
+  });
+
+  it('textoPrimeiroTreino diz hoje, amanhã ou o dia, com "na" ou "no"', () => {
+    const treino = { data: '2026-11-16', nome: 'Push' };
+    expect(textoPrimeiroTreino({ ...treino, diaSemana: 1, emDias: 0 })).toBe('Seu primeiro treino é hoje: Push');
+    expect(textoPrimeiroTreino({ ...treino, diaSemana: 2, emDias: 1 })).toBe('Seu primeiro treino é amanhã: Push');
+    expect(textoPrimeiroTreino({ ...treino, diaSemana: 4, emDias: 3 })).toBe('Seu primeiro treino é na quinta: Push');
+    expect(textoPrimeiroTreino({ ...treino, diaSemana: 6, emDias: 5 })).toBe('Seu primeiro treino é no sábado: Push');
   });
 
   it('textoResumoDaSemana', () => {

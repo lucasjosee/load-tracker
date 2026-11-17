@@ -6,6 +6,7 @@ import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
 import {
   outroTreinoDoDia,
   proximoTreino,
+  treinoDeHojeOuProximo,
   treinoPerdido,
   type ProximoTreino,
   type TreinoIdentificado,
@@ -29,6 +30,7 @@ import {
 } from '@/domain/metricas';
 import type { EstadoProgressao, Evento, MudancaDeMeta } from '@/domain/tipos';
 
+import { obterConfig } from './repositorios/config';
 import { listarEstados, obterEstado } from './repositorios/estadoProgressao';
 import { listarEventos, listarTiposDaSessao, listarUltimasMudancas, type EventoSalvo } from './repositorios/eventos';
 import { listarExercicios, listarExerciciosDoTreino, obterExercicio, type Exercicio } from './repositorios/exercicios';
@@ -95,6 +97,30 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
       evolucao: PontoDeEvolucao[]; // força de todos os exercícios, um ponto por semana (§7)
     }
 );
+
+// Tela de fecho do onboarding (§3.1, passo 4): o primeiro treino da pessoa
+// (o de hoje, se hoje for dia de treino) com a meta que o motor calculou
+// para cada exercício quando a divisão foi gravada.
+export interface PrimeiraMeta {
+  nome: string | null; // o nome informado no perfil
+  proximo: ProximoTreino | null; // null = nenhum treino tem dia da semana
+  itens: { exercicio: Exercicio; estado: EstadoProgressao | null }[];
+}
+
+export async function carregarPrimeiraMeta(db: SQLiteDatabase, hoje: string): Promise<PrimeiraMeta> {
+  const [nome, divisao, estados] = await Promise.all([obterConfig(db, 'nome'), listarTreinosPorDia(db), listarEstados(db)]);
+  const proximo = treinoDeHojeOuProximo(
+    divisao.map((d) => ({ diaSemana: d.diaSemana, nome: d.treino.nome })),
+    hoje,
+  );
+  const treino = divisao.find((d) => d.diaSemana === proximo?.diaSemana)?.treino ?? null;
+  const exercicios = treino === null ? [] : await listarExerciciosDoTreino(db, treino.id);
+  return {
+    nome,
+    proximo,
+    itens: exercicios.map((exercicio) => ({ exercicio, estado: estados.get(exercicio.id) ?? null })),
+  };
+}
 
 async function buscarTreinoPerdido(db: SQLiteDatabase, hoje: string, treinoDeHojeId: string | null) {
   const ontem = somarDias(hoje, -1);

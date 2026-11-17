@@ -3,6 +3,7 @@ import {
   faixaDaSemana,
   outroTreinoDoDia,
   proximoTreino,
+  treinoDeHojeOuProximo,
   resumirSessao,
   treinoPerdido,
 } from './hoje';
@@ -14,6 +15,20 @@ const DIVISAO = [
   { diaSemana: 5, nome: 'Upper' },
   { diaSemana: 6, nome: 'Lower' },
 ];
+
+describe('treinoDeHojeOuProximo', () => {
+  it('em dia de treino, é o de hoje', () => {
+    expect(treinoDeHojeOuProximo(DIVISAO, '2026-11-02')).toEqual({ data: '2026-11-02', diaSemana: 1, nome: 'Push', emDias: 0 });
+  });
+
+  it('em dia de descanso, é o próximo', () => {
+    expect(treinoDeHojeOuProximo(DIVISAO, '2026-11-05')).toMatchObject({ nome: 'Upper', emDias: 1 });
+  });
+
+  it('sem treino em dia nenhum, null', () => {
+    expect(treinoDeHojeOuProximo([], '2026-11-02')).toBeNull();
+  });
+});
 
 describe('proximoTreino', () => {
   it('quinta de descanso: o próximo é sexta, amanhã', () => {

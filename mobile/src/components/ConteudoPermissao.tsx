@@ -12,7 +12,7 @@ interface Props {
   onTerminar: () => void; // chamado depois de "Ativar" (qualquer resposta) ou "Agora não"
 }
 
-// Tela de contexto antes do pedido do iOS (§3.1, passo 4). O iOS só pergunta
+// Tela de contexto antes do pedido do iOS (§3.1, passo 5). O iOS só pergunta
 // uma vez: explicar antes aumenta a chance de a pessoa dizer sim, e "Agora
 // não" aqui não gasta essa única chance.
 export function ConteudoPermissao({ onTerminar }: Props) {

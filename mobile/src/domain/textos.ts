@@ -181,6 +181,20 @@ export function textoProximoTreino(proximo: ProximoTreino): string {
   return `${quando}: ${proximo.nome}`;
 }
 
+// Título da tela de fecho do onboarding (§3.1, passo 4).
+export function textoDoFecho(nome: string | null): string {
+  return nome === null ? 'Tudo pronto.' : `Tudo pronto, ${nome}.`;
+}
+
+// "Seu primeiro treino é hoje: Push", "… é amanhã: Push", "… é na quinta: Push".
+export function textoPrimeiroTreino(proximo: ProximoTreino): string {
+  const dia = NOMES_DOS_DIAS[proximo.diaSemana].toLowerCase();
+  // Sábado e domingo são masculinos: "no sábado", mas "na quinta".
+  const noDia = proximo.diaSemana === 0 || proximo.diaSemana === 6 ? `no ${dia}` : `na ${dia}`;
+  const quando = proximo.emDias === 0 ? 'hoje' : proximo.emDias === 1 ? 'amanhã' : noDia;
+  return `Seu primeiro treino é ${quando}: ${proximo.nome}`;
+}
+
 // "Esta semana: 3 treinos · 72 séries" (§3.4).
 export function textoResumoDaSemana(treinos: number, series: number): string {
   if (treinos === 0) {

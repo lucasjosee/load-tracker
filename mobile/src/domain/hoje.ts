@@ -12,7 +12,7 @@ export interface ProximoTreino {
   data: string; // 'YYYY-MM-DD'
   diaSemana: number;
   nome: string;
-  emDias: number; // 1 = amanhã
+  emDias: number; // 1 = amanhã; 0 = hoje, só em `treinoDeHojeOuProximo`
 }
 
 // O próximo dia com treino depois de `hoje`, olhando no máximo uma semana à
@@ -27,6 +27,17 @@ export function proximoTreino(divisao: readonly TreinoNoDia[], hoje: string): Pr
     }
   }
   return null;
+}
+
+// Como `proximoTreino`, mas o próprio dia conta. É o treino que a tela de
+// fecho do onboarding mostra: se hoje é dia de treino, a primeira meta é a de hoje.
+export function treinoDeHojeOuProximo(divisao: readonly TreinoNoDia[], hoje: string): ProximoTreino | null {
+  const dia = diaDaSemana(hoje);
+  const deHoje = divisao.find((t) => t.diaSemana === dia);
+  if (deHoje !== undefined) {
+    return { data: hoje, diaSemana: dia, nome: deHoje.nome, emDias: 0 };
+  }
+  return proximoTreino(divisao, hoje);
 }
 
 export interface TreinoIdentificado {

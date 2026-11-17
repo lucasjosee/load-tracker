@@ -352,7 +352,7 @@ export async function precisaDeOnboarding(db: SQLiteDatabase): Promise<boolean> 
   return (linha?.total ?? 0) === 0;
 }
 
-// Fim da revisão do onboarding (§3.1, passo 5): grava treinos, dias e
+// Fim da revisão do onboarding (§3.1, passo 4): grava treinos, dias e
 // exercícios; a carga atual de cada exercício vira o registro de onboarding e
 // o motor calcula a primeira meta. A marca de concluído vai na mesma
 // transação: se o app fechar no meio, ou grava tudo, ou nada, e o onboarding
