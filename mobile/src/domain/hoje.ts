@@ -1,7 +1,7 @@
 // Regras da aba Hoje que não dependem de tela nem de banco (§3.2, §3.4).
 
 import { diaDaSemana, inicioDaSemana, somarDias } from './datas';
-import type { Evento } from './tipos';
+import type { Evento, Resultado } from './tipos';
 
 export interface TreinoNoDia {
   diaSemana: number;
@@ -109,6 +109,29 @@ export function faixaDaSemana(
     }
     return { data, diaSemana: dia, situacao, ehHoje: data === hoje };
   });
+}
+
+// Como cada exercício do treino aparece no resumo final (§3.2):
+// - 'melhorou': a meta subiu (reps ou carga);
+// - 'manteve': fez, e a meta ficou igual;
+// - 'recuou': deload;
+// - 'pulado': a pessoa marcou "Não vou fazer";
+// - 'nao_feito': ficou sem registro (treino encerrado antes).
+export type SituacaoNoResumo = 'melhorou' | 'manteve' | 'recuou' | 'pulado' | 'nao_feito';
+
+// `resultado` é o do registro de hoje (null = sem registro) e `tipo`, o
+// evento que esse registro produziu.
+export function situacaoNoResumo(resultado: Resultado | null, tipo: Evento | null): SituacaoNoResumo {
+  if (resultado === null) {
+    return 'nao_feito';
+  }
+  if (resultado === 'pulou') {
+    return 'pulado';
+  }
+  if (tipo === 'aumento_reps' || tipo === 'aumento_carga') {
+    return 'melhorou';
+  }
+  return tipo === 'deload' ? 'recuou' : 'manteve';
 }
 
 // Os números do resumo ao finalizar o treino (§3.2). Um item por exercício

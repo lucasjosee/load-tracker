@@ -1,60 +1,94 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { ResumoDaSessao } from '@/domain/hoje';
+import type { ItemDoTreino } from '@/db/consultas';
+import { textoDuracao } from '@/domain/duracao';
+import { situacaoNoResumo, type SituacaoNoResumo } from '@/domain/hoje';
+import { seloDaMeta, textoMeta, textoMetasBatidas, textoResumoDaSessao } from '@/domain/textos';
+import type { Evento } from '@/domain/tipos';
 
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
 
-// O que aparece no lugar do botão "Finalizar treino" (§3.2): os números da
-// sessão em destaque. Só entram as contagens que não são zero, menos as
-// progressões, que aparecem sempre: é o número que importa.
 interface Props {
-  resumo: ResumoDaSessao;
-  recordes: number; // exercícios em que a carga de hoje foi a maior do histórico (§7)
+  itens: ItemDoTreino[]; // todos os exercícios do treino, feitos ou não
+  tipos: Evento[]; // um evento por exercício registrado na sessão
+  duracaoS: number | null; // do "Iniciar treino" até encerrar
+  // Só o cartão de cima, sem a lista do próximo treino. É o da aba Hoje,
+  // onde a lista de exercícios logo abaixo já mostra a próxima meta de cada um.
+  compacto?: boolean;
 }
 
-export function ResumoDoTreino({ resumo, recordes }: Props) {
-  const numeros = [
-    { valor: resumo.progressoes, rotulo: resumo.progressoes === 1 ? 'progressão' : 'progressões', cor: cores.sobe, sempre: true },
-    { valor: resumo.mantidos, rotulo: resumo.mantidos === 1 ? 'mantido' : 'mantidos', cor: cores.texto, sempre: false },
-    { valor: resumo.deloads, rotulo: resumo.deloads === 1 ? 'deload' : 'deloads', cor: cores.desce, sempre: false },
-    { valor: resumo.pulados, rotulo: resumo.pulados === 1 ? 'pulado' : 'pulados', cor: cores.textoSecundario, sempre: false },
-  ].filter((numero) => numero.sempre || numero.valor > 0);
+// O que aparece embaixo do nome de quem não melhorou. Quem melhorou mostra o
+// que subiu ("↑ +1 rep").
+const NOTA: Record<Exclude<SituacaoNoResumo, 'melhorou'>, string> = {
+  manteve: 'repete a meta',
+  recuou: '↓ deload',
+  pulado: 'pulado hoje',
+  nao_feito: 'não feito hoje',
+};
+
+// O resumo do treino encerrado (§3.2): quantas metas foram batidas, o que
+// melhorou e o que fazer na próxima vez. Só mostra o que o motor já decidiu
+// em cada check-in; nada é calculado aqui.
+export function ResumoDoTreino({ itens, tipos, duracaoS, compacto = false }: Props) {
+  const batidas = itens.filter((item) => item.feitoHoje?.resultado === 'bateu').length;
+  const recordes = itens.filter((item) => item.recordeHoje).length;
+  const detalhes = [
+    textoResumoDaSessao(tipos),
+    recordes === 0 ? null : recordes === 1 ? '1 recorde' : `${recordes} recordes`,
+    duracaoS === null ? null : textoDuracao(duracaoS),
+  ].filter((parte) => parte !== null);
 
   return (
-    <View style={[estilosComuns.cartao, styles.cartao]}>
-      <Text style={styles.titulo}>Treino finalizado</Text>
-      <View style={styles.numeros}>
-        {numeros.map((numero) => (
-          <View key={numero.rotulo} style={styles.numero}>
-            <Text style={[styles.valor, { color: numero.cor }]}>{numero.valor}</Text>
-            <Text style={styles.rotulo}>{numero.rotulo}</Text>
-          </View>
-        ))}
+    <View style={styles.resumo}>
+      <View style={[estilosComuns.cartao, styles.cartao]}>
+        <Text style={styles.titulo}>Treino finalizado</Text>
+        <Text style={styles.batidas}>{textoMetasBatidas(batidas, itens.length)}</Text>
+        <Text style={styles.detalhes}>{detalhes.join(' · ')}</Text>
       </View>
-      {recordes > 0 && (
-        <Text style={[styles.destaque, styles.recorde]}>
-          {recordes === 1 ? '1 recorde de carga hoje.' : `${recordes} recordes de carga hoje.`}
-        </Text>
-      )}
-      {resumo.aumentosDeCarga > 0 && (
-        <Text style={styles.destaque}>
-          {resumo.aumentosDeCarga === 1
-            ? '1 exercício sobe de carga na próxima vez.'
-            : `${resumo.aumentosDeCarga} exercícios sobem de carga na próxima vez.`}
-        </Text>
+
+      {!compacto && (
+        <View style={[estilosComuns.cartao, styles.cartao]}>
+          <Text style={styles.titulo}>Próximo treino</Text>
+          {itens.map((item) => {
+            const situacao = situacaoNoResumo(
+              item.feitoHoje?.resultado ?? null,
+              item.feitoHoje === null ? null : (item.mudanca?.tipo ?? null),
+            );
+            const melhorou = situacao === 'melhorou';
+            return (
+              <View key={item.exercicio.id} style={styles.linha}>
+                <View style={styles.textos}>
+                  <Text style={styles.nome} numberOfLines={1}>
+                    {item.exercicio.nome}
+                  </Text>
+                  {/* Uma linha só por exercício: o que mudou embaixo do nome, a meta nova à direita. */}
+                  <Text style={[styles.nota, melhorou && styles.notaDeMelhora, situacao === 'recuou' && styles.notaDeRecuo]}>
+                    {situacao === 'melhorou' ? seloDaMeta(item.mudanca).texto : NOTA[situacao]}
+                  </Text>
+                </View>
+                {item.estado !== null && <Text style={styles.meta}>{textoMeta(item.estado, item.exercicio.porLado)}</Text>}
+              </View>
+            );
+          })}
+        </View>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cartao: { padding: 18, gap: 14 },
+  resumo: { gap: 12 },
+  cartao: { padding: 18, gap: 10 },
   titulo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
-  numeros: { flexDirection: 'row', gap: 24 },
-  numero: { gap: 2 },
-  valor: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  rotulo: { fontSize: 14, color: cores.textoSecundario },
-  destaque: { fontSize: 15, color: cores.texto },
-  recorde: { color: cores.sobe, fontWeight: '700' },
+  batidas: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5, color: cores.texto, fontVariant: ['tabular-nums'] },
+  detalhes: { fontSize: 15, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
+  linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  textos: { flex: 1, gap: 1 },
+  nome: { fontSize: 16, color: cores.texto },
+  nota: { fontSize: 13, color: cores.textoSecundario },
+  // A cor de marca fica só no que subiu; o resto da lista é neutro.
+  notaDeMelhora: { color: cores.sobe, fontWeight: '600' },
+  notaDeRecuo: { color: cores.desce },
+  meta: { fontSize: 16, fontWeight: '700', color: cores.texto, fontVariant: ['tabular-nums'] },
 });

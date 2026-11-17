@@ -195,6 +195,20 @@ export function textoPrimeiroTreino(proximo: ProximoTreino): string {
   return `Seu primeiro treino é ${quando}: ${proximo.nome}`;
 }
 
+// Botão da aba Hoje que abre o treino (§3.2). `iniciado` = a pessoa já tocou
+// em "Iniciar treino" hoje; `finalizado` = encerrou e ainda sobrou exercício.
+export function textoDoBotaoDeTreino(iniciado: boolean, finalizado: boolean): string {
+  if (finalizado) {
+    return 'Retomar treino';
+  }
+  return iniciado ? 'Continuar treino' : 'Iniciar treino';
+}
+
+// Linha de destaque do resumo final: "4 de 6 metas batidas".
+export function textoMetasBatidas(batidas: number, total: number): string {
+  return `${batidas} de ${total} ${plural(total, 'meta batida', 'metas batidas')}`;
+}
+
 // "Esta semana: 3 treinos · 72 séries" (§3.4).
 export function textoResumoDaSemana(treinos: number, series: number): string {
   if (treinos === 0) {

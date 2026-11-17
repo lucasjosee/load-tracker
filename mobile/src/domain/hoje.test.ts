@@ -3,6 +3,7 @@ import {
   faixaDaSemana,
   outroTreinoDoDia,
   proximoTreino,
+  situacaoNoResumo,
   treinoDeHojeOuProximo,
   resumirSessao,
   treinoPerdido,
@@ -15,6 +16,21 @@ const DIVISAO = [
   { diaSemana: 5, nome: 'Upper' },
   { diaSemana: 6, nome: 'Lower' },
 ];
+
+describe('situacaoNoResumo', () => {
+  it('sem registro é não feito, e "Não vou fazer" é pulado', () => {
+    expect(situacaoNoResumo(null, 'aumento_reps')).toBe('nao_feito');
+    expect(situacaoNoResumo('pulou', 'sem_mudanca')).toBe('pulado');
+  });
+
+  it('subir reps ou carga é melhora; deload é recuo; o resto manteve', () => {
+    expect(situacaoNoResumo('bateu', 'aumento_reps')).toBe('melhorou');
+    expect(situacaoNoResumo('bateu', 'aumento_carga')).toBe('melhorou');
+    expect(situacaoNoResumo('nao_bateu', 'deload')).toBe('recuou');
+    expect(situacaoNoResumo('nao_bateu', 'manteve')).toBe('manteve');
+    expect(situacaoNoResumo('bateu', null)).toBe('manteve');
+  });
+});
 
 describe('treinoDeHojeOuProximo', () => {
   it('em dia de treino, é o de hoje', () => {

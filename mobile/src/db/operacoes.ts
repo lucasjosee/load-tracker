@@ -40,7 +40,7 @@ import {
   type Origem,
   type Registro,
 } from './repositorios/registros';
-import { finalizarSessao, iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
+import { apagarSessaoSeVazia, finalizarSessao, iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
 import {
   definirTreinoDoDia,
   desligarSessoesDoTreino,
@@ -225,8 +225,8 @@ export function paraRealizado(registro: Registro): Realizado {
   return registro.resultado === 'pulou' ? 'PULOU' : { cargaKg: registro.cargaKg, reps: registro.reps };
 }
 
-// Check-in de um exercício na aba Hoje (§3.2). A sessão do dia nasce no
-// primeiro check-in. Sessão, registro, séries, estado e evento vão juntos
+// Check-in de um exercício na tela do treino (§3.2). A sessão do dia nasce
+// no "Iniciar treino" (ou aqui, se ainda não existir). Sessão, registro, séries, estado e evento vão juntos
 // numa transação só (regra 7): se algo falhar, nada fica pela metade.
 export async function fazerCheckin(
   db: SQLiteDatabase,
@@ -239,6 +239,21 @@ export async function fazerCheckin(
     const sessao = await obterOuIniciarSessao(txn, data, treinoId);
     await aplicarRealizado(txn, exercicio, realizado, { origem: 'checkin', sessaoId: sessao.id, data });
   });
+}
+
+// "Iniciar treino" (§3.2): abre a sessão do dia na hora do toque, para o
+// tempo de treino contar dali. Se a sessão já existe (treino em andamento ou
+// retomado), não muda nada.
+export async function iniciarTreino(db: SQLiteDatabase, treinoId: string, data: string): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    await obterOuIniciarSessao(txn, data, treinoId);
+  });
+}
+
+// Sair do treino sem ter registrado nada: a sessão vazia some e o treino
+// volta a ficar por iniciar.
+export async function cancelarTreinoVazio(db: SQLiteDatabase, sessaoId: string): Promise<void> {
+  await apagarSessaoSeVazia(db, sessaoId);
 }
 
 async function obterOuIniciarSessao(txn: SQLiteDatabase, data: string, treinoId: string | null) {

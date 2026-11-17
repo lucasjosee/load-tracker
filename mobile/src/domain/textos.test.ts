@@ -17,7 +17,9 @@ import {
   textoPeriodoDaEvolucao,
   textoMeta,
   textoProximoTreino,
+  textoDoBotaoDeTreino,
   textoDoFecho,
+  textoMetasBatidas,
   textoPrimeiroTreino,
   textoRealizado,
   textoResumoDaSemana,
@@ -219,6 +221,18 @@ describe('textos da aba Hoje', () => {
     expect(textoPrimeiroTreino({ ...treino, diaSemana: 2, emDias: 1 })).toBe('Seu primeiro treino é amanhã: Push');
     expect(textoPrimeiroTreino({ ...treino, diaSemana: 4, emDias: 3 })).toBe('Seu primeiro treino é na quinta: Push');
     expect(textoPrimeiroTreino({ ...treino, diaSemana: 6, emDias: 5 })).toBe('Seu primeiro treino é no sábado: Push');
+  });
+
+  it('textoDoBotaoDeTreino: iniciar, continuar ou retomar', () => {
+    expect(textoDoBotaoDeTreino(false, false)).toBe('Iniciar treino');
+    expect(textoDoBotaoDeTreino(true, false)).toBe('Continuar treino');
+    expect(textoDoBotaoDeTreino(true, true)).toBe('Retomar treino');
+  });
+
+  it('textoMetasBatidas', () => {
+    expect(textoMetasBatidas(4, 6)).toBe('4 de 6 metas batidas');
+    expect(textoMetasBatidas(1, 1)).toBe('1 de 1 meta batida');
+    expect(textoMetasBatidas(0, 5)).toBe('0 de 5 metas batidas');
   });
 
   it('textoResumoDaSemana', () => {

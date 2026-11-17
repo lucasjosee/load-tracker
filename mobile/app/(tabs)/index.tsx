@@ -1,37 +1,34 @@
-import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
 import { CartaoDeEvolucao } from '@/components/CartaoDeEvolucao';
-import { CartaoExercicio } from '@/components/CartaoExercicio';
+import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
-import { estilosComuns, Tela } from '@/components/Tela';
+import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
-import { desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
-import { obterConfig } from '@/db/repositorios/config';
+import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
-import { lerDuracaoDoDescanso } from '@/domain/descanso';
-import { avisoDeTreinoPerdidoVisivel, resumirSessao, type TreinoIdentificado } from '@/domain/hoje';
-import { progressoDoTreino } from '@/domain/regua';
+import { segundosDeTreino } from '@/domain/duracao';
+import { avisoDeTreinoPerdidoVisivel, type TreinoIdentificado } from '@/domain/hoje';
 import {
+  textoDoBotaoDeTreino,
   textoDoDia,
   textoPeriodoDaEvolucao,
   textoProximoTreino,
   textoResumoDaSemana,
   textoTreinoPerdido,
 } from '@/domain/textos';
-import type { Realizado } from '@/domain/tipos';
 import { useAoVoltarParaFrente, useGravacao } from '@/hooks/gravacao';
-import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaHoje() {
   const db = useSQLiteContext();
-  const [hoje, setHoje] = useState<{ data: string; conteudo: Hoje; descansoS: number } | null>(null);
+  const [hoje, setHoje] = useState<{ data: string; conteudo: Hoje } | null>(null);
   // Treino escolhido na hora pelo "Fazer hoje?" (§3.5); null = o normal do
   // dia. Guarda a data junto para a escolha não valer no dia seguinte, se o
   // app ficar aberto de um dia para o outro.
@@ -47,11 +44,7 @@ export default function TelaHoje() {
     // outro, voltar para a aba já mostra o treino do dia novo.
     const data = paraDataLocal(new Date());
     const treinoEscolhido = escolhido?.data === data ? escolhido.treinoId : null;
-    const [conteudo, descanso] = await Promise.all([
-      carregarHoje(db, data, treinoEscolhido),
-      obterConfig(db, 'descanso_segundos'),
-    ]);
-    setHoje({ data, conteudo, descansoS: lerDuracaoDoDescanso(descanso) });
+    setHoje({ data, conteudo: await carregarHoje(db, data, treinoEscolhido) });
   }, [db, escolhido]);
 
   useFocusEffect(
@@ -67,13 +60,13 @@ export default function TelaHoje() {
   const gravar = (acao: () => Promise<void>) =>
     gravarComTrava(async () => {
       await acao();
-      await carregar(); // o cartão mostra na hora o que foi feito e a meta nova
+      await carregar(); // a lista mostra na hora o que mudou
     });
 
   if (hoje === null) {
     return <Tela titulo="Hoje">{null}</Tela>;
   }
-  const { data, conteudo, descansoS } = hoje;
+  const { data, conteudo } = hoje;
 
   const aviso =
     conteudo.perdido !== null && avisoDeTreinoPerdidoVisivel(avisoDispensadoEm, data) ? (
@@ -115,30 +108,22 @@ export default function TelaHoje() {
     );
   }
 
-  const { treino, sessao, treinoDoDia } = conteudo;
-  const progresso = progressoDoTreino(conteudo.itens.map((item) => item.feitoHoje !== null));
+  const { treino, sessao, treinoDoDia, itens } = conteudo;
+  const feitos = itens.filter((item) => item.feitoHoje !== null).length;
+  const finalizado = sessao !== null && sessao.finalizadaEm !== null;
 
-  const checkin = (item: ItemDoTreino, realizado: Realizado) =>
-    gravar(() => fazerCheckin(db, item.exercicio, realizado, treino.id, data));
+  // A sessão nasce aqui, no toque: é dela que o tempo de treino conta.
+  const abrirTreino = () =>
+    gravar(async () => {
+      await iniciarTreino(db, treino.id, data);
+      router.push({ pathname: '/sessao', params: { treinoId: treino.id } });
+    });
 
   const desfazer = (item: ItemDoTreino) =>
     gravar(async () => {
       if (item.feitoHoje !== null) {
         await desfazerRegistro(db, item.exercicio, item.feitoHoje.id);
       }
-    });
-
-  const finalizar = () =>
-    gravar(async () => {
-      if (sessao === null) {
-        return;
-      }
-      await finalizarTreino(db, sessao.id);
-      // Reagendar com o treino finalizado já tira o lembrete das 21h de hoje
-      // e atualiza os textos dos próximos dias com as metas novas (§6).
-      await reagendarNotificacoes(db);
-      // O resumo aparece na própria tela, no lugar do botão (ResumoDoTreino).
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     });
 
   return (
@@ -152,30 +137,6 @@ export default function TelaHoje() {
           onPress={() => router.push({ pathname: '/registro', params: { treinoId: treino.id } })}
         />
       </View>
-      {progresso.total > 0 && (
-        <View
-          style={styles.progresso}
-          accessible
-          accessibilityLabel={`${progresso.feitos} de ${progresso.total} exercícios feitos`}
-        >
-          <View style={styles.segmentos}>
-            {conteudo.itens.map((item) => (
-              <View key={item.exercicio.id} style={[styles.segmento, item.feitoHoje !== null && styles.segmentoFeito]} />
-            ))}
-          </View>
-          <Text style={styles.textoDoProgresso}>
-            {progresso.feitos} de {progresso.total} {progresso.total === 1 ? 'exercício' : 'exercícios'}
-          </Text>
-        </View>
-      )}
-      {/* Compacto de propósito: o primeiro exercício continua na tela ao abrir o app. */}
-      {conteudo.itens.length > 0 && (
-        <CartaoDeEvolucao
-          rotulo={`Força no ${treino.nome}`}
-          periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'sessao')}
-          pontos={conteudo.evolucao}
-        />
-      )}
       {aviso}
       {treinoDoDia !== null && (
         // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
@@ -186,30 +147,48 @@ export default function TelaHoje() {
           onPress={() => setEscolhido({ data, treinoId: treinoDoDia.id })}
         />
       )}
-      {conteudo.itens.length === 0 && (
+      {itens.length > 0 && (
+        <CartaoDeEvolucao
+          rotulo={`Força no ${treino.nome}`}
+          periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'sessao')}
+          pontos={conteudo.evolucao}
+        />
+      )}
+      {itens.length === 0 && (
         <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
       )}
-      {conteudo.itens.map((item) => (
-        <CartaoExercicio
-          key={item.exercicio.id}
-          item={item}
-          onCheckin={(realizado) => checkin(item, realizado)}
-          onDesfazer={() => desfazer(item)}
-          onAbrir={() => router.push({ pathname: '/exercicio/[id]', params: { id: item.exercicio.id } })}
-          descansoS={descansoS}
-        />
-      ))}
 
-      {sessao !== null && sessao.finalizadaEm !== null ? (
+      {sessao !== null && sessao.finalizadaEm !== null && (
         <ResumoDoTreino
-          resumo={resumirSessao(conteudo.tiposDaSessao)}
-          recordes={conteudo.itens.filter((item) => item.recordeHoje).length}
+          compacto
+          itens={itens}
+          tipos={conteudo.tiposDaSessao}
+          duracaoS={segundosDeTreino(sessao.iniciadaEm, new Date(sessao.finalizadaEm).getTime())}
         />
-      ) : (
-        conteudo.itens.length > 0 && (
-          // Sem nenhum check-in ainda não existe sessão para finalizar.
-          <Botao titulo="Finalizar treino" desabilitado={sessao === null} onPress={finalizar} />
-        )
+      )}
+      {/* O treino acontece na tela cheia (app/sessao.tsx); aqui fica só a
+          porta de entrada. Com tudo feito não há o que abrir. */}
+      {feitos < itens.length && (
+        <Botao
+          titulo={textoDoBotaoDeTreino(sessao !== null, finalizado)}
+          variante={finalizado ? 'secundario' : 'primario'}
+          onPress={abrirTreino}
+        />
+      )}
+
+      {/* A lista continua depois de encerrar: é onde dá para desfazer um registro. */}
+      {itens.length > 0 && (
+        <Secao titulo="Exercícios de hoje">
+          <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
+          {itens.map((item) => (
+            <LinhaDoExercicio
+              key={item.exercicio.id}
+              item={item}
+              onAbrir={() => router.push({ pathname: '/exercicio/[id]', params: { id: item.exercicio.id } })}
+              onDesfazer={() => desfazer(item)}
+            />
+          ))}
+        </Secao>
       )}
     </Tela>
   );
@@ -235,12 +214,6 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 
 const styles = StyleSheet.create({
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  progresso: { gap: 6 },
-  // Um segmento por exercício, na ordem do treino: dá para ver quais faltam.
-  segmentos: { flexDirection: 'row', gap: 6 },
-  segmento: { flex: 1, height: 6, borderRadius: 3, backgroundColor: cores.superficieAlta },
-  segmentoFeito: { backgroundColor: cores.primaria },
-  textoDoProgresso: { fontSize: 13, fontWeight: '500', color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   descanso: { fontSize: 40, fontWeight: '800', letterSpacing: -1, marginTop: 8, color: cores.texto },
   rotuloDoProximo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
   proximo: { fontSize: 22, fontWeight: '700', color: cores.texto },

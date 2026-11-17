@@ -44,6 +44,8 @@ function Navegacao() {
       <Stack screenOptions={OPCOES_DE_NAVEGACAO}>
         <Stack.Protected guard={!emOnboarding}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* O treino em andamento: por cima das abas, com a seta de voltar de sempre. */}
+          <Stack.Screen name="sessao" options={{ title: 'Treino', headerBackTitle: 'Hoje' }} />
           <Stack.Screen name="treino/novo" options={{ title: 'Novo treino', presentation: 'modal' }} />
           <Stack.Screen name="treino/[id]" options={{ title: 'Treino', headerBackTitle: 'Divisão' }} />
           <Stack.Screen name="exercicio/novo" options={{ title: 'Novo exercício', presentation: 'modal' }} />

@@ -53,6 +53,15 @@ export async function iniciarSessao(
   return sessao;
 }
 
+// Apaga a sessão só se ela não tiver nenhum registro (treino iniciado e
+// abandonado sem fazer nada). Com registro, não faz nada.
+export async function apagarSessaoSeVazia(db: SQLiteDatabase, id: string): Promise<void> {
+  await db.runAsync(
+    'DELETE FROM sessao WHERE id = ? AND NOT EXISTS (SELECT 1 FROM registro WHERE registro.sessao_id = sessao.id)',
+    id,
+  );
+}
+
 // Se houver mais de uma sessão no mesmo dia, devolve a mais recente.
 export async function obterSessaoDaData(db: SQLiteDatabase, data: string): Promise<Sessao | null> {
   const linha = await db.getFirstAsync<LinhaSessao>(
