@@ -5,18 +5,21 @@ import { cores, espaco, raio, raioDoCartao, tipografia } from './tema';
 
 interface Props {
   titulo?: string;
+  // Espaço extra no fim da rolagem, para quando há algo fixo por cima do
+  // rodapé da tela (o botão "Iniciar treino" da aba Hoje).
+  folgaNoFim?: number;
   children: ReactNode;
 }
 
 // Moldura comum das telas: rolagem, margens e título grande opcional.
-export function Tela({ titulo, children }: Props) {
+export function Tela({ titulo, folgaNoFim = 0, children }: Props) {
   return (
     // `automatic` deixa o iOS calcular as margens da barra de status, do
     // cabeçalho e da barra de abas, para o conteúdo não ficar escondido.
     <ScrollView
       style={styles.fundo}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.conteudo}
+      contentContainerStyle={[styles.conteudo, folgaNoFim > 0 && { paddingBottom: 48 + folgaNoFim }]}
       keyboardShouldPersistTaps="handled"
     >
       {titulo !== undefined && (

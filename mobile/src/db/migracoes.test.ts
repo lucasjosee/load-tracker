@@ -61,6 +61,13 @@ describe('migracoesPendentes', () => {
     expect(v4?.sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i);
   });
 
+  it('a v5 só acrescenta as colunas da pausa (o histórico do iPhone fica)', () => {
+    const v5 = MIGRACOES.find((m) => m.versao === 5);
+    expect(v5?.sql).toContain('ALTER TABLE sessao ADD COLUMN pausada_em TEXT');
+    expect(v5?.sql).toContain('ALTER TABLE sessao ADD COLUMN pausado_s INTEGER NOT NULL DEFAULT 0');
+    expect(v5?.sql).not.toMatch(/DROP|DELETE|CREATE TABLE/i);
+  });
+
   it('a lista real do app está bem numerada', () => {
     expect(() => migracoesPendentes(0, MIGRACOES)).not.toThrow();
   });

@@ -1,18 +1,27 @@
 import * as Haptics from 'expo-haptics';
+import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
 import { ExercicioEmFoco } from '@/components/ExercicioEmFoco';
 import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
-import { Secao, Tela } from '@/components/Tela';
+import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { TempoDoTreino } from '@/components/TempoDoTreino';
+import { cores } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
-import { cancelarTreinoVazio, desfazerRegistro, fazerCheckin, finalizarTreino } from '@/db/operacoes';
+import {
+  cancelarTreinoVazio,
+  desfazerRegistro,
+  fazerCheckin,
+  finalizarTreino,
+  pausarTreino,
+  retomarTreino,
+} from '@/db/operacoes';
 import { obterConfig } from '@/db/repositorios/config';
 import { paraDataLocal } from '@/domain/datas';
 import { lerDuracaoDoDescanso } from '@/domain/descanso';
@@ -38,6 +47,9 @@ export default function TelaSessao() {
   const [adiados, setAdiados] = useState<string[]>([]);
   const [encerrado, setEncerrado] = useState(false);
   const gravarComTrava = useGravacao(); // trava contra toque duplo
+  // A tela não apaga sozinha enquanto esta tela está aberta: o cronômetro e o
+  // descanso ficam à vista com o celular apoiado no aparelho.
+  useKeepAwake();
 
   const carregar = useCallback(async (): Promise<TreinoDeHoje | null> => {
     const data = paraDataLocal(new Date());
@@ -102,6 +114,17 @@ export default function TelaSessao() {
       }
     });
 
+  const pausado = treino.sessao !== null && treino.sessao.pausadaEm !== null;
+
+  const alternarPausa = () =>
+    gravarComTrava(async () => {
+      if (treino.sessao === null) {
+        return;
+      }
+      await (pausado ? retomarTreino(db, treino.sessao.id) : pausarTreino(db, treino.sessao.id));
+      await carregar();
+    });
+
   function pedirParaEncerrar() {
     const sessao = treino.sessao;
     if (sessao === null) {
@@ -141,7 +164,12 @@ export default function TelaSessao() {
       <Stack.Screen options={{ title: treino.treino.nome }} />
       <View style={styles.topo}>
         {/* Depois de encerrado o tempo para: a duração vai no resumo. */}
-        {!mostrarResumo && treino.sessao !== null && <TempoDoTreino iniciadaEm={treino.sessao.iniciadaEm} />}
+        {!mostrarResumo && treino.sessao !== null && (
+          <View style={styles.tempo}>
+            <TempoDoTreino sessao={treino.sessao} />
+            {!pausado && <Botao titulo="Pausar" variante="secundario" compacto onPress={alternarPausa} />}
+          </View>
+        )}
         <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
       </View>
 
@@ -150,14 +178,19 @@ export default function TelaSessao() {
           <ResumoDoTreino
             itens={itens}
             tipos={treino.tiposDaSessao}
-            duracaoS={
-              treino.sessao !== null && treino.sessao.finalizadaEm !== null
-                ? segundosDeTreino(treino.sessao.iniciadaEm, new Date(treino.sessao.finalizadaEm).getTime())
-                : null
-            }
+            duracaoS={treino.sessao !== null && treino.sessao.finalizadaEm !== null ? segundosDeTreino(treino.sessao, 0) : null}
           />
           <Botao titulo="Concluir" onPress={() => router.back()} />
         </>
+      ) : pausado ? (
+        // Pausado, o exercício sai da frente: registrar agora contaria um
+        // tempo que não foi de treino. Retomar devolve tudo como estava.
+        <View style={[estilosComuns.cartao, styles.pausa]}>
+          <Text style={styles.tituloDaPausa}>Treino pausado</Text>
+          <Text style={estilosComuns.textoSecundario}>O tempo está parado. O que você já registrou continua salvo.</Text>
+          <Botao titulo="Retomar treino" onPress={alternarPausa} />
+          <Botao titulo="Encerrar treino" variante="secundario" onPress={pedirParaEncerrar} />
+        </View>
       ) : (
         <>
           {/* A `key` faz o React montar um cartão novo a cada exercício: o
@@ -193,4 +226,7 @@ export default function TelaSessao() {
 
 const styles = StyleSheet.create({
   topo: { gap: 10 },
+  tempo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  pausa: { padding: 20, gap: 12 },
+  tituloDaPausa: { fontSize: 24, fontWeight: '700', color: cores.texto },
 });

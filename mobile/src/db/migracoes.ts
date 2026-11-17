@@ -145,11 +145,21 @@ const V4_NOTA_DO_EXERCICIO = `
 ALTER TABLE exercicio ADD COLUMN nota TEXT;
 `;
 
+// Pausa do treino (§3.2). `pausada_em` é o começo da pausa em curso (NULL =
+// não está pausada) e `pausado_s`, a soma das pausas que já terminaram. Com
+// as duas dá para saber o tempo de treino sem contar as paradas. Só
+// acrescenta colunas; as sessões antigas ficam com zero segundos pausados.
+const V5_PAUSA_DA_SESSAO = `
+ALTER TABLE sessao ADD COLUMN pausada_em TEXT;
+ALTER TABLE sessao ADD COLUMN pausado_s INTEGER NOT NULL DEFAULT 0;
+`;
+
 export const MIGRACOES: readonly Migracao[] = [
   { versao: 1, sql: V1_SCHEMA_INICIAL },
   { versao: 2, sql: V2_FALHAS_ANTES_DO_REGISTRO },
   { versao: 3, sql: V3_CARGA_POR_LADO },
   { versao: 4, sql: V4_NOTA_DO_EXERCICIO },
+  { versao: 5, sql: V5_PAUSA_DA_SESSAO },
 ];
 
 // Devolve, em ordem, as migrações que ainda não foram aplicadas no aparelho.

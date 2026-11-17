@@ -3,6 +3,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { diaDaSemana, inicioDaSemana, somarDias } from '@/domain/datas';
+import { duracaoTipica, segundosDeTreino } from '@/domain/duracao';
 import {
   outroTreinoDoDia,
   proximoTreino,
@@ -44,7 +45,12 @@ import {
   listarSeriesDesde,
   type Registro,
 } from './repositorios/registros';
-import { obterSessaoDaData, obterSessaoDoTreino, type Sessao } from './repositorios/sessoes';
+import {
+  listarSessoesEncerradasDoTreino,
+  obterSessaoDaData,
+  obterSessaoDoTreino,
+  type Sessao,
+} from './repositorios/sessoes';
 import { listarTreinosPorDia, obterTreino, obterTreinoDoDia, type Treino } from './repositorios/treinos';
 
 export interface ItemDoTreino {
@@ -86,6 +92,7 @@ export type Hoje = { perdido: TreinoIdentificado | null } & (
       sessao: Sessao | null;
       itens: ItemDoTreino[];
       tiposDaSessao: Evento[]; // para o resumo ao finalizar
+      duracaoTipicaS: number | null; // quanto este treino costuma durar (domain/duracao.ts)
       evolucao: PontoDeEvolucao[]; // força dos exercícios deste treino, um ponto por sessão (§7)
     }
   | {
@@ -192,7 +199,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
   }
 
   const sessao = await obterSessaoDoTreino(db, hoje, treino.id);
-  const [doDia, exercicios, estados, mudancas, feitos, tiposDaSessao, historico] = await Promise.all([
+  const [doDia, exercicios, estados, mudancas, feitos, tiposDaSessao, historico, encerradas] = await Promise.all([
     obterTreinoDoDia(db, diaDaSemana(hoje)),
     listarExerciciosDoTreino(db, treino.id),
     listarEstados(db),
@@ -200,8 +207,12 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     sessao === null ? Promise.resolve([]) : listarRegistrosDaSessao(db, sessao.id),
     sessao === null ? Promise.resolve([]) : listarTiposDaSessao(db, sessao.id),
     listarHistorico(db),
+    listarSessoesEncerradasDoTreino(db, treino.id, 10),
   ]);
   const ativos = exercicios.filter((exercicio) => exercicio.ativo);
+  // A previsão vem das sessões de outros dias: a de hoje ainda está em jogo.
+  // Sessão encerrada não depende do "agora", por isso o 0.
+  const duracoes = encerradas.filter((s) => s.id !== sessao?.id).map((s) => segundosDeTreino(s, 0));
   // Se o mesmo exercício foi registrado duas vezes na sessão, vale o último.
   const feitoPorExercicio = new Map(feitos.map((r) => [r.exercicioId, r]));
 
@@ -212,6 +223,7 @@ export async function carregarHoje(db: SQLiteDatabase, hoje: string, escolhido: 
     treinoDoDia: outroTreinoDoDia(treino.id, doDia === null ? null : { id: doDia.id, nome: doDia.nome }),
     sessao,
     tiposDaSessao,
+    duracaoTipicaS: duracaoTipica(duracoes),
     evolucao: evolucaoDaForca(
       paraEvolucao(ativos),
       historico,

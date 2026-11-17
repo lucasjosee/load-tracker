@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
+import { BotaoDeTreino, FOLGA_DO_BOTAO_DE_TREINO } from '@/components/BotaoDeTreino';
 import { CartaoDeEvolucao } from '@/components/CartaoDeEvolucao';
 import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
@@ -14,7 +15,7 @@ import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
-import { segundosDeTreino } from '@/domain/duracao';
+import { segundosDeTreino, textoPrevisaoDoTreino } from '@/domain/duracao';
 import { avisoDeTreinoPerdidoVisivel, type TreinoIdentificado } from '@/domain/hoje';
 import {
   textoDoBotaoDeTreino,
@@ -25,6 +26,7 @@ import {
   textoTreinoPerdido,
 } from '@/domain/textos';
 import { useAoVoltarParaFrente, useGravacao } from '@/hooks/gravacao';
+import { reagendarNotificacoes } from '@/notificacoes/agendar';
 
 export default function TelaHoje() {
   const db = useSQLiteContext();
@@ -110,12 +112,17 @@ export default function TelaHoje() {
 
   const { treino, sessao, treinoDoDia, itens } = conteudo;
   const feitos = itens.filter((item) => item.feitoHoje !== null).length;
+  const pendentes = feitos < itens.length;
   const finalizado = sessao !== null && sessao.finalizadaEm !== null;
 
   // A sessão nasce aqui, no toque: é dela que o tempo de treino conta.
   const abrirTreino = () =>
     gravar(async () => {
       await iniciarTreino(db, treino.id, data);
+      if (finalizado) {
+        // Retomar reabre a sessão: o lembrete das 21h volta a valer (§6).
+        await reagendarNotificacoes(db);
+      }
       router.push({ pathname: '/sessao', params: { treinoId: treino.id } });
     });
 
@@ -127,70 +134,86 @@ export default function TelaHoje() {
     });
 
   return (
-    <Tela titulo={treino.nome}>
-      <View style={styles.cabecalho}>
-        <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
-        <Botao
-          titulo="+ Registro rápido"
-          variante="secundario"
-          compacto
-          onPress={() => router.push({ pathname: '/registro', params: { treinoId: treino.id } })}
-        />
-      </View>
-      {aviso}
-      {treinoDoDia !== null && (
-        // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
-        <Botao
-          titulo={`Ir para ${treinoDoDia.nome} (treino de hoje)`}
-          variante="secundario"
-          compacto
-          onPress={() => setEscolhido({ data, treinoId: treinoDoDia.id })}
-        />
-      )}
-      {itens.length > 0 && (
-        <CartaoDeEvolucao
-          rotulo={`Força no ${treino.nome}`}
-          periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'sessao')}
-          pontos={conteudo.evolucao}
-        />
-      )}
-      {itens.length === 0 && (
-        <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
-      )}
+    <View style={styles.tela}>
+      <Tela titulo={treino.nome} folgaNoFim={pendentes ? FOLGA_DO_BOTAO_DE_TREINO : 0}>
+        <View style={styles.cabecalho}>
+          <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+          <Botao
+            titulo="+ Registro rápido"
+            variante="secundario"
+            compacto
+            onPress={() =>
+              router.push({
+                pathname: '/registro',
+                params: { treinoId: treino.id },
+              })
+            }
+          />
+        </View>
+        {aviso}
+        {treinoDoDia !== null && (
+          // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
+          <Botao
+            titulo={`Ir para ${treinoDoDia.nome} (treino de hoje)`}
+            variante="secundario"
+            compacto
+            onPress={() => setEscolhido({ data, treinoId: treinoDoDia.id })}
+          />
+        )}
+        {itens.length > 0 && (
+          <CartaoDeEvolucao
+            rotulo={`Força no ${treino.nome}`}
+            periodo={textoPeriodoDaEvolucao(conteudo.evolucao.length, 'sessao')}
+            pontos={conteudo.evolucao}
+          />
+        )}
+        {itens.length === 0 && (
+          <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
+        )}
 
-      {sessao !== null && sessao.finalizadaEm !== null && (
-        <ResumoDoTreino
-          compacto
-          itens={itens}
-          tipos={conteudo.tiposDaSessao}
-          duracaoS={segundosDeTreino(sessao.iniciadaEm, new Date(sessao.finalizadaEm).getTime())}
-        />
-      )}
-      {/* O treino acontece na tela cheia (app/sessao.tsx); aqui fica só a
-          porta de entrada. Com tudo feito não há o que abrir. */}
-      {feitos < itens.length && (
-        <Botao
+        {sessao !== null && sessao.finalizadaEm !== null && (
+          <ResumoDoTreino
+            compacto
+            itens={itens}
+            tipos={conteudo.tiposDaSessao}
+            duracaoS={segundosDeTreino(sessao, 0)}
+          />
+        )}
+        {/* A lista continua depois de encerrar: é onde dá para desfazer um registro. */}
+        {itens.length > 0 && (
+          <Secao titulo="Exercícios de hoje">
+            <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
+            {itens.map((item) => (
+              <LinhaDoExercicio
+                key={item.exercicio.id}
+                item={item}
+                onAbrir={() =>
+                  router.push({
+                    pathname: '/exercicio/[id]',
+                    params: { id: item.exercicio.id },
+                  })
+                }
+                onDesfazer={() => desfazer(item)}
+              />
+            ))}
+          </Secao>
+        )}
+      </Tela>
+      {/* O treino acontece em app/sessao.tsx; aqui fica a porta de entrada,
+          presa no rodapé. Com tudo feito não há o que abrir. */}
+      {pendentes && (
+        <BotaoDeTreino
           titulo={textoDoBotaoDeTreino(sessao !== null, finalizado)}
-          variante={finalizado ? 'secundario' : 'primario'}
+          detalhe={
+            sessao === null || finalizado
+              ? textoPrevisaoDoTreino(itens.length, conteudo.duracaoTipicaS)
+              : `${feitos} de ${itens.length} exercícios`
+          }
+          sessao={sessao !== null && !finalizado ? sessao : null}
           onPress={abrirTreino}
         />
       )}
-
-      {/* A lista continua depois de encerrar: é onde dá para desfazer um registro. */}
-      {itens.length > 0 && (
-        <Secao titulo="Exercícios de hoje">
-          <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
-          {itens.map((item) => (
-            <LinhaDoExercicio
-              key={item.exercicio.id}
-              item={item}
-              onAbrir={() => router.push({ pathname: '/exercicio/[id]', params: { id: item.exercicio.id } })}
-              onDesfazer={() => desfazer(item)}
-            />
-          ))}
-        </Secao>
-      )}
-    </Tela>
+    </View>
   );
 }
 
@@ -213,12 +236,35 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 }
 
 const styles = StyleSheet.create({
-  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  descanso: { fontSize: 40, fontWeight: '800', letterSpacing: -1, marginTop: 8, color: cores.texto },
-  rotuloDoProximo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
+  tela: { flex: 1, backgroundColor: cores.fundo },
+  cabecalho: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  descanso: {
+    fontSize: 40,
+    fontWeight: '800',
+    letterSpacing: -1,
+    marginTop: 8,
+    color: cores.texto,
+  },
+  rotuloDoProximo: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: cores.textoSecundario,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   proximo: { fontSize: 22, fontWeight: '700', color: cores.texto },
   semana: { padding: 18, gap: 16 },
-  aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 16, gap: 10 },
+  aviso: {
+    backgroundColor: cores.aviso,
+    borderRadius: raio,
+    padding: 16,
+    gap: 10,
+  },
   textoAviso: { fontSize: 16, color: cores.texto },
   botoesAviso: { flexDirection: 'row', gap: 8 },
 });

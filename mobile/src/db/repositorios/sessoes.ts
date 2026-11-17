@@ -9,7 +9,11 @@ export interface Sessao {
   data: string; // 'YYYY-MM-DD' no fuso do aparelho
   iniciadaEm: string;
   finalizadaEm: string | null;
+  pausadaEm: string | null; // começo da pausa em curso (§3.2)
+  pausadoS: number; // soma das pausas já terminadas, em segundos
 }
+
+const COLUNAS = 'id, treino_id, data, iniciada_em, finalizada_em, pausada_em, pausado_s';
 
 interface LinhaSessao {
   id: string;
@@ -17,6 +21,8 @@ interface LinhaSessao {
   data: string;
   iniciada_em: string;
   finalizada_em: string | null;
+  pausada_em: string | null;
+  pausado_s: number;
 }
 
 function paraSessao(linha: LinhaSessao): Sessao {
@@ -26,6 +32,8 @@ function paraSessao(linha: LinhaSessao): Sessao {
     data: linha.data,
     iniciadaEm: linha.iniciada_em,
     finalizadaEm: linha.finalizada_em,
+    pausadaEm: linha.pausada_em,
+    pausadoS: linha.pausado_s,
   };
 }
 
@@ -42,6 +50,8 @@ export async function iniciarSessao(
     data,
     iniciadaEm: new Date().toISOString(),
     finalizadaEm: null,
+    pausadaEm: null,
+    pausadoS: 0,
   };
   await db.runAsync(
     'INSERT INTO sessao (id, treino_id, data, iniciada_em, finalizada_em) VALUES (?, ?, ?, ?, NULL)',
@@ -65,7 +75,7 @@ export async function apagarSessaoSeVazia(db: SQLiteDatabase, id: string): Promi
 // Se houver mais de uma sessão no mesmo dia, devolve a mais recente.
 export async function obterSessaoDaData(db: SQLiteDatabase, data: string): Promise<Sessao | null> {
   const linha = await db.getFirstAsync<LinhaSessao>(
-    `SELECT id, treino_id, data, iniciada_em, finalizada_em
+    `SELECT ${COLUNAS}
        FROM sessao
       WHERE data = ?
       ORDER BY iniciada_em DESC
@@ -79,7 +89,7 @@ export async function obterSessaoDaData(db: SQLiteDatabase, data: string): Promi
 // treino perdido feito hoje, a sessão avulsa do registro rápido).
 export async function listarSessoesDaData(db: SQLiteDatabase, data: string): Promise<Sessao[]> {
   const linhas = await db.getAllAsync<LinhaSessao>(
-    `SELECT id, treino_id, data, iniciada_em, finalizada_em
+    `SELECT ${COLUNAS}
        FROM sessao
       WHERE data = ?
       ORDER BY iniciada_em`,
@@ -88,12 +98,49 @@ export async function listarSessoesDaData(db: SQLiteDatabase, data: string): Pro
   return linhas.map(paraSessao);
 }
 
+// Encerrar um treino pausado: o fim é o começo da pausa (COALESCE pega o
+// primeiro valor que não é NULL), porque dali em diante ninguém treinou.
 export async function finalizarSessao(db: SQLiteDatabase, id: string): Promise<void> {
   await db.runAsync(
-    'UPDATE sessao SET finalizada_em = ? WHERE id = ?',
+    'UPDATE sessao SET finalizada_em = COALESCE(pausada_em, ?), pausada_em = NULL WHERE id = ?',
     new Date().toISOString(),
     id,
   );
+}
+
+export async function obterSessao(db: SQLiteDatabase, id: string): Promise<Sessao | null> {
+  const linha = await db.getFirstAsync<LinhaSessao>(`SELECT ${COLUNAS} FROM sessao WHERE id = ?`, id);
+  return linha === null ? null : paraSessao(linha);
+}
+
+// Só pausa quem está contando: sessão já pausada ou encerrada fica como está.
+export async function pausarSessao(db: SQLiteDatabase, id: string): Promise<void> {
+  await db.runAsync(
+    'UPDATE sessao SET pausada_em = ? WHERE id = ? AND pausada_em IS NULL AND finalizada_em IS NULL',
+    new Date().toISOString(),
+    id,
+  );
+}
+
+// Volta a contar, de uma pausa ou de um treino encerrado. `pausadoS` é o
+// novo total pausado, calculado no domínio (pausadoAoRetomar).
+export async function retomarSessao(db: SQLiteDatabase, id: string, pausadoS: number): Promise<void> {
+  await db.runAsync('UPDATE sessao SET pausado_s = ?, pausada_em = NULL, finalizada_em = NULL WHERE id = ?', pausadoS, id);
+}
+
+// As sessões encerradas de um treino, da mais recente para a mais antiga,
+// para a previsão de duração da aba Hoje.
+export async function listarSessoesEncerradasDoTreino(db: SQLiteDatabase, treinoId: string, limite: number): Promise<Sessao[]> {
+  const linhas = await db.getAllAsync<LinhaSessao>(
+    `SELECT ${COLUNAS}
+       FROM sessao
+      WHERE treino_id = ? AND finalizada_em IS NOT NULL
+      ORDER BY iniciada_em DESC
+      LIMIT ?`,
+    treinoId,
+    limite,
+  );
+  return linhas.map(paraSessao);
 }
 
 // A sessão de um treino num dia (a mais recente, se houver mais de uma).
@@ -105,7 +152,7 @@ export async function obterSessaoDoTreino(
   treinoId: string | null,
 ): Promise<Sessao | null> {
   const linha = await db.getFirstAsync<LinhaSessao>(
-    `SELECT id, treino_id, data, iniciada_em, finalizada_em
+    `SELECT ${COLUNAS}
        FROM sessao
       WHERE data = ? AND treino_id IS ?
       ORDER BY iniciada_em DESC

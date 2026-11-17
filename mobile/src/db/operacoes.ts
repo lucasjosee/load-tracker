@@ -13,6 +13,7 @@ import {
   resultadoDoEvento,
   type Proxima,
 } from '@/domain/progressao';
+import { pausadoAoRetomar } from '@/domain/duracao';
 import { formatarHorario } from '@/domain/horario';
 import type { DivisaoConfirmada } from '@/domain/onboarding';
 import type { ItemConfirmado } from '@/domain/registroRapido';
@@ -40,7 +41,15 @@ import {
   type Origem,
   type Registro,
 } from './repositorios/registros';
-import { apagarSessaoSeVazia, finalizarSessao, iniciarSessao, obterSessaoDoTreino } from './repositorios/sessoes';
+import {
+  apagarSessaoSeVazia,
+  finalizarSessao,
+  iniciarSessao,
+  obterSessao,
+  obterSessaoDoTreino,
+  pausarSessao,
+  retomarSessao,
+} from './repositorios/sessoes';
 import {
   definirTreinoDoDia,
   desligarSessoesDoTreino,
@@ -242,11 +251,29 @@ export async function fazerCheckin(
 }
 
 // "Iniciar treino" (§3.2): abre a sessão do dia na hora do toque, para o
-// tempo de treino contar dali. Se a sessão já existe (treino em andamento ou
-// retomado), não muda nada.
+// tempo de treino contar dali. Com o treino em andamento não muda nada (se
+// estiver pausado, continua pausado). Se a sessão já tinha sido encerrada
+// ("Retomar treino"), ela reabre, e o tempo parado não entra na conta.
 export async function iniciarTreino(db: SQLiteDatabase, treinoId: string, data: string): Promise<void> {
   await emTransacao(db, async (txn) => {
-    await obterOuIniciarSessao(txn, data, treinoId);
+    const sessao = await obterOuIniciarSessao(txn, data, treinoId);
+    if (sessao.finalizadaEm !== null) {
+      await retomarSessao(txn, sessao.id, pausadoAoRetomar(sessao, Date.now()));
+    }
+  });
+}
+
+export async function pausarTreino(db: SQLiteDatabase, sessaoId: string): Promise<void> {
+  await pausarSessao(db, sessaoId);
+}
+
+// Ler a sessão e gravar o novo total pausado vão na mesma transação.
+export async function retomarTreino(db: SQLiteDatabase, sessaoId: string): Promise<void> {
+  await emTransacao(db, async (txn) => {
+    const sessao = await obterSessao(txn, sessaoId);
+    if (sessao !== null && sessao.pausadaEm !== null) {
+      await retomarSessao(txn, sessao.id, pausadoAoRetomar(sessao, Date.now()));
+    }
   });
 }
 

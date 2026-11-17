@@ -57,7 +57,11 @@ export async function preencherDadosFicticios(db: SQLiteDatabase, hoje: string):
         });
         await txn.runAsync('UPDATE registro SET criado_em = ? WHERE id = ?', quando, registro.id);
       }
-      await txn.runAsync('UPDATE sessao SET iniciada_em = ?, finalizada_em = ? WHERE id = ?', quando, quando, sessao.id);
+      // A duração sai da própria data (45 a 74 min), sem gastar um sorteio:
+      // assim o resto do histórico inventado continua igual ao de antes.
+      const minutos = 45 + ((Number(data.slice(-2)) * 7) % 30);
+      const fim = new Date(new Date(quando).getTime() + minutos * 60_000).toISOString();
+      await txn.runAsync('UPDATE sessao SET iniciada_em = ?, finalizada_em = ? WHERE id = ?', quando, fim, sessao.id);
     }
   });
 }
