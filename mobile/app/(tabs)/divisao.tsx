@@ -1,13 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { SecaoAvisos } from '@/components/SecaoAvisos';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
+import { Texto } from '@/components/Texto';
 import { prepararParaRefazerOnboarding, preencherDadosFicticios, SEMANAS_DE_HISTORICO } from '@/db/dadosFicticios';
 import { escolherArquivoDeBackup, exportarBackup, restaurarBackup, VERSAO_DO_BANCO } from '@/db/backup';
 import { obterConfig, salvarConfig } from '@/db/repositorios/config';
@@ -158,7 +159,7 @@ export default function TelaDivisao() {
   return (
     <Tela titulo="Divisão">
       <Secao titulo="Treinos">
-        {treinos.length === 0 && <Text style={estilosComuns.textoSecundario}>Nenhum treino cadastrado.</Text>}
+        {treinos.length === 0 && <Texto style={estilosComuns.textoSecundario}>Nenhum treino cadastrado.</Texto>}
 
         {treinos.map((treino) => (
           <Pressable
@@ -167,15 +168,15 @@ export default function TelaDivisao() {
             onPress={() => router.push({ pathname: '/treino/[id]', params: { id: treino.id } })}
             style={({ pressed }) => [estilosComuns.cartao, pressed && styles.pressionado]}
           >
-            <Text style={styles.nome}>{treino.nome}</Text>
-            <Text style={estilosComuns.textoSecundario}>
+            <Texto style={styles.nome}>{treino.nome}</Texto>
+            <Texto style={estilosComuns.textoSecundario}>
               {treino.dias.length > 0 ? listarDiasPorExtenso(treino.dias) : 'Sem dia definido'}
-            </Text>
+            </Texto>
           </Pressable>
         ))}
 
         {diasDeDescanso.length > 0 && treinos.length > 0 && (
-          <Text style={estilosComuns.textoSecundario}>Descanso: {listarDiasPorExtenso(diasDeDescanso).toLowerCase()}</Text>
+          <Texto style={estilosComuns.textoSecundario}>Descanso: {listarDiasPorExtenso(diasDeDescanso).toLowerCase()}</Texto>
         )}
 
         <Botao titulo="Novo treino" variante="secundario" onPress={() => router.push('/treino/novo')} />
@@ -185,7 +186,7 @@ export default function TelaDivisao() {
 
       <Secao titulo="Descanso">
         <View style={styles.linha}>
-          <Text style={styles.rotulo}>Tempo entre séries</Text>
+          <Texto style={styles.rotulo}>Tempo entre séries</Texto>
           <Stepper
             valor={descansoS}
             onMudar={mudarDescanso}
@@ -196,25 +197,25 @@ export default function TelaDivisao() {
             rotulo="tempo de descanso"
           />
         </View>
-        <Text style={estilosComuns.textoSecundario}>
+        <Texto style={estilosComuns.textoSecundario}>
           O cronômetro fica em cada cartão da aba Hoje e vibra quando o tempo acaba, com o app aberto.
-        </Text>
+        </Texto>
       </Secao>
 
       <Secao titulo="Dados">
-        <Text style={estilosComuns.textoSecundario}>
+        <Texto style={estilosComuns.textoSecundario}>
           Tudo fica só neste iPhone. Exporte de vez em quando e salve em Arquivos ou no iCloud.
-        </Text>
+        </Texto>
         <Botao titulo="Exportar backup (JSON)" variante="secundario" onPress={exportar} />
         <Botao titulo="Restaurar backup" variante="perigo" onPress={restaurar} />
       </Secao>
 
       {__DEV__ && (
         <Secao titulo="Desenvolvimento">
-          <Text style={estilosComuns.textoSecundario}>
+          <Texto style={estilosComuns.textoSecundario}>
             Só aparece no Expo Go. Os dois botões apagam a divisão e o histórico: o primeiro grava{' '}
             {SEMANAS_DE_HISTORICO} semanas de treinos inventados, o segundo volta ao primeiro uso do app.
-          </Text>
+          </Texto>
           <Botao titulo="Preencher com dados fictícios" variante="perigo" onPress={preencherFicticios} />
           <Botao titulo="Refazer onboarding" variante="perigo" onPress={refazer} />
         </Secao>

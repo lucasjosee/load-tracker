@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { cores, espaco, raio, raioDoCartao, tipografia } from './tema';
+import { Texto } from './Texto';
 
 interface Props {
   titulo?: string;
@@ -23,9 +24,9 @@ export function Tela({ titulo, folgaNoFim = 0, children }: Props) {
       keyboardShouldPersistTaps="handled"
     >
       {titulo !== undefined && (
-        <Text style={styles.titulo} accessibilityRole="header">
+        <Texto style={styles.titulo} accessibilityRole="header">
           {titulo}
-        </Text>
+        </Texto>
       )}
       {children}
     </ScrollView>
@@ -40,7 +41,7 @@ interface SecaoProps {
 export function Secao({ titulo, children }: SecaoProps) {
   return (
     <View style={styles.secao}>
-      <Text style={styles.tituloSecao}>{titulo}</Text>
+      <Texto style={styles.tituloSecao}>{titulo}</Texto>
       {children}
     </View>
   );

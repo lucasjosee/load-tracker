@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, Polygon, Polyline } from 'react-native-svg';
 
 import { formatarDiaMes } from '@/domain/datas';
@@ -9,6 +9,7 @@ import { formatarPercentual } from '@/domain/textos';
 import { escalarPontos, paraPolyline } from './escala';
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 const ALTURA_COMPACTA = 52;
 const ALTURA_GRANDE = 130;
@@ -31,13 +32,13 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
   if (ultimo === undefined || pontos.length < 2) {
     return (
       <View style={[estilosComuns.cartao, styles.cartao]}>
-        <Text style={styles.rotulo}>{rotulo}</Text>
-        <Text style={estilosComuns.textoSecundario}>O gráfico aparece a partir do segundo treino.</Text>
+        <Texto style={styles.rotulo}>{rotulo}</Texto>
+        <Texto style={estilosComuns.textoSecundario}>O gráfico aparece a partir do segundo treino.</Texto>
       </View>
     );
   }
 
-  // A cor segue o número que a pessoa lê, já arredondado: "0%" nunca fica verde.
+  // A cor segue o número que a pessoa lê, já arredondado: "0%" nunca fica na cor de subir.
   const pontosPercentuais = Math.round(ultimo.variacao * 100);
   const cor = pontosPercentuais > 0 ? cores.sobe : pontosPercentuais < 0 ? cores.desce : cores.mantem;
 
@@ -46,9 +47,9 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
       accessible
       accessibilityLabel={`${rotulo}: ${formatarPercentual(ultimo.variacao)} desde o início, ${periodo}`}
     >
-      <Text style={styles.rotulo}>{rotulo}</Text>
-      <Text style={[styles.percentual, { color: cor }]}>{formatarPercentual(ultimo.variacao)}</Text>
-      <Text style={styles.periodo}>desde o início · {periodo}</Text>
+      <Texto style={styles.rotulo}>{rotulo}</Texto>
+      <Texto style={[styles.percentual, { color: cor }]}>{formatarPercentual(ultimo.variacao)}</Texto>
+      <Texto style={styles.periodo}>desde o início · {periodo}</Texto>
     </View>
   );
   const linha = (
@@ -68,8 +69,8 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
       {numero}
       {linha}
       <View style={styles.eixo}>
-        <Text style={styles.periodo}>{formatarDiaMes(pontos[0]?.data ?? ultimo.data)}</Text>
-        <Text style={styles.periodo}>{formatarDiaMes(ultimo.data)}</Text>
+        <Texto style={styles.periodo}>{formatarDiaMes(pontos[0]?.data ?? ultimo.data)}</Texto>
+        <Texto style={styles.periodo}>{formatarDiaMes(ultimo.data)}</Texto>
       </View>
     </View>
   );

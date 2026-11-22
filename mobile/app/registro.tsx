@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
 import { apiConfigurada, interpretarTexto, mensagemDaFalha } from '@/api/cliente';
 import { LIMITE_DO_TEXTO } from '@/api/contrato';
@@ -9,6 +9,7 @@ import { Botao } from '@/components/Botao';
 import { EditorDeItem } from '@/components/EditorDeItem';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
+import { CampoDeTexto, Texto } from '@/components/Texto';
 import { registrarItens } from '@/db/operacoes';
 import { listarExercicios, type Exercicio } from '@/db/repositorios/exercicios';
 import { paraDataLocal } from '@/domain/datas';
@@ -93,7 +94,7 @@ export default function TelaRegistro() {
     return (
       <Tela>
         <Secao titulo="O que você fez?">
-          <TextInput
+          <CampoDeTexto
             value={texto}
             onChangeText={setTexto}
             placeholder="supino inclinado 10kg 8,8,7 e crucifixo 14 3x12"
@@ -115,14 +116,14 @@ export default function TelaRegistro() {
             <Botao titulo="Preencher manualmente" variante="secundario" onPress={() => preencherManualmente(null)} />
           </>
         )}
-        {!apiConfigurada() && <Text style={estilosComuns.textoSecundario}>{mensagemDaFalha('sem_configuracao')}</Text>}
+        {!apiConfigurada() && <Texto style={estilosComuns.textoSecundario}>{mensagemDaFalha('sem_configuracao')}</Texto>}
       </Tela>
     );
   }
 
   return (
     <Tela>
-      {aviso !== null && <Text style={styles.aviso}>{aviso}</Text>}
+      {aviso !== null && <Texto style={styles.aviso}>{aviso}</Texto>}
       {itens.map((item) => (
         <EditorDeItem
           key={item.chave}
@@ -133,7 +134,7 @@ export default function TelaRegistro() {
         />
       ))}
       <Botao titulo="+ Outro exercício" variante="secundario" onPress={() => setItens([...itens, novoItem()])} />
-      {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
+      {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
       <Botao titulo="Salvar" desabilitado={itens.length === 0} onPress={salvar} />
     </Tela>
   );

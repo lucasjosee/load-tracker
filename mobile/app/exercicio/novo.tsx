@@ -1,13 +1,14 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { Opcoes } from '@/components/Opcoes';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
+import { CampoDeTexto, Texto } from '@/components/Texto';
 import { adicionarExercicioExistente, cadastrarExercicio } from '@/db/operacoes';
 import { obterObjetivo } from '@/db/repositorios/config';
 import { listarExercicios, listarExerciciosDoTreino, type Exercicio } from '@/db/repositorios/exercicios';
@@ -132,11 +133,11 @@ export default function TelaNovoExercicio() {
   return (
     <Tela>
       <Secao titulo="Nome">
-        <TextInput value={nome} onChangeText={setNome} placeholder="Ex.: Supino reto" style={estilosComuns.campo} />
+        <CampoDeTexto value={nome} onChangeText={setNome} placeholder="Ex.: Supino reto" style={estilosComuns.campo} />
       </Secao>
 
       <Secao titulo="Nota (opcional)">
-        <TextInput
+        <CampoDeTexto
           value={nota}
           onChangeText={setNota}
           placeholder="Ex.: banco no furo 4"
@@ -159,7 +160,7 @@ export default function TelaNovoExercicio() {
 
       <Secao titulo="Como você faz hoje">
         <Linha rotulo={porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}>
-          <TextInput
+          <CampoDeTexto
             value={carga}
             onChangeText={setCarga}
             placeholder="0"
@@ -170,10 +171,10 @@ export default function TelaNovoExercicio() {
         <Linha rotulo="Carga por lado">
           <Switch value={porLado} onValueChange={setPorLado} accessibilityLabel="carga por lado" />
         </Linha>
-        <Text style={estilosComuns.textoSecundario}>
+        <Texto style={estilosComuns.textoSecundario}>
           Ligue quando você anota o peso de um lado só da barra ou da máquina. O app mostra &quot;20 kg lado&quot; e não soma
           os dois; o incremento também é por lado.
-        </Text>
+        </Texto>
         <Linha rotulo="Reps por série">
           <Stepper valor={reps} onMudar={setReps} minimo={1} maximo={50} rotulo="reps atuais" />
         </Linha>
@@ -190,7 +191,7 @@ export default function TelaNovoExercicio() {
           <Stepper valor={series} onMudar={setSeries} minimo={1} maximo={10} rotulo="séries" />
         </Linha>
         <Linha rotulo="Incremento (kg)">
-          <TextInput
+          <CampoDeTexto
             value={incremento}
             onChangeText={setIncremento}
             placeholder="2"
@@ -201,11 +202,11 @@ export default function TelaNovoExercicio() {
       </Secao>
 
       {primeiraMeta !== null && (
-        <Text style={styles.previa}>
+        <Texto style={styles.previa}>
           Primeira meta: {textoMeta(primeiraMeta, porLado)} × {series}
-        </Text>
+        </Texto>
       )}
-      {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
+      {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
       <Botao titulo="Salvar exercício" onPress={salvar} />
 
       {existentes.length > 0 && (
@@ -217,8 +218,8 @@ export default function TelaNovoExercicio() {
               onPress={() => usarExistente(exercicio)}
               style={({ pressed }) => [estilosComuns.cartao, pressed && styles.pressionado]}
             >
-              <Text style={styles.nomeExistente}>{exercicio.nome}</Text>
-              <Text style={estilosComuns.textoSecundario}>{NOMES_DOS_GRUPOS[exercicio.grupoMuscular]}</Text>
+              <Texto style={styles.nomeExistente}>{exercicio.nome}</Texto>
+              <Texto style={estilosComuns.textoSecundario}>{NOMES_DOS_GRUPOS[exercicio.grupoMuscular]}</Texto>
             </Pressable>
           ))}
         </Secao>
@@ -230,7 +231,7 @@ export default function TelaNovoExercicio() {
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <View style={styles.linha}>
-      <Text style={styles.rotulo}>{rotulo}</Text>
+      <Texto style={styles.rotulo}>{rotulo}</Texto>
       {children}
     </View>
   );

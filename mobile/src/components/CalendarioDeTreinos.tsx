@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 
 import {
   melhorMes,
@@ -12,6 +12,7 @@ import {
 
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 const LADO = 13; // lado de cada quadrado
 const VAO = 3;
@@ -19,8 +20,9 @@ const TONS = [cores.primariaSuave, cores.primariaMedia, cores.primaria]; // nive
 const ALTURA_DAS_BARRAS = 70;
 
 // Calendário de treinos (§3.6): um quadrado por dia e uma coluna por semana,
-// como o gráfico de contribuições do GitHub. O tom do verde é quantas metas
-// foram batidas no treino; o contorno âmbar é um dia de treino sem registro.
+// como o gráfico de contribuições do GitHub. O tom da cor de marca é quantas
+// metas foram batidas no treino; o contorno na cor de recuo é um dia de
+// treino sem registro.
 export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) {
   const rolagem = useRef<ScrollViewInstance>(null);
   const destaque = melhorMes(calendario.porMes);
@@ -31,8 +33,8 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
     <>
       <View style={[estilosComuns.cartao, styles.cartao]}>
         <View style={[styles.cabecalho, styles.margem]}>
-          <Text style={styles.titulo}>Constância</Text>
-          <Text style={styles.periodo}>últimos 12 meses</Text>
+          <Texto style={styles.titulo}>Constância</Texto>
+          <Texto style={styles.periodo}>últimos 12 meses</Texto>
         </View>
 
         <View style={[styles.numeros, styles.margem]}>
@@ -54,7 +56,7 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
             <View style={styles.meses}>
               {calendario.rotulos.map((mes, indice) => (
                 <View key={indice} style={styles.espacoDoMes}>
-                  {mes !== null && <Text style={styles.mes}>{MESES_CURTOS[mes - 1]}</Text>}
+                  {mes !== null && <Texto style={styles.mes}>{MESES_CURTOS[mes - 1]}</Texto>}
                 </View>
               ))}
             </View>
@@ -72,22 +74,22 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
 
         <View style={[styles.legenda, styles.margem]}>
           <View style={[styles.amostra, { backgroundColor: cores.superficieAlta }]} />
-          <Text style={styles.textoDaLegenda}>descanso</Text>
+          <Texto style={styles.textoDaLegenda}>descanso</Texto>
           <View style={[styles.amostra, styles.faltou]} />
-          <Text style={styles.textoDaLegenda}>faltou</Text>
+          <Texto style={styles.textoDaLegenda}>faltou</Texto>
           <View style={styles.escala}>
-            <Text style={styles.textoDaLegenda}>menos</Text>
+            <Texto style={styles.textoDaLegenda}>menos</Texto>
             {TONS.map((tom) => (
               <View key={tom} style={[styles.amostra, { backgroundColor: tom }]} />
             ))}
-            <Text style={styles.textoDaLegenda}>metas batidas</Text>
+            <Texto style={styles.textoDaLegenda}>metas batidas</Texto>
           </View>
         </View>
       </View>
 
       {fraseDoMes !== null && (
         <View style={[estilosComuns.cartao, styles.cartaoDosMeses]}>
-          <Text style={styles.titulo}>Por mês</Text>
+          <Texto style={styles.titulo}>Por mês</Texto>
           <View style={styles.barras} accessible accessibilityLabel={fraseDoMes}>
             {calendario.porMes.map((mes) => (
               <View key={mes.mes} style={styles.colunaDoMes}>
@@ -98,11 +100,11 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
                     mes.mes === destaque?.mes && styles.barraDoMelhorMes,
                   ]}
                 />
-                <Text style={styles.letraDoMes}>{MESES_CURTOS[mes.mes - 1].charAt(0).toUpperCase()}</Text>
+                <Texto style={styles.letraDoMes}>{MESES_CURTOS[mes.mes - 1].charAt(0).toUpperCase()}</Texto>
               </View>
             ))}
           </View>
-          <Text style={styles.fraseDoMes}>{fraseDoMes}</Text>
+          <Texto style={styles.fraseDoMes}>{fraseDoMes}</Texto>
         </View>
       )}
     </>
@@ -112,8 +114,8 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
 function Numero({ valor, rotulo, destaque = false }: { valor: number; rotulo: string; destaque?: boolean }) {
   return (
     <View style={styles.numero}>
-      <Text style={[styles.valor, destaque && styles.valorEmDestaque]}>{valor}</Text>
-      <Text style={styles.rotulo}>{rotulo}</Text>
+      <Texto style={[styles.valor, destaque && styles.valorEmDestaque]}>{valor}</Texto>
+      <Texto style={styles.rotulo}>{rotulo}</Texto>
     </View>
   );
 }

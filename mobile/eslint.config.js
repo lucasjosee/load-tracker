@@ -17,6 +17,28 @@ module.exports = defineConfig([
     },
   },
   {
+    // O React Native não tem fonte padrão global: um `Text` direto sai na fonte
+    // do sistema. `Texto` e `CampoDeTexto` põem a Saira (src/components/Texto.tsx,
+    // o único lugar que usa os originais). Vem antes do bloco do domínio, que
+    // redefine `no-restricted-imports` para src/domain/.
+    files: ['app/**', 'src/**'],
+    ignores: ['src/components/Texto.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['Text', 'TextInput'],
+              message: 'Use Texto e CampoDeTexto de @/components/Texto, que já vêm com a fonte do app.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // Regra inviolável 1: o domínio é TypeScript puro. É isso que permite
     // testar o motor de progressão sem simular aparelho, banco, rede ou relógio.
     files: ['src/domain/**'],

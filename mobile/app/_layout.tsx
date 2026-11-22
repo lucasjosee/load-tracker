@@ -1,16 +1,60 @@
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 
 import { OPCOES_DE_NAVEGACAO } from '@/components/navegacao';
+import { fonte } from '@/components/tema';
 import { inicializarBanco, NOME_DO_BANCO } from '@/db/banco';
 import { precisaDeOnboarding } from '@/db/operacoes';
 import { ContextoFimDoOnboarding } from '@/hooks/onboarding';
 import { AoAbrirOApp } from '@/notificacoes/AoAbrirOApp';
 
+// O splash fica na tela até a fonte carregar. Sem isto, a primeira tela
+// apareceria um instante na fonte do sistema e depois "pularia" para a Saira.
+SplashScreen.preventAutoHideAsync();
+
+// Cada família lista um arquivo por peso. No iOS o `weight` daqui não é
+// usado: o sistema lê o peso de dentro do arquivo. Fica escrito para quem lê.
+const FONTES = [
+  {
+    fontFamily: fonte.normal,
+    fontDefinitions: [
+      { path: require('../assets/fonte/Saira-Regular.ttf'), weight: 400 },
+      { path: require('../assets/fonte/Saira-Medium.ttf'), weight: 500 },
+      { path: require('../assets/fonte/Saira-SemiBold.ttf'), weight: 600 },
+      { path: require('../assets/fonte/Saira-Bold.ttf'), weight: 700 },
+      { path: require('../assets/fonte/Saira-ExtraBold.ttf'), weight: 800 },
+    ],
+  },
+  {
+    fontFamily: fonte.larga,
+    fontDefinitions: [
+      { path: require('../assets/fonte/SairaLarga-Bold.ttf'), weight: 700 },
+      { path: require('../assets/fonte/SairaLarga-ExtraBold.ttf'), weight: 800 },
+    ],
+  },
+];
+
 // O SQLiteProvider abre o banco e roda `inicializarBanco` (migrações e seed)
 // antes de mostrar qualquer tela; as telas pegam a conexão com useSQLiteContext().
 export default function RootLayout() {
+  const [fontesProntas, erroNasFontes] = useFonts(FONTES);
+  // Se a fonte falhar, o app abre mesmo assim, na fonte do sistema: feio,
+  // mas usável. Ficar preso no splash seria pior.
+  const podeMostrar = fontesProntas || erroNasFontes !== null;
+
+  useEffect(() => {
+    if (podeMostrar) {
+      SplashScreen.hide();
+    }
+  }, [podeMostrar]);
+
+  if (!podeMostrar) {
+    return null;
+  }
+
   return (
     <SQLiteProvider databaseName={NOME_DO_BANCO} onInit={inicializarBanco}>
       <AoAbrirOApp />

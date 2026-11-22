@@ -1,12 +1,13 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { MiniGrafico } from '@/components/MiniGrafico';
 import { Selo } from '@/components/Selo';
 import { estilosComuns, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
+import { Texto } from '@/components/Texto';
 import { carregarEvolucao, type ExercicioNaEvolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
 import { formatarPercentual, textoEstagnacao, textoMeta } from '@/domain/textos';
@@ -41,15 +42,15 @@ export default function TelaGrupo() {
         >
           <View style={styles.textos}>
             <View style={styles.nomeComSelo}>
-              <Text style={styles.nome}>{exercicio.nome}</Text>
+              <Texto style={styles.nome}>{exercicio.nome}</Texto>
               {estagnacao !== null && <Selo selo={{ texto: 'estagnado', direcao: 'desce' }} />}
             </View>
-            <Text style={estilosComuns.textoSecundario}>
+            <Texto style={estilosComuns.textoSecundario}>
               {estado === null ? 'Sem meta' : `Meta: ${textoMeta(estado, exercicio.porLado)}`} ·{' '}
               {variacao === null ? `${sessoes} ${sessoes === 1 ? 'sessão' : 'sessões'}` : `${formatarPercentual(variacao)} de força`}
-            </Text>
+            </Texto>
             {/* O motivo do selo. Só avisa: quem muda a meta é o motor (regra 2). */}
-            {estagnacao !== null && <Text style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Text>}
+            {estagnacao !== null && <Texto style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Texto>}
           </View>
           <MiniGrafico valores={forcas} />
         </Pressable>

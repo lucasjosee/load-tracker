@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { cores, raio } from './tema';
+import { Texto } from './Texto';
 
 type Variante = 'primario' | 'secundario' | 'perigo';
 
@@ -31,9 +32,9 @@ export function Botao({ titulo, onPress, variante = 'primario', desabilitado = f
         (pressed || desabilitado) && styles.apagado,
       ]}
     >
-      <Text numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
+      <Texto numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
         {titulo}
-      </Text>
+      </Texto>
     </Pressable>
   );
 }

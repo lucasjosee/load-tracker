@@ -1,13 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { Regua, SituacaoDoPonto } from '@/domain/regua';
 import { formatarKg } from '@/domain/textos';
 
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 interface Props {
   regua: Regua;
-  // Depois de um deload a régua fica em âmbar: recomeçar do início da faixa
+  // Depois de um deload a régua fica na cor de recuo (`desce`): recomeçar do início da faixa
   // ali é recuo, não progresso.
   recuo?: boolean;
 }
@@ -26,12 +27,12 @@ export function ReguaDeReps({ regua, recuo = false }: Props) {
     >
       {regua.pontos.map((ponto) => (
         <View key={ponto.reps} style={[styles.ponto, estiloDoPonto(ponto.situacao, recuo)]}>
-          <Text style={[styles.numero, { color: ponto.situacao === 'falta' ? cores.textoSecundario : destaque }]}>
+          <Texto style={[styles.numero, { color: ponto.situacao === 'falta' ? cores.textoSecundario : destaque }]}>
             {ponto.reps}
-          </Text>
+          </Texto>
         </View>
       ))}
-      <Text style={styles.proxima}>→ {formatarKg(regua.proximaCargaKg)} kg</Text>
+      <Texto style={styles.proxima}>→ {formatarKg(regua.proximaCargaKg)} kg</Texto>
     </View>
   );
 }

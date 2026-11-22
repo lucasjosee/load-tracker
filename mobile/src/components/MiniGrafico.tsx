@@ -7,7 +7,7 @@ const LARGURA = 72;
 const ALTURA = 28;
 
 // A linha da força estimada em miniatura, sem eixo nem número: serve só para
-// ver a direção de relance numa lista. Verde-lima se a última sessão está
+// ver a direção de relance numa lista. Cor de marca se a última sessão está
 // acima da primeira; cinza se não.
 export function MiniGrafico({ valores }: { valores: readonly number[] }) {
   if (valores.length < 2) {

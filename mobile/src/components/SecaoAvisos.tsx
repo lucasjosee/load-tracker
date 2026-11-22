@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { obterConfig, salvarConfig } from '@/db/repositorios/config';
 import { formatarHorario, HORARIO_PADRAO_DO_AVISO, lerHorario } from '@/domain/horario';
@@ -11,6 +11,7 @@ import { Botao } from './Botao';
 import { Stepper } from './Stepper';
 import { estilosComuns, Secao } from './Tela';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 const ULTIMO_MINUTO = 23 * 60 + 45;
 
@@ -66,14 +67,14 @@ export function SecaoAvisos({ onMudou }: Props) {
       )}
       {permissao === 'negada' && (
         <>
-          <Text style={estilosComuns.textoSecundario}>
+          <Texto style={estilosComuns.textoSecundario}>
             Os avisos estão desligados nos Ajustes do iPhone. O app funciona igual, só não te lembra.
-          </Text>
+          </Texto>
           <Botao titulo="Abrir Ajustes" variante="secundario" onPress={abrirAjustes} />
         </>
       )}
       <View style={styles.linha}>
-        <Text style={styles.rotulo}>Aviso no dia do treino</Text>
+        <Texto style={styles.rotulo}>Aviso no dia do treino</Texto>
         <Stepper
           valor={minutos}
           onMudar={mudarHorario}
@@ -83,7 +84,7 @@ export function SecaoAvisos({ onMudou }: Props) {
           rotulo="horário do aviso"
         />
       </View>
-      <Text style={estilosComuns.textoSecundario}>O ideal é uns 30 min antes do horário em que você treina.</Text>
+      <Texto style={estilosComuns.textoSecundario}>O ideal é uns 30 min antes do horário em que você treina.</Texto>
     </Secao>
   );
 }

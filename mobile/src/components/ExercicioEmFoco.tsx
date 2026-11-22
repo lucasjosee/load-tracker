@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { ItemDoTreino } from '@/db/consultas';
 import { configDoExercicio } from '@/db/operacoes';
@@ -15,6 +15,7 @@ import { ReguaDeReps } from './ReguaDeReps';
 import { Selo } from './Selo';
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 interface Props {
   item: ItemDoTreino;
@@ -55,7 +56,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
     <View style={[estilosComuns.cartao, styles.cartao]}>
       <View style={styles.topo}>
         <Pressable accessibilityRole="link" accessibilityHint="Abre o histórico do exercício" onPress={onAbrir} style={styles.areaDoNome}>
-          <Text style={styles.nome}>{exercicio.nome}</Text>
+          <Texto style={styles.nome}>{exercicio.nome}</Texto>
         </Pressable>
         <View style={styles.selos}>
           {estagnacao !== null && <Selo selo={{ texto: '⚠ estagnado', direcao: 'desce' }} />}
@@ -65,34 +66,34 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
 
       {/* A nota é o lembrete que a pessoa escreveu para a hora do exercício
           ("banco no furo 4"); só existe se ela escreveu. */}
-      {exercicio.nota !== null && <Text style={styles.nota}>{exercicio.nota}</Text>}
+      {exercicio.nota !== null && <Texto style={styles.nota}>{exercicio.nota}</Texto>}
 
       {estado === null ? (
-        <Text style={estilosComuns.textoSecundario}>Sem meta ainda: registre pelo Ajustar.</Text>
+        <Texto style={estilosComuns.textoSecundario}>Sem meta ainda: registre pelo Ajustar.</Texto>
       ) : (
         <>
           {/* A meta nunca divide a linha com outro texto: "22,5 kg × 12" já
               ocupa quase toda a largura, e o que viesse ao lado quebraria. */}
-          <Text style={styles.meta} numberOfLines={1} adjustsFontSizeToFit>
+          <Texto style={styles.meta} numberOfLines={1} adjustsFontSizeToFit>
             {textoMeta(estado)}
-          </Text>
-          <Text style={styles.detalheDaMeta}>
-            {exercicio.porLado && estado.cargaKg > 0 && <Text style={styles.lado}>lado · </Text>}
+          </Texto>
+          <Texto style={styles.detalheDaMeta}>
+            {exercicio.porLado && estado.cargaKg > 0 && <Texto style={styles.lado}>lado · </Texto>}
             {textoSeries(exercicio.seriesAlvo)}
-          </Text>
+          </Texto>
           {regua !== null && (
             <View style={styles.regua}>
               <ReguaDeReps regua={regua} recuo={mudanca?.tipo === 'deload'} />
             </View>
           )}
-          <Text style={styles.motivo}>{motivoDaMeta(estado, mudanca, config, exercicio.porLado)}</Text>
+          <Texto style={styles.motivo}>{motivoDaMeta(estado, mudanca, config, exercicio.porLado)}</Texto>
           {/* Aqui há espaço para a última sessão ficar sempre à vista, sem abrir o Ajustar. */}
           {ultimaSessao !== null && !ajustando && (
-            <Text style={styles.motivo}>{textoUltimaVez(ultimaSessao, exercicio.porLado)}</Text>
+            <Texto style={styles.motivo}>{textoUltimaVez(ultimaSessao, exercicio.porLado)}</Texto>
           )}
           {estagnacao !== null && (
             // O alerta não muda a meta: quem decide é o motor (regra 2). Só avisa.
-            <Text style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Text>
+            <Texto style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Texto>
           )}
         </>
       )}
@@ -124,7 +125,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
             hitSlop={8}
             style={styles.naoVouFazer}
           >
-            <Text style={styles.textoNaoVouFazer}>Não vou fazer hoje</Text>
+            <Texto style={styles.textoNaoVouFazer}>Não vou fazer hoje</Texto>
           </Pressable>
         </View>
       )}

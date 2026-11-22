@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { ItemDoTreino } from '@/db/consultas';
 import { seloDaMeta, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
@@ -6,6 +6,7 @@ import { seloDaMeta, textoMeta, textoRealizado, textoSeries } from '@/domain/tex
 import { Selo } from './Selo';
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 interface Props {
   item: ItemDoTreino;
@@ -32,20 +33,20 @@ export function LinhaDoExercicio({ item, onAbrir, onDesfazer }: Props) {
     <View style={[estilosComuns.cartao, styles.linha]}>
       {feito && (
         <View style={[styles.marca, pulado && styles.marcaPulado]}>
-          <Text style={[styles.simbolo, pulado && styles.simboloPulado]}>{pulado ? '–' : '✓'}</Text>
+          <Texto style={[styles.simbolo, pulado && styles.simboloPulado]}>{pulado ? '–' : '✓'}</Texto>
         </View>
       )}
       <Pressable accessibilityRole="link" accessibilityHint="Abre o histórico do exercício" onPress={onAbrir} style={styles.textos}>
-        <Text style={styles.nome} numberOfLines={1}>
+        <Texto style={styles.nome} numberOfLines={1}>
           {exercicio.nome}
-        </Text>
-        <Text style={styles.detalhe}>{detalhe}</Text>
+        </Texto>
+        <Texto style={styles.detalhe}>{detalhe}</Texto>
       </Pressable>
       {feito && recordeHoje && <Selo selo={{ texto: 'recorde', direcao: 'sobe' }} />}
       {!feito && estado !== null && <Selo selo={seloDaMeta(mudanca)} />}
       {feito && onDesfazer !== undefined && (
         <Pressable accessibilityRole="button" onPress={onDesfazer} hitSlop={8} style={styles.desfazer}>
-          <Text style={styles.textoDesfazer}>Desfazer</Text>
+          <Texto style={styles.textoDesfazer}>Desfazer</Texto>
         </Pressable>
       )}
     </View>

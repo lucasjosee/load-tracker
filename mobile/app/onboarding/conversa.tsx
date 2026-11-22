@@ -1,16 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type ScrollViewInstance,
-} from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 
 import { conversarOnboarding, mensagemDaFalha } from '@/api/cliente';
 import { LIMITE_DE_PERGUNTAS, LIMITE_DO_TEXTO, PRIMEIRA_PERGUNTA, type Mensagem } from '@/api/contrato';
@@ -19,6 +10,7 @@ import { Botao } from '@/components/Botao';
 import { RascunhoAoVivo } from '@/components/RascunhoAoVivo';
 import { estilosComuns } from '@/components/Tela';
 import { cores, espaco } from '@/components/tema';
+import { CampoDeTexto, Texto } from '@/components/Texto';
 import { resumirRascunho } from '@/domain/onboarding';
 import { useRascunho } from '@/hooks/onboarding';
 
@@ -75,16 +67,16 @@ export default function TelaConversa() {
         keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => rolagem.current?.scrollToEnd({ animated: true })}
       >
-        <Text style={styles.contagem}>
+        <Texto style={styles.contagem}>
           Pergunta {perguntas} de até {LIMITE_DE_PERGUNTAS}
-        </Text>
+        </Texto>
         {mensagens.map((mensagem, indice) => (
           <Balao key={indice} papel={mensagem.papel} texto={mensagem.texto} />
         ))}
         {enviando && <Digitando />}
         {falha !== null && (
           <View style={styles.falha}>
-            <Text style={estilosComuns.erro}>{falha}</Text>
+            <Texto style={estilosComuns.erro}>{falha}</Texto>
             <Botao titulo="Tentar de novo" variante="secundario" compacto onPress={() => pedirProximaPergunta(mensagens)} />
           </View>
         )}
@@ -93,7 +85,7 @@ export default function TelaConversa() {
       <View style={styles.rodape}>
         {falha === null && (
           <View style={styles.entrada}>
-            <TextInput
+            <CampoDeTexto
               value={texto}
               onChangeText={setTexto}
               // A primeira pergunta é a do perfil; as seguintes, sobre o treino.
@@ -113,7 +105,7 @@ export default function TelaConversa() {
               hitSlop={6}
               style={({ pressed }) => [styles.enviar, (pressed || !podeEnviar) && styles.enviarApagado]}
             >
-              <Text style={styles.setaDeEnviar}>↑</Text>
+              <Texto style={styles.setaDeEnviar}>↑</Texto>
             </Pressable>
           </View>
         )}

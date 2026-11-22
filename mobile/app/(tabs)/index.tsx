@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
@@ -12,6 +12,7 @@ import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores, raio } from '@/components/tema';
+import { Texto } from '@/components/Texto';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
@@ -82,13 +83,13 @@ export default function TelaHoje() {
   if (conteudo.tipo === 'descanso') {
     return (
       <Tela titulo="Hoje">
-        <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+        <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
         {aviso}
-        <Text style={styles.descanso}>Descanso</Text>
+        <Texto style={styles.descanso}>Descanso</Texto>
         {conteudo.proximo !== null && (
           <View style={estilosComuns.cartao}>
-            <Text style={styles.rotuloDoProximo}>Próximo treino</Text>
-            <Text style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Text>
+            <Texto style={styles.rotuloDoProximo}>Próximo treino</Texto>
+            <Texto style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Texto>
           </View>
         )}
         {/* No descanso não há cartões de exercício, então a evolução geral
@@ -101,9 +102,9 @@ export default function TelaHoje() {
         />
         <View style={[estilosComuns.cartao, styles.semana]}>
           <FaixaDaSemana dias={conteudo.semana} />
-          <Text style={estilosComuns.textoSecundario}>
+          <Texto style={estilosComuns.textoSecundario}>
             {textoResumoDaSemana(conteudo.treinosNaSemana, conteudo.seriesNaSemana)}
-          </Text>
+          </Texto>
         </View>
         <Botao titulo="+ Registro rápido" variante="secundario" onPress={() => router.push('/registro')} />
       </Tela>
@@ -137,7 +138,7 @@ export default function TelaHoje() {
     <View style={styles.tela}>
       <Tela titulo={treino.nome} folgaNoFim={pendentes ? FOLGA_DO_BOTAO_DE_TREINO : 0}>
         <View style={styles.cabecalho}>
-          <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+          <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
           <Botao
             titulo="+ Registro rápido"
             variante="secundario"
@@ -168,7 +169,7 @@ export default function TelaHoje() {
           />
         )}
         {itens.length === 0 && (
-          <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
+          <Texto style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Texto>
         )}
 
         {sessao !== null && sessao.finalizadaEm !== null && (
@@ -226,7 +227,7 @@ interface AvisoProps {
 function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
   return (
     <View style={styles.aviso}>
-      <Text style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Text>
+      <Texto style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Texto>
       <View style={styles.botoesAviso}>
         <Botao titulo={`Fazer ${treino.nome}`} compacto onPress={() => onFazer(treino.id)} />
         <Botao titulo="Agora não" variante="secundario" compacto onPress={onDispensar} />

@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { apiConfigurada } from '@/api/cliente';
 import { Botao } from '@/components/Botao';
 import { estilosComuns } from '@/components/Tela';
 import { cores, espaco } from '@/components/tema';
+import { Texto } from '@/components/Texto';
 import { useRascunho } from '@/hooks/onboarding';
 
 // Boas-vindas (§3.1, passo 1).
@@ -18,11 +19,11 @@ export default function TelaBoasVindas() {
 
   return (
     <View style={styles.tela}>
-      <Text style={styles.titulo}>Load Tracker</Text>
-      <Text style={styles.frase}>Decide a meta de cada exercício antes de você chegar na academia.</Text>
-      <Text style={estilosComuns.textoSecundario}>
+      <Texto style={styles.titulo}>Load Tracker</Texto>
+      <Texto style={styles.frase}>Decide a meta de cada exercício antes de você chegar na academia.</Texto>
+      <Texto style={estilosComuns.textoSecundario}>
         Conte como você treina hoje, em poucas mensagens. Depois é só registrar se bateu a meta.
-      </Text>
+      </Texto>
       <View style={styles.botoes}>
         {apiConfigurada() && <Botao titulo="Começar" onPress={() => router.push('/onboarding/conversa')} />}
         <Botao titulo="Preencher manualmente" variante="secundario" onPress={preencherManualmente} />

@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { estilosComuns, Tela } from '@/components/Tela';
 import { cores, espaco } from '@/components/tema';
+import { Texto } from '@/components/Texto';
 import { carregarPrimeiraMeta, type PrimeiraMeta } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
 import { textoDoFecho, textoMeta, textoPrimeiroTreino, textoSeries } from '@/domain/textos';
@@ -27,29 +28,29 @@ export default function TelaFecho() {
 
   return (
     <Tela titulo={textoDoFecho(dados.nome)}>
-      <Text style={estilosComuns.textoSecundario}>
+      <Texto style={estilosComuns.textoSecundario}>
         A carga que você informou virou o ponto de partida. A cada treino você diz se bateu a meta; se bateu, ela
         sobe: primeiro as reps, depois a carga.
-      </Text>
+      </Texto>
 
       {dados.proximo === null ? (
-        <Text style={estilosComuns.textoSecundario}>
+        <Texto style={estilosComuns.textoSecundario}>
           Nenhum treino tem dia da semana ainda. Escolha os dias na aba Divisão para o treino aparecer na aba Hoje.
-        </Text>
+        </Texto>
       ) : (
         <View style={[estilosComuns.cartao, styles.cartao]}>
-          <Text style={styles.treino}>{textoPrimeiroTreino(dados.proximo)}</Text>
+          <Texto style={styles.treino}>{textoPrimeiroTreino(dados.proximo)}</Texto>
           {dados.itens.map(({ exercicio, estado }) => (
             <View key={exercicio.id} style={styles.linha}>
               <View style={styles.exercicio}>
-                <Text style={styles.nome}>{exercicio.nome}</Text>
-                <Text style={styles.series}>{textoSeries(exercicio.seriesAlvo)}</Text>
+                <Texto style={styles.nome}>{exercicio.nome}</Texto>
+                <Texto style={styles.series}>{textoSeries(exercicio.seriesAlvo)}</Texto>
               </View>
-              {estado !== null && <Text style={styles.meta}>{textoMeta(estado, exercicio.porLado)}</Text>}
+              {estado !== null && <Texto style={styles.meta}>{textoMeta(estado, exercicio.porLado)}</Texto>}
             </View>
           ))}
           {dados.itens.length === 0 && (
-            <Text style={estilosComuns.textoSecundario}>Este treino ainda não tem exercícios.</Text>
+            <Texto style={estilosComuns.textoSecundario}>Este treino ainda não tem exercícios.</Texto>
           )}
         </View>
       )}

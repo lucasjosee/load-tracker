@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Botao } from './Botao';
 import { Stepper } from './Stepper';
 import { cores } from './tema';
+import { Texto } from './Texto';
 
 interface Props {
   reps: number[]; // uma posição por série
@@ -18,7 +19,7 @@ export function EditorDeSeries({ reps, onMudar }: Props) {
     <View style={styles.lista}>
       {reps.map((valor, indice) => (
         <View key={indice} style={styles.linha}>
-          <Text style={styles.rotulo}>Série {indice + 1}</Text>
+          <Texto style={styles.rotulo}>Série {indice + 1}</Texto>
           <Stepper valor={valor} onMudar={(v) => mudarSerie(indice, v)} maximo={100} rotulo={`reps da série ${indice + 1}`} />
         </View>
       ))}
