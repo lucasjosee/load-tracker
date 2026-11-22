@@ -5,7 +5,15 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { ItemDoTreino } from '@/db/consultas';
 import { configDoExercicio } from '@/db/operacoes';
 import { reguaDeReps } from '@/domain/regua';
-import { motivoDaMeta, seloDaMeta, textoEstagnacao, textoMeta, textoSeries, textoUltimaVez } from '@/domain/textos';
+import {
+  formatarKg,
+  motivoDaMeta,
+  seloDaMeta,
+  textoEstagnacao,
+  textoMeta,
+  textoSeries,
+  textoUltimaVez,
+} from '@/domain/textos';
 import type { Realizado } from '@/domain/tipos';
 
 import { Botao } from './Botao';
@@ -14,7 +22,7 @@ import { PainelAjuste } from './PainelAjuste';
 import { ReguaDeReps } from './ReguaDeReps';
 import { Selo } from './Selo';
 import { estilosComuns } from './Tela';
-import { cores } from './tema';
+import { cores, fonte } from './tema';
 import { Texto } from './Texto';
 
 interface Props {
@@ -29,7 +37,8 @@ interface Props {
 
 // O exercício da vez, na tela do treino (§3.2): um só, grande, com tudo o que
 // a pessoa precisa entre uma série e outra. A meta é o herói: número enorme,
-// sozinho na linha, para ser lido de relance num lugar de luz ruim.
+// sozinho na linha, para ser lido de relance num lugar de luz ruim. Ela e a
+// régua ficam no único painel em relevo; o resto fica direto no fundo.
 export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }: Props) {
   const { exercicio, estado, mudanca, estagnacao, ultimaSessao } = item;
   const [ajustando, setAjustando] = useState(false);
@@ -53,7 +62,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
   }
 
   return (
-    <View style={[estilosComuns.cartao, styles.cartao]}>
+    <View>
       <View style={styles.topo}>
         <Pressable accessibilityRole="link" accessibilityHint="Abre o histórico do exercício" onPress={onAbrir} style={styles.areaDoNome}>
           <Texto style={styles.nome}>{exercicio.nome}</Texto>
@@ -66,26 +75,58 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
 
       {/* A nota é o lembrete que a pessoa escreveu para a hora do exercício
           ("banco no furo 4"); só existe se ela escreveu. */}
-      {exercicio.nota !== null && <Texto style={styles.nota}>{exercicio.nota}</Texto>}
+      {exercicio.nota !== null && (
+        // Contornada, como a plaquinha de ajuste de uma máquina.
+        <View style={styles.etiqueta}>
+          <Texto style={styles.textoDaEtiqueta}>{exercicio.nota}</Texto>
+        </View>
+      )}
 
       {estado === null ? (
-        <Texto style={estilosComuns.textoSecundario}>Sem meta ainda: registre pelo Ajustar.</Texto>
+        <Texto style={[estilosComuns.textoSecundario, styles.semMeta]}>Sem meta ainda: registre pelo Ajustar.</Texto>
       ) : (
         <>
-          {/* A meta nunca divide a linha com outro texto: "22,5 kg × 12" já
-              ocupa quase toda a largura, e o que viesse ao lado quebraria. */}
-          <Texto style={styles.meta} numberOfLines={1} adjustsFontSizeToFit>
-            {textoMeta(estado)}
-          </Texto>
-          <Texto style={styles.detalheDaMeta}>
-            {exercicio.porLado && estado.cargaKg > 0 && <Texto style={styles.lado}>lado · </Texto>}
-            {textoSeries(exercicio.seriesAlvo)}
-          </Texto>
-          {regua !== null && (
-            <View style={styles.regua}>
-              <ReguaDeReps regua={regua} recuo={mudanca?.tipo === 'deload'} />
-            </View>
-          )}
+          <View style={[estilosComuns.cartao, styles.painelDaMeta]}>
+            {/* A meta nunca divide a linha com outro texto: "22,5 kg × 12" já
+                ocupa quase toda a largura e, se não couber, a linha encolhe
+                inteira (`adjustsFontSizeToFit`), com as partes pequenas junto.
+                Os dois números são o que se lê de relance; "kg" e "×" ficam
+                menores e em cinza. */}
+            <Texto
+              style={styles.meta}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              accessibilityLabel={textoMeta(estado, exercicio.porLado)}
+            >
+              {estado.cargaKg === 0 ? (
+                <>
+                  {estado.repsAlvo}
+                  <Texto style={styles.unidade}> reps</Texto>
+                </>
+              ) : (
+                <>
+                  {formatarKg(estado.cargaKg)}
+                  <Texto style={styles.unidade}> kg </Texto>
+                  <Texto style={styles.vezes}>× </Texto>
+                  {estado.repsAlvo}
+                </>
+              )}
+            </Texto>
+            <Texto style={styles.detalheDaMeta}>
+              {exercicio.porLado && estado.cargaKg > 0 && (
+                <>
+                  <Texto style={styles.lado}>por lado</Texto>,{' '}
+                </>
+              )}
+              {textoSeries(exercicio.seriesAlvo)}
+            </Texto>
+            {regua !== null && (
+              <>
+                <View style={styles.sulco} />
+                <ReguaDeReps regua={regua} recuo={mudanca?.tipo === 'deload'} />
+              </>
+            )}
+          </View>
           <Texto style={styles.motivo}>{motivoDaMeta(estado, mudanca, config, exercicio.porLado)}</Texto>
           {/* Aqui há espaço para a última sessão ficar sempre à vista, sem abrir o Ajustar. */}
           {ultimaSessao !== null && !ajustando && (
@@ -135,23 +176,47 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
 }
 
 const styles = StyleSheet.create({
-  cartao: { padding: 20, gap: 0 },
   topo: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   areaDoNome: { flexShrink: 1 },
-  nome: { fontSize: 24, fontWeight: '700', letterSpacing: -0.3, color: cores.texto },
+  nome: { fontSize: 26, lineHeight: 30, fontWeight: '700', letterSpacing: -0.3, color: cores.texto },
   selos: { flexDirection: 'row', gap: 4, marginTop: 4 },
-  nota: { fontSize: 15, color: cores.textoSecundario, fontStyle: 'italic', marginTop: 4 },
+  etiqueta: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: cores.borda,
+  },
+  textoDaEtiqueta: { fontSize: 15, fontWeight: '500', color: cores.textoSecundario },
+  semMeta: { marginTop: 16 },
+  painelDaMeta: { marginTop: 16, gap: 0 },
+  // A linha bem mais baixa que o natural da Saira (1,57 vez o tamanho): os
+  // algarismos ficam no meio dela, sem a sobra de espaço em cima e embaixo.
   meta: {
-    fontSize: 64,
+    fontFamily: fonte.larga,
+    fontSize: 80,
+    lineHeight: 76,
     fontWeight: '800',
     letterSpacing: -2,
     color: cores.texto,
     fontVariant: ['tabular-nums'],
-    marginTop: 16,
   },
-  detalheDaMeta: { fontSize: 18, fontWeight: '500', color: cores.textoSecundario },
+  unidade: { fontSize: 28, fontWeight: '600', letterSpacing: 0, color: cores.textoSecundario },
+  vezes: { fontSize: 34, fontWeight: '400', letterSpacing: 0, color: cores.textoSecundario },
+  detalheDaMeta: { fontSize: 17, fontWeight: '500', color: cores.textoSecundario },
   lado: { fontWeight: '700', color: cores.texto },
-  regua: { marginTop: 18 },
+  // Divisória cavada entre a meta e a régua: escura em cima, com luz embaixo.
+  sulco: {
+    height: 2,
+    marginTop: 14,
+    marginBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: cores.sulco,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
   motivo: { fontSize: 15, lineHeight: 21, color: cores.textoSecundario, marginTop: 12 },
   alerta: { fontSize: 15, lineHeight: 21, color: cores.desce, marginTop: 4 },
   botoes: { gap: 8, marginTop: 20 },

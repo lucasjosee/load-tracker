@@ -32,6 +32,7 @@ export const cores = {
   desce: '#8DB8E8',
   mantem: '#B5BCC4',
   aviso: '#2E3B4A', // fundo dos avisos; o texto por cima é `texto` ou `desce`
+  sulco: '#23272C', // o que é cavado no aço: o trilho da régua, a divisória do painel
 };
 
 // A fonte do app é a Saira (assets/fonte/, carregada em app/_layout.tsx). São
