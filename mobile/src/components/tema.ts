@@ -6,9 +6,10 @@
 // uma cor só de marca. O escuro é de aço escovado, cinza-azulado, e não preto:
 // é o material dos equipamentos de academia.
 //
-// A cor de marca (latão) significa "subir": é a do botão "Bati", a do selo de
-// progresso e a da linha dos gráficos. Por isso `sobe` e `primaria` são a
-// mesma cor, de propósito. Azul-aço é recuo ou alerta (deload, estagnado,
+// A cor de marca (latão) significa "subir": é a do selo de progresso, a da
+// régua, a da linha dos gráficos e a da aba ativa. Por isso `sobe` e
+// `primaria` são a mesma cor, de propósito. O botão principal não é latão: é
+// cromado, como a barra (`cromo`, mais abaixo). Azul-aço é recuo ou alerta (deload, estagnado,
 // falta); cinza é "mantém"; vermelho fica só para apagar coisas. O latão é
 // quente e claro, o azul é frio e mais escuro: dá para distinguir os dois
 // mesmo sem enxergar bem as cores.
@@ -45,14 +46,46 @@ export const fonte = {
   larga: 'SairaLarga',
 };
 
+// O fundo escurece de leve para baixo, como metal iluminado de cima. Começa
+// no tom do cabeçalho (`cores.fundo`) para não aparecer emenda com ele.
+export const gradienteDoFundo = `linear-gradient(180deg, ${cores.fundo} 0%, #25292E 100%)`;
+
+// O volume do aço, escrito uma vez para todas as telas (no formato do CSS,
+// que o `boxShadow` do React Native aceita). Uma sombra com `inset` fica por
+// dentro da peça; sem `inset`, por fora.
+export const relevo = {
+  // Cartão: um filete de luz na borda de cima (o chanfro), uma linha escura
+  // embaixo e uma sombra larga e fraca que descola o cartão do fundo.
+  painel: 'inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 0 rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.18)',
+  // Botão, chip e stepper: o mesmo chanfro, sem a sombra larga.
+  botao: 'inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 rgba(0, 0, 0, 0.35)',
+  // Campo de texto: o contrário, um sulco. A sombra fica dentro e em cima, e
+  // a luz bate na borda de baixo.
+  afundado: 'inset 0 2px 3px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.05)',
+};
+
+// O botão principal de cada tela ("Bati a meta", "Iniciar treino", "Salvar")
+// é cromado, com o recartilhado da barra nas pontas (Recartilhado.tsx).
+export const cromo = {
+  // A luz bate em cima e o metal escurece embaixo. Apertado, o gradiente
+  // inverte e o botão parece afundar.
+  fundo: 'linear-gradient(180deg, #E6EAEE 0%, #C9CFD5 100%)',
+  apertado: 'linear-gradient(180deg, #C3C9CF 0%, #DCE1E6 100%)',
+  cor: '#D5DADF', // o tom do meio, para quando o gradiente não é desenhado
+  texto: '#1F2328', // 10:1 sobre o tom mais escuro do cromo
+  sombra: 'inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 rgba(0, 0, 0, 0.35)',
+  sulco: 'rgba(31, 35, 40, 0.22)', // as linhas do recartilhado
+};
+
 export const espaco = {
   pequeno: 8,
   medio: 12,
   grande: 20,
 };
 
-export const raio = 14; // botões, campos e avisos
-export const raioDoCartao = 20;
+// Cantos pequenos, de peça usinada: arredondado demais parece plástico.
+export const raio = 12; // botões, campos e avisos
+export const raioDoCartao = 14;
 
 // Os tamanhos de texto que se repetem. A família vem do componente `Texto`.
 // A Saira tem algarismos de largura fixa, ligados com

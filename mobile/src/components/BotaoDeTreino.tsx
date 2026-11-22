@@ -3,14 +3,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { TemposDaSessao } from '@/domain/duracao';
 
+import { Recartilhado } from './Recartilhado';
 import { useTempoDoTreino } from './TempoDoTreino';
-import { cores } from './tema';
+import { cromo, raio } from './tema';
 import { Texto } from './Texto';
 
 // Espaço que a barra de abas do iOS ocupa acima da área segura de baixo. A
 // NativeTabs não informa a própria altura, então é uma medida fixa.
 const ALTURA_DA_BARRA_DE_ABAS = 60;
 const ALTURA_DO_BOTAO = 64;
+const RAIO = raio + 2; // um pouco mais que o dos botões comuns, por ser maior
 
 // Quanto a tela precisa deixar livre no fim da rolagem para o último item
 // não ficar escondido atrás do botão.
@@ -38,6 +40,8 @@ export function BotaoDeTreino({ titulo, detalhe, sessao, onPress }: Props) {
         onPress={onPress}
         style={({ pressed }) => [styles.botao, pressed && styles.apertado]}
       >
+        {/* Mais estreito que no Botao: aqui o texto e o tempo dividem a linha. */}
+        <Recartilhado raio={RAIO} largura="13%" />
         <View style={styles.textos}>
           <Texto style={styles.titulo}>{titulo}</Texto>
           <Texto style={styles.detalhe} numberOfLines={1}>
@@ -59,23 +63,22 @@ const styles = StyleSheet.create({
   faixa: { position: 'absolute', left: 16, right: 16 },
   botao: {
     height: ALTURA_DO_BOTAO,
-    borderRadius: ALTURA_DO_BOTAO / 2,
-    paddingHorizontal: 26,
+    borderRadius: RAIO,
+    // O texto começa depois do recartilhado (13% de cada lado).
+    paddingHorizontal: '16%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    backgroundColor: cores.primaria,
-    // A sombra descola o botão da lista que passa por baixo dele.
-    shadowColor: '#000',
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
+    backgroundColor: cromo.cor,
+    backgroundImage: cromo.fundo,
+    // A sombra larga descola o botão da lista que passa por baixo dele.
+    boxShadow: `${cromo.sombra}, 0 10px 24px rgba(0, 0, 0, 0.45)`,
   },
-  apertado: { opacity: 0.85 },
+  apertado: { backgroundImage: cromo.apertado },
   textos: { flexShrink: 1, gap: 1 },
-  titulo: { fontSize: 19, fontWeight: '800', letterSpacing: -0.2, color: cores.textoSobrePrimaria },
-  detalhe: { fontSize: 13, fontWeight: '600', color: cores.textoSobrePrimaria, opacity: 0.7, fontVariant: ['tabular-nums'] },
-  seta: { fontSize: 18, color: cores.textoSobrePrimaria },
-  tempo: { fontSize: 20, fontWeight: '800', color: cores.textoSobrePrimaria, fontVariant: ['tabular-nums'] },
+  titulo: { fontSize: 19, fontWeight: '800', letterSpacing: -0.2, color: cromo.texto },
+  detalhe: { fontSize: 13, fontWeight: '600', color: cromo.texto, opacity: 0.75, fontVariant: ['tabular-nums'] },
+  seta: { fontSize: 18, color: cromo.texto },
+  tempo: { fontSize: 20, fontWeight: '800', color: cromo.texto, fontVariant: ['tabular-nums'] },
 });

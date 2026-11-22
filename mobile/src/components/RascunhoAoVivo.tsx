@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { DIAS_A_PARTIR_DE_SEGUNDA, LETRAS_DOS_DIAS } from '@/domain/datas';
 import { textoDoResumoDoRascunho, textoDoTreinoNoResumo, type ResumoDoRascunho } from '@/domain/onboarding';
 
-import { cores } from './tema';
+import { cores, relevo } from './tema';
 import { Texto } from './Texto';
 
 // O que a conversa do onboarding já montou, fixo no topo da tela: a semana
@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     backgroundColor: cores.superficie,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: cores.borda,
+    // Em relevo, e não com uma linha embaixo: a conversa passa por baixo dele.
+    boxShadow: relevo.painel,
   },
   semana: { flexDirection: 'row', justifyContent: 'space-between' },
   dia: {

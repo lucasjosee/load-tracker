@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
-import { cores } from './tema';
+import { cores, relevo } from './tema';
 import { Texto } from './Texto';
 
 type Papel = 'assistente' | 'usuario';
@@ -81,7 +81,7 @@ function Entrada({ estilo, rotulo, children }: EntradaProps) {
 
 const styles = StyleSheet.create({
   balao: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20, maxWidth: '85%' },
-  assistente: { alignSelf: 'flex-start', backgroundColor: cores.superficie, borderBottomLeftRadius: 6 },
+  assistente: { alignSelf: 'flex-start', backgroundColor: cores.superficie, borderBottomLeftRadius: 6, boxShadow: relevo.botao },
   usuario: { alignSelf: 'flex-end', backgroundColor: cores.primaria, borderBottomRightRadius: 6 },
   texto: { fontSize: 16, lineHeight: 22, color: cores.texto },
   textoDoUsuario: { color: cores.textoSobrePrimaria },

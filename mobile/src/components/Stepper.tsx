@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { arredondarKg } from '@/domain/progressao';
 
-import { cores } from './tema';
+import { cores, relevo } from './tema';
 import { Texto } from './Texto';
 
 interface Props {
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: cores.superficieAlta,
+    boxShadow: relevo.botao,
     alignItems: 'center',
     justifyContent: 'center',
   },

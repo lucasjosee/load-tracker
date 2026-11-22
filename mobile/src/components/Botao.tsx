@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { cores, raio } from './tema';
+import { Recartilhado } from './Recartilhado';
+import { cores, cromo, raio, relevo } from './tema';
 import { Texto } from './Texto';
 
 type Variante = 'primario' | 'secundario' | 'perigo';
@@ -16,22 +17,29 @@ interface Props {
   peso?: number;
 }
 
+// O primário é o botão cromado da tela (`cromo` em tema.ts); secundário e
+// perigo são peças de aço em relevo, no tom de cima do cartão.
 export function Botao({ titulo, onPress, variante = 'primario', desabilitado = false, compacto = false, peso }: Props) {
+  const cromado = variante === 'primario';
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: desabilitado }}
       disabled={desabilitado}
       onPress={onPress}
-      // `pressed` vem do Pressable: escurece o botão enquanto o dedo está nele.
+      // `pressed` vem do Pressable: enquanto o dedo está no botão, o cromado
+      // afunda (gradiente invertido) e os outros escurecem.
       style={({ pressed }) => [
         styles.base,
         compacto && styles.compacto,
         peso !== undefined && [styles.comPeso, { flex: peso }],
         styles[variante],
-        (pressed || desabilitado) && styles.apagado,
+        pressed && (cromado ? styles.cromoApertado : styles.apagado),
+        desabilitado && styles.apagado,
       ]}
     >
+      {/* No compacto não sobra largura para a textura sem encostar no texto. */}
+      {cromado && !compacto && <Recartilhado raio={raio} largura="18%" />}
       <Texto numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
         {titulo}
       </Texto>
@@ -54,14 +62,17 @@ const styles = StyleSheet.create({
   // Dividindo a linha, a largura já vem do `flex`: margem interna pequena
   // para "Ajustar" caber num quarto do cartão.
   comPeso: { paddingHorizontal: 6 },
-  primario: { backgroundColor: cores.primaria },
+  // `backgroundColor` fica por baixo do gradiente: se ele não for desenhado,
+  // o botão continua cromado, só que liso.
+  primario: { backgroundColor: cromo.cor, backgroundImage: cromo.fundo, boxShadow: cromo.sombra },
+  cromoApertado: { backgroundImage: cromo.apertado },
   // `superficieAlta` e não `superficie`: muitos botões ficam dentro de um
   // cartão, e com a cor do cartão eles sumiriam.
-  secundario: { backgroundColor: cores.superficieAlta },
-  perigo: { backgroundColor: cores.superficieAlta },
+  secundario: { backgroundColor: cores.superficieAlta, boxShadow: relevo.botao },
+  perigo: { backgroundColor: cores.superficieAlta, boxShadow: relevo.botao },
   apagado: { opacity: 0.5 },
   texto: { fontSize: 16, fontWeight: '600' },
-  texto_primario: { color: cores.textoSobrePrimaria },
+  texto_primario: { color: cromo.texto, fontWeight: '700' },
   texto_secundario: { color: cores.texto },
   texto_perigo: { color: cores.perigo },
 });

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { cores, espaco, raio, raioDoCartao, tipografia } from './tema';
+import { cores, espaco, gradienteDoFundo, raio, raioDoCartao, relevo, tipografia } from './tema';
 import { Texto } from './Texto';
 
 interface Props {
@@ -48,7 +48,8 @@ export function Secao({ titulo, children }: SecaoProps) {
 }
 
 const styles = StyleSheet.create({
-  fundo: { backgroundColor: cores.fundo },
+  // A cor fica por baixo do gradiente: é o que aparece se ele não for desenhado.
+  fundo: { backgroundColor: cores.fundo, backgroundImage: gradienteDoFundo },
   conteudo: { padding: espaco.grande, gap: espaco.medio, paddingBottom: 48 },
   titulo: { ...tipografia.titulo, marginBottom: espaco.pequeno },
   secao: { gap: espaco.pequeno, marginTop: espaco.pequeno },
@@ -60,6 +61,7 @@ export const estilosComuns = StyleSheet.create({
     padding: 16,
     borderRadius: raioDoCartao,
     backgroundColor: cores.superficie,
+    boxShadow: relevo.painel,
     gap: 4,
   },
   textoSecundario: tipografia.secundario,
@@ -69,6 +71,7 @@ export const estilosComuns = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: raio,
     backgroundColor: cores.superficie,
+    boxShadow: relevo.afundado, // o campo é um sulco: é onde se escreve
   },
   erro: { fontSize: 15, color: cores.perigo },
 });
