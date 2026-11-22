@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Children, isValidElement, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { cores, espaco, gradienteDoFundo, raio, raioDoCartao, relevo, tipografia } from './tema';
@@ -47,6 +47,21 @@ export function Secao({ titulo, children }: SecaoProps) {
   );
 }
 
+// Várias linhas num painel só, separadas por sulcos: a lista de exercícios da
+// aba Hoje e as listas da tela do treino. Um cartão por linha repetiria borda
+// e sombra a cada item; num painel só, a lista se lê como uma peça.
+export function ListaEmPainel({ children }: { children: ReactNode }) {
+  return (
+    <View style={[estilosComuns.cartao, styles.painelDeLista]}>
+      {Children.toArray(children).map((linha, indice) => (
+        <View key={isValidElement(linha) && linha.key !== null ? linha.key : indice} style={indice > 0 && styles.comSulco}>
+          {linha}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // A cor fica por baixo do gradiente: é o que aparece se ele não for desenhado.
   fundo: { backgroundColor: cores.fundo, backgroundImage: gradienteDoFundo },
@@ -54,6 +69,10 @@ const styles = StyleSheet.create({
   titulo: { ...tipografia.titulo, marginBottom: espaco.pequeno },
   secao: { gap: espaco.pequeno, marginTop: espaco.pequeno },
   tituloSecao: { ...tipografia.tituloDeSecao, textTransform: 'uppercase', letterSpacing: 0.5 },
+  // Sem margem de cima e de baixo: cada linha já tem a dela.
+  painelDeLista: { paddingVertical: 0, gap: 0 },
+  // O sulco entre duas linhas: escuro, com um filete de luz logo abaixo.
+  comSulco: { borderTopWidth: 1, borderTopColor: cores.sulco, boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)' },
 });
 
 export const estilosComuns = StyleSheet.create({

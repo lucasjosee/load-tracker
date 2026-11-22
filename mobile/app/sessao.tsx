@@ -10,7 +10,7 @@ import { Botao } from '@/components/Botao';
 import { ExercicioEmFoco } from '@/components/ExercicioEmFoco';
 import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
-import { estilosComuns, Secao, Tela } from '@/components/Tela';
+import { estilosComuns, ListaEmPainel, Secao, Tela } from '@/components/Tela';
 import { TempoDoTreino } from '@/components/TempoDoTreino';
 import { cores } from '@/components/tema';
 import { Texto } from '@/components/Texto';
@@ -206,16 +206,20 @@ export default function TelaSessao() {
           />
           {aSeguir.length > 0 && (
             <Secao titulo="A seguir">
-              {aSeguir.map((item) => (
-                <LinhaDoExercicio key={item.exercicio.id} item={item} onAbrir={() => abrir(item)} />
-              ))}
+              <ListaEmPainel>
+                {aSeguir.map((item) => (
+                  <LinhaDoExercicio key={item.exercicio.id} item={item} onAbrir={() => abrir(item)} />
+                ))}
+              </ListaEmPainel>
             </Secao>
           )}
           {feitos.length > 0 && (
             <Secao titulo="Feitos">
-              {feitos.map((item) => (
-                <LinhaDoExercicio key={item.exercicio.id} item={item} onAbrir={() => abrir(item)} onDesfazer={() => desfazer(item)} />
-              ))}
+              <ListaEmPainel>
+                {feitos.map((item) => (
+                  <LinhaDoExercicio key={item.exercicio.id} item={item} onAbrir={() => abrir(item)} onDesfazer={() => desfazer(item)} />
+                ))}
+              </ListaEmPainel>
             </Secao>
           )}
           <Botao titulo="Encerrar treino" variante="secundario" onPress={pedirParaEncerrar} />

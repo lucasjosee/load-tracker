@@ -4,7 +4,6 @@ import type { ItemDoTreino } from '@/db/consultas';
 import { seloDaMeta, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
 
 import { Selo } from './Selo';
-import { estilosComuns } from './Tela';
 import { cores } from './tema';
 import { Texto } from './Texto';
 
@@ -16,6 +15,7 @@ interface Props {
 
 // Um exercício em uma linha: na lista da aba Hoje e, na tela do treino, nas
 // listas "A seguir" e "Feitos" (§3.2). Só mostra; registrar é na tela do treino.
+// A linha não tem cartão próprio: quem usa põe as linhas num `ListaEmPainel`.
 // - por fazer: nome, meta e o selo de mudança;
 // - feito: o que foi feito e a meta que o motor calculou para a próxima vez.
 export function LinhaDoExercicio({ item, onAbrir, onDesfazer }: Props) {
@@ -23,14 +23,14 @@ export function LinhaDoExercicio({ item, onAbrir, onDesfazer }: Props) {
   const feito = feitoHoje !== null;
   const pulado = feitoHoje?.resultado === 'pulou';
 
-  let detalhe = estado === null ? 'sem meta ainda' : `${textoMeta(estado, exercicio.porLado)} · ${textoSeries(exercicio.seriesAlvo)}`;
+  let detalhe = estado === null ? 'sem meta ainda' : `${textoMeta(estado, exercicio.porLado)}, ${textoSeries(exercicio.seriesAlvo)}`;
   if (feitoHoje !== null) {
     const realizado = pulado ? 'Pulado' : textoRealizado(feitoHoje.cargaKg, feitoHoje.reps, exercicio.porLado);
     detalhe = estado !== null && !pulado ? `${realizado} · próxima: ${textoMeta(estado, exercicio.porLado)}` : realizado;
   }
 
   return (
-    <View style={[estilosComuns.cartao, styles.linha]}>
+    <View style={styles.linha}>
       {feito && (
         <View style={[styles.marca, pulado && styles.marcaPulado]}>
           <Texto style={[styles.simbolo, pulado && styles.simboloPulado]}>{pulado ? '–' : '✓'}</Texto>

@@ -10,8 +10,8 @@ import { CartaoDeEvolucao } from '@/components/CartaoDeEvolucao';
 import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
-import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { cores, raio } from '@/components/tema';
+import { estilosComuns, ListaEmPainel, Secao, Tela } from '@/components/Tela';
+import { cores, fonte, raio } from '@/components/tema';
 import { Texto } from '@/components/Texto';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
@@ -82,10 +82,12 @@ export default function TelaHoje() {
 
   if (conteudo.tipo === 'descanso') {
     return (
-      <Tela titulo="Hoje">
+      <Tela>
         <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
+        <Texto style={styles.tituloDoDia} accessibilityRole="header">
+          Descanso
+        </Texto>
         {aviso}
-        <Texto style={styles.descanso}>Descanso</Texto>
         {conteudo.proximo !== null && (
           <View style={estilosComuns.cartao}>
             <Texto style={styles.rotuloDoProximo}>Próximo treino</Texto>
@@ -136,7 +138,9 @@ export default function TelaHoje() {
 
   return (
     <View style={styles.tela}>
-      <Tela titulo={treino.nome} folgaNoFim={pendentes ? FOLGA_DO_BOTAO_DE_TREINO : 0}>
+      <Tela folgaNoFim={pendentes ? FOLGA_DO_BOTAO_DE_TREINO : 0}>
+        {/* A data vem antes do nome, como numa ficha: o nome do treino é o
+            título, grande e largo, e encolhe se não couber numa linha. */}
         <View style={styles.cabecalho}>
           <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
           <Botao
@@ -151,6 +155,9 @@ export default function TelaHoje() {
             }
           />
         </View>
+        <Texto style={styles.tituloDoDia} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
+          {treino.nome}
+        </Texto>
         {aviso}
         {treinoDoDia !== null && (
           // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
@@ -184,19 +191,21 @@ export default function TelaHoje() {
         {itens.length > 0 && (
           <Secao titulo="Exercícios de hoje">
             <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
-            {itens.map((item) => (
-              <LinhaDoExercicio
-                key={item.exercicio.id}
-                item={item}
-                onAbrir={() =>
-                  router.push({
-                    pathname: '/exercicio/[id]',
-                    params: { id: item.exercicio.id },
-                  })
-                }
-                onDesfazer={() => desfazer(item)}
-              />
-            ))}
+            <ListaEmPainel>
+              {itens.map((item) => (
+                <LinhaDoExercicio
+                  key={item.exercicio.id}
+                  item={item}
+                  onAbrir={() =>
+                    router.push({
+                      pathname: '/exercicio/[id]',
+                      params: { id: item.exercicio.id },
+                    })
+                  }
+                  onDesfazer={() => desfazer(item)}
+                />
+              ))}
+            </ListaEmPainel>
           </Secao>
         )}
       </Tela>
@@ -244,11 +253,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  descanso: {
-    fontSize: 40,
+  // O nome do treino (ou "Descanso") é o título da aba: o maior texto da tela,
+  // na Saira larga. A linha fica justa no tamanho da letra, como na meta.
+  tituloDoDia: {
+    fontFamily: fonte.larga,
+    fontSize: 64,
+    lineHeight: 64,
     fontWeight: '800',
     letterSpacing: -1,
-    marginTop: 8,
     color: cores.texto,
   },
   rotuloDoProximo: {
