@@ -1,13 +1,13 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { SeletorDeDias } from '@/components/SeletorDeDias';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { excluirTreinoMantendoHistorico, moverExercicio, salvarDiasDoTreino } from '@/db/operacoes';
 import { listarEstados } from '@/db/repositorios/estadoProgressao';
 import { desvincularExercicio, listarExerciciosDoTreino, type Exercicio } from '@/db/repositorios/exercicios';
@@ -133,7 +133,7 @@ export default function TelaTreino() {
           returnKeyType="done"
           style={estilosComuns.campo}
         />
-        {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
+        {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
       </Secao>
 
       <Secao titulo="Dias">
@@ -141,7 +141,7 @@ export default function TelaTreino() {
       </Secao>
 
       <Secao titulo="Exercícios">
-        {exercicios.length === 0 && <Texto style={estilosComuns.textoSecundario}>Nenhum exercício ainda.</Texto>}
+        {exercicios.length === 0 && <Text style={estilosComuns.textoSecundario}>Nenhum exercício ainda.</Text>}
         {exercicios.map((exercicio, indice) => {
           const estado = estados.get(exercicio.id);
           return (
@@ -151,10 +151,10 @@ export default function TelaTreino() {
                 accessibilityRole="button"
                 onPress={() => router.push({ pathname: '/exercicio/[id]', params: { id: exercicio.id } })}
               >
-                <Texto style={styles.nomeExercicio}>{exercicio.nome}</Texto>
-                <Texto style={estilosComuns.textoSecundario}>
+                <Text style={styles.nomeExercicio}>{exercicio.nome}</Text>
+                <Text style={estilosComuns.textoSecundario}>
                   {estado === undefined ? 'Sem meta' : textoMeta(estado, exercicio.porLado)} · {textoSeries(exercicio.seriesAlvo)}
-                </Texto>
+                </Text>
               </Pressable>
               <BotaoIcone rotulo={`Subir ${exercicio.nome}`} simbolo="↑" desabilitado={indice === 0} onPress={() => mover(exercicio, -1)} />
               <BotaoIcone
@@ -198,7 +198,7 @@ function BotaoIcone({ simbolo, rotulo, onPress, desabilitado = false }: BotaoIco
       hitSlop={6}
       style={({ pressed }) => [styles.botaoIcone, (pressed || desabilitado) && styles.apagado]}
     >
-      <Texto style={styles.simbolo}>{simbolo}</Texto>
+      <Text style={styles.simbolo}>{simbolo}</Text>
     </Pressable>
   );
 }

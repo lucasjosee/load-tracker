@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 
 import {
   melhorMes,
@@ -12,7 +12,6 @@ import {
 
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 const LADO = 13; // lado de cada quadrado
 const VAO = 3;
@@ -33,8 +32,8 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
     <>
       <View style={[estilosComuns.cartao, styles.cartao]}>
         <View style={[styles.cabecalho, styles.margem]}>
-          <Texto style={styles.titulo}>Constância</Texto>
-          <Texto style={styles.periodo}>últimos 12 meses</Texto>
+          <Text style={styles.titulo}>Constância</Text>
+          <Text style={styles.periodo}>últimos 12 meses</Text>
         </View>
 
         <View style={[styles.numeros, styles.margem]}>
@@ -56,7 +55,7 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
             <View style={styles.meses}>
               {calendario.rotulos.map((mes, indice) => (
                 <View key={indice} style={styles.espacoDoMes}>
-                  {mes !== null && <Texto style={styles.mes}>{MESES_CURTOS[mes - 1]}</Texto>}
+                  {mes !== null && <Text style={styles.mes}>{MESES_CURTOS[mes - 1]}</Text>}
                 </View>
               ))}
             </View>
@@ -74,22 +73,22 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
 
         <View style={[styles.legenda, styles.margem]}>
           <View style={[styles.amostra, { backgroundColor: cores.superficieAlta }]} />
-          <Texto style={styles.textoDaLegenda}>descanso</Texto>
+          <Text style={styles.textoDaLegenda}>descanso</Text>
           <View style={[styles.amostra, styles.faltou]} />
-          <Texto style={styles.textoDaLegenda}>faltou</Texto>
+          <Text style={styles.textoDaLegenda}>faltou</Text>
           <View style={styles.escala}>
-            <Texto style={styles.textoDaLegenda}>menos</Texto>
+            <Text style={styles.textoDaLegenda}>menos</Text>
             {TONS.map((tom) => (
               <View key={tom} style={[styles.amostra, { backgroundColor: tom }]} />
             ))}
-            <Texto style={styles.textoDaLegenda}>metas batidas</Texto>
+            <Text style={styles.textoDaLegenda}>metas batidas</Text>
           </View>
         </View>
       </View>
 
       {fraseDoMes !== null && (
         <View style={[estilosComuns.cartao, styles.cartaoDosMeses]}>
-          <Texto style={styles.titulo}>Por mês</Texto>
+          <Text style={styles.titulo}>Por mês</Text>
           <View style={styles.barras} accessible accessibilityLabel={fraseDoMes}>
             {calendario.porMes.map((mes) => (
               <View key={mes.mes} style={styles.colunaDoMes}>
@@ -100,11 +99,11 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
                     mes.mes === destaque?.mes && styles.barraDoMelhorMes,
                   ]}
                 />
-                <Texto style={styles.letraDoMes}>{MESES_CURTOS[mes.mes - 1].charAt(0).toUpperCase()}</Texto>
+                <Text style={styles.letraDoMes}>{MESES_CURTOS[mes.mes - 1].charAt(0).toUpperCase()}</Text>
               </View>
             ))}
           </View>
-          <Texto style={styles.fraseDoMes}>{fraseDoMes}</Texto>
+          <Text style={styles.fraseDoMes}>{fraseDoMes}</Text>
         </View>
       )}
     </>
@@ -114,8 +113,8 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
 function Numero({ valor, rotulo, destaque = false }: { valor: number; rotulo: string; destaque?: boolean }) {
   return (
     <View style={styles.numero}>
-      <Texto style={[styles.valor, destaque && styles.valorEmDestaque]}>{valor}</Texto>
-      <Texto style={styles.rotulo}>{rotulo}</Texto>
+      <Text style={[styles.valor, destaque && styles.valorEmDestaque]}>{valor}</Text>
+      <Text style={styles.rotulo}>{rotulo}</Text>
     </View>
   );
 }

@@ -1,9 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import type { DirecaoDoSelo, Selo as DadosDoSelo } from '@/domain/textos';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 // Selo preenchido: lê melhor de longe do que só o contorno. Só "sobe" usa a
 // cor de marca cheia; os outros ficam discretos para ela se destacar.
@@ -17,9 +16,9 @@ const COR: Record<DirecaoDoSelo, { fundo: string; texto: string }> = {
 // O selo de mudança do cartão: "↑ +1 rep", "↓ deload", "= mantém".
 export function Selo({ selo }: { selo: DadosDoSelo }) {
   return (
-    <Texto style={[styles.selo, { color: COR[selo.direcao].texto, backgroundColor: COR[selo.direcao].fundo }]}>
+    <Text style={[styles.selo, { color: COR[selo.direcao].texto, backgroundColor: COR[selo.direcao].fundo }]}>
       {selo.texto}
-    </Texto>
+    </Text>
   );
 }
 

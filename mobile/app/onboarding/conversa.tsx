@@ -1,16 +1,16 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 
 import { conversarOnboarding, mensagemDaFalha } from '@/api/cliente';
 import { LIMITE_DE_PERGUNTAS, LIMITE_DO_TEXTO, PRIMEIRA_PERGUNTA, type Mensagem } from '@/api/contrato';
 import { Balao, Digitando } from '@/components/Balao';
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { RascunhoAoVivo } from '@/components/RascunhoAoVivo';
 import { estilosComuns } from '@/components/Tela';
 import { cores, espaco } from '@/components/tema';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { resumirRascunho } from '@/domain/onboarding';
 import { useRascunho } from '@/hooks/onboarding';
 
@@ -67,16 +67,16 @@ export default function TelaConversa() {
         keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => rolagem.current?.scrollToEnd({ animated: true })}
       >
-        <Texto style={styles.contagem}>
+        <Text style={styles.contagem}>
           Pergunta {perguntas} de até {LIMITE_DE_PERGUNTAS}
-        </Texto>
+        </Text>
         {mensagens.map((mensagem, indice) => (
           <Balao key={indice} papel={mensagem.papel} texto={mensagem.texto} />
         ))}
         {enviando && <Digitando />}
         {falha !== null && (
           <View style={styles.falha}>
-            <Texto style={estilosComuns.erro}>{falha}</Texto>
+            <Text style={estilosComuns.erro}>{falha}</Text>
             <Botao titulo="Tentar de novo" variante="secundario" compacto onPress={() => pedirProximaPergunta(mensagens)} />
           </View>
         )}
@@ -90,7 +90,6 @@ export default function TelaConversa() {
               onChangeText={setTexto}
               // A primeira pergunta é a do perfil; as seguintes, sobre o treino.
               placeholder={perguntas === 1 ? 'Lucas, 2 anos, hipertrofia' : 'seg peito e tríceps: supino reto 20kg 3x10...'}
-              placeholderTextColor={cores.textoSecundario}
               multiline
               maxLength={LIMITE_DO_TEXTO}
               editable={!enviando}
@@ -105,7 +104,7 @@ export default function TelaConversa() {
               hitSlop={6}
               style={({ pressed }) => [styles.enviar, (pressed || !podeEnviar) && styles.enviarApagado]}
             >
-              <Texto style={styles.setaDeEnviar}>↑</Texto>
+              <Text style={styles.setaDeEnviar}>↑</Text>
             </Pressable>
           </View>
         )}

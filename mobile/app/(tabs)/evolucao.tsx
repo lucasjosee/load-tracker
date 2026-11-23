@@ -1,13 +1,12 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CalendarioDeTreinos } from '@/components/CalendarioDeTreinos';
 import { Selo } from '@/components/Selo';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { Texto } from '@/components/Texto';
 import { carregarEvolucao, type Evolucao } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
 import { formatarPercentual, frasesDeFeedback, textoDoGrupo, textoEstagnados } from '@/domain/textos';
@@ -39,16 +38,16 @@ export default function TelaEvolucao() {
   return (
     <Tela titulo="Evolução">
       {frases.map((frase) => (
-        <Texto key={frase} style={styles.frase}>
+        <Text key={frase} style={styles.frase}>
           {frase}
-        </Texto>
+        </Text>
       ))}
 
       <CalendarioDeTreinos calendario={evolucao.calendario} />
 
       <Secao titulo="Grupos musculares">
         {evolucao.grupos.length === 0 && (
-          <Texto style={estilosComuns.textoSecundario}>Cadastre exercícios na aba Divisão para ver a evolução.</Texto>
+          <Text style={estilosComuns.textoSecundario}>Cadastre exercícios na aba Divisão para ver a evolução.</Text>
         )}
         {evolucao.grupos.map((resumo) => (
           <Pressable
@@ -62,22 +61,22 @@ export default function TelaEvolucao() {
           >
             <View style={styles.textosDoGrupo}>
               <View style={styles.nomeComSelo}>
-                <Texto style={styles.nome}>{NOMES_DOS_GRUPOS[resumo.grupo]}</Texto>
+                <Text style={styles.nome}>{NOMES_DOS_GRUPOS[resumo.grupo]}</Text>
                 {estagnadosDo(resumo.grupo) > 0 && (
                   <Selo selo={{ texto: textoEstagnados(estagnadosDo(resumo.grupo)), direcao: 'desce' }} />
                 )}
               </View>
-              <Texto style={estilosComuns.textoSecundario}>
+              <Text style={estilosComuns.textoSecundario}>
                 {resumo.exercicios} {resumo.exercicios === 1 ? 'exercício' : 'exercícios'} · {resumo.seriesNaSemana}{' '}
                 {resumo.seriesNaSemana === 1 ? 'série' : 'séries'} esta semana
-              </Texto>
+              </Text>
             </View>
             {/* A variação é o número da tela: grande, à direita, com a cor dizendo a direção. */}
             <View style={styles.variacao}>
-              <Texto style={[styles.percentual, { color: corDaVariacao(resumo.variacao) }]}>
+              <Text style={[styles.percentual, { color: corDaVariacao(resumo.variacao) }]}>
                 {resumo.variacao === null ? '—' : formatarPercentual(resumo.variacao)}
-              </Texto>
-              <Texto style={styles.periodo}>{resumo.variacao === null ? 'sem histórico' : '4 semanas'}</Texto>
+              </Text>
+              <Text style={styles.periodo}>{resumo.variacao === null ? 'sem histórico' : '4 semanas'}</Text>
             </View>
           </Pressable>
         ))}

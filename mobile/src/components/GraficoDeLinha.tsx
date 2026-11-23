@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { escalarPontos, paraPolyline } from './escala';
 import { cores, raioDoCartao, relevo } from './tema';
-import { Texto } from './Texto';
 
 const ALTURA = 140;
 const MARGEM = 8;
@@ -27,11 +26,11 @@ export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
   return (
     <View style={styles.caixa}>
       <View style={styles.topo}>
-        <Texto style={styles.titulo}>{titulo}</Texto>
-        {ultimo !== undefined && <Texto style={styles.atual}>{formatar(ultimo)}</Texto>}
+        <Text style={styles.titulo}>{titulo}</Text>
+        {ultimo !== undefined && <Text style={styles.atual}>{formatar(ultimo)}</Text>}
       </View>
       {valores.length < 2 ? (
-        <Texto style={styles.vazio}>O gráfico aparece a partir de duas sessões.</Texto>
+        <Text style={styles.vazio}>O gráfico aparece a partir de duas sessões.</Text>
       ) : (
         <View onLayout={(e) => setLargura(e.nativeEvent.layout.width)} accessibilityLabel={`${titulo}: de ${formatar(valores[0] ?? 0)} para ${formatar(ultimo ?? 0)}`}>
           {largura > 0 && (
@@ -43,11 +42,11 @@ export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
             </Svg>
           )}
           <View style={styles.eixo}>
-            <Texto style={styles.rotulo}>{rotulos[0]}</Texto>
-            <Texto style={styles.rotulo}>
+            <Text style={styles.rotulo}>{rotulos[0]}</Text>
+            <Text style={styles.rotulo}>
               mín. {formatar(Math.min(...valores))} · máx. {formatar(Math.max(...valores))}
-            </Texto>
-            <Texto style={styles.rotulo}>{rotulos[rotulos.length - 1]}</Texto>
+            </Text>
+            <Text style={styles.rotulo}>{rotulos[rotulos.length - 1]}</Text>
           </View>
         </View>
       )}

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ItemDoTreino } from '@/db/consultas';
 import { configDoExercicio } from '@/db/operacoes';
@@ -22,8 +22,7 @@ import { PainelAjuste } from './PainelAjuste';
 import { ReguaDeReps } from './ReguaDeReps';
 import { Selo } from './Selo';
 import { estilosComuns } from './Tela';
-import { cores, fonte } from './tema';
-import { Texto } from './Texto';
+import { cores } from './tema';
 
 interface Props {
   item: ItemDoTreino;
@@ -65,7 +64,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
     <View>
       <View style={styles.topo}>
         <Pressable accessibilityRole="link" accessibilityHint="Abre o histórico do exercício" onPress={onAbrir} style={styles.areaDoNome}>
-          <Texto style={styles.nome}>{exercicio.nome}</Texto>
+          <Text style={styles.nome}>{exercicio.nome}</Text>
         </Pressable>
         <View style={styles.selos}>
           {estagnacao !== null && <Selo selo={{ texto: '⚠ estagnado', direcao: 'desce' }} />}
@@ -78,12 +77,12 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
       {exercicio.nota !== null && (
         // Contornada, como a plaquinha de ajuste de uma máquina.
         <View style={styles.etiqueta}>
-          <Texto style={styles.textoDaEtiqueta}>{exercicio.nota}</Texto>
+          <Text style={styles.textoDaEtiqueta}>{exercicio.nota}</Text>
         </View>
       )}
 
       {estado === null ? (
-        <Texto style={[estilosComuns.textoSecundario, styles.semMeta]}>Sem meta ainda: registre pelo Ajustar.</Texto>
+        <Text style={[estilosComuns.textoSecundario, styles.semMeta]}>Sem meta ainda: registre pelo Ajustar.</Text>
       ) : (
         <>
           <View style={[estilosComuns.cartao, styles.painelDaMeta]}>
@@ -92,7 +91,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
                 inteira (`adjustsFontSizeToFit`), com as partes pequenas junto.
                 Os dois números são o que se lê de relance; "kg" e "×" ficam
                 menores e em cinza. */}
-            <Texto
+            <Text
               style={styles.meta}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -101,25 +100,25 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
               {estado.cargaKg === 0 ? (
                 <>
                   {estado.repsAlvo}
-                  <Texto style={styles.unidade}> reps</Texto>
+                  <Text style={styles.unidade}> reps</Text>
                 </>
               ) : (
                 <>
                   {formatarKg(estado.cargaKg)}
-                  <Texto style={styles.unidade}> kg </Texto>
-                  <Texto style={styles.vezes}>× </Texto>
+                  <Text style={styles.unidade}> kg </Text>
+                  <Text style={styles.vezes}>× </Text>
                   {estado.repsAlvo}
                 </>
               )}
-            </Texto>
-            <Texto style={styles.detalheDaMeta}>
+            </Text>
+            <Text style={styles.detalheDaMeta}>
               {exercicio.porLado && estado.cargaKg > 0 && (
                 <>
-                  <Texto style={styles.lado}>por lado</Texto>,{' '}
+                  <Text style={styles.lado}>por lado</Text>,{' '}
                 </>
               )}
               {textoSeries(exercicio.seriesAlvo)}
-            </Texto>
+            </Text>
             {regua !== null && (
               <>
                 <View style={styles.sulco} />
@@ -127,14 +126,14 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
               </>
             )}
           </View>
-          <Texto style={styles.motivo}>{motivoDaMeta(estado, mudanca, config, exercicio.porLado)}</Texto>
+          <Text style={styles.motivo}>{motivoDaMeta(estado, mudanca, config, exercicio.porLado)}</Text>
           {/* Aqui há espaço para a última sessão ficar sempre à vista, sem abrir o Ajustar. */}
           {ultimaSessao !== null && !ajustando && (
-            <Texto style={styles.motivo}>{textoUltimaVez(ultimaSessao, exercicio.porLado)}</Texto>
+            <Text style={styles.motivo}>{textoUltimaVez(ultimaSessao, exercicio.porLado)}</Text>
           )}
           {estagnacao !== null && (
             // O alerta não muda a meta: quem decide é o motor (regra 2). Só avisa.
-            <Texto style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Texto>
+            <Text style={styles.alerta}>{textoEstagnacao(exercicio.nome, estagnacao)}</Text>
           )}
         </>
       )}
@@ -166,7 +165,7 @@ export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }
             hitSlop={8}
             style={styles.naoVouFazer}
           >
-            <Texto style={styles.textoNaoVouFazer}>Não vou fazer hoje</Texto>
+            <Text style={styles.textoNaoVouFazer}>Não vou fazer hoje</Text>
           </Pressable>
         </View>
       )}
@@ -192,10 +191,9 @@ const styles = StyleSheet.create({
   textoDaEtiqueta: { fontSize: 15, fontWeight: '500', color: cores.textoSecundario },
   semMeta: { marginTop: 16 },
   painelDaMeta: { marginTop: 16, gap: 0 },
-  // A linha bem mais baixa que o natural da Saira (1,57 vez o tamanho): os
-  // algarismos ficam no meio dela, sem a sobra de espaço em cima e embaixo.
+  // A linha mais baixa que a natural da fonte: os algarismos ficam no meio
+  // dela, sem a sobra de espaço em cima e embaixo.
   meta: {
-    fontFamily: fonte.larga,
     fontSize: 80,
     lineHeight: 76,
     fontWeight: '800',

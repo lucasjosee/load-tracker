@@ -1,11 +1,12 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
+import { Text } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { SeletorDeDias } from '@/components/SeletorDeDias';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { criarTreino } from '@/db/operacoes';
 import { listarTreinos } from '@/db/repositorios/treinos';
 import { validarNomeDoTreino } from '@/domain/validacao';
@@ -56,7 +57,7 @@ export default function TelaNovoTreino() {
         <SeletorDeDias dias={dias} onMudar={setDias} ocupados={ocupados} nomeDoTreino={nome.trim()} />
       </Secao>
 
-      {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
+      {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
       <Botao titulo="Criar treino" onPress={criar} />
     </Tela>
   );

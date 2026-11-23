@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { formatarCarga } from '@/domain/textos';
 
@@ -7,7 +7,6 @@ import { Botao } from './Botao';
 import { EditorDeSeries } from './EditorDeSeries';
 import { Stepper } from './Stepper';
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   cargaInicial: number;
@@ -28,9 +27,9 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, ult
   return (
     <View style={styles.painel}>
       {/* Só aqui, e não no cartão: é a hora em que a pessoa decide o que digitar. */}
-      {ultimaVez !== null && <Texto style={styles.ultimaVez}>{ultimaVez}</Texto>}
+      {ultimaVez !== null && <Text style={styles.ultimaVez}>{ultimaVez}</Text>}
       <View style={styles.linha}>
-        <Texto style={styles.rotulo}>Carga</Texto>
+        <Text style={styles.rotulo}>Carga</Text>
         <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => formatarCarga(kg, porLado)} rotulo="carga" />
       </View>
 

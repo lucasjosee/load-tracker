@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import type { Exercicio } from '@/db/repositorios/exercicios';
 import type { ItemEmEdicao } from '@/domain/registroRapido';
@@ -13,11 +13,11 @@ import {
 } from '@/domain/tipos';
 
 import { Botao } from './Botao';
+import { CampoDeTexto } from './CampoDeTexto';
 import { EditorDeSeries } from './EditorDeSeries';
 import { Opcoes } from './Opcoes';
 import { estilosComuns } from './Tela';
 import { cores, raio } from './tema';
-import { CampoDeTexto, Texto } from './Texto';
 
 const NOVO = '__novo__'; // opção "Novo exercício" na lista de escolha
 
@@ -55,12 +55,12 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
 
   return (
     <View style={[estilosComuns.cartao, styles.item, item.revisar && styles.revisar]}>
-      {item.revisar && <Texto style={styles.aviso}>Confira: a IA ficou em dúvida neste.</Texto>}
+      {item.revisar && <Text style={styles.aviso}>Confira: a IA ficou em dúvida neste.</Text>}
 
       <View style={styles.topo}>
-        <Texto style={styles.nome}>
+        <Text style={styles.nome}>
           {item.exercicioId !== null ? item.nome : item.nome === '' ? 'Escolha o exercício' : `Novo: ${item.nome}`}
-        </Texto>
+        </Text>
         <Botao titulo={escolhendo ? 'Fechar' : 'Trocar'} variante="secundario" compacto onPress={() => setEscolhendo(!escolhendo)} />
       </View>
 
@@ -87,7 +87,7 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
             onAlternar={(equipamento: Equipamento) => onMudar({ ...item, equipamento })}
           />
           <View style={styles.linha}>
-            <Texto style={styles.rotulo}>Carga por lado</Texto>
+            <Text style={styles.rotulo}>Carga por lado</Text>
             <Switch
               value={item.porLado}
               onValueChange={(novoPorLado) => onMudar({ ...item, porLado: novoPorLado })}
@@ -98,7 +98,7 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
       )}
 
       <View style={styles.linha}>
-        <Texto style={styles.rotulo}>{porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Texto>
+        <Text style={styles.rotulo}>{porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Text>
         <CampoDeTexto
           value={item.carga}
           onChangeText={(carga) => onMudar({ ...item, carga })}

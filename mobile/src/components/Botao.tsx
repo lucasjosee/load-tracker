@@ -1,8 +1,7 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { Recartilhado } from './Recartilhado';
 import { cores, cromo, raio, relevo } from './tema';
-import { Texto } from './Texto';
 
 type Variante = 'primario' | 'secundario' | 'perigo';
 
@@ -40,9 +39,9 @@ export function Botao({ titulo, onPress, variante = 'primario', desabilitado = f
     >
       {/* No compacto não sobra largura para a textura sem encostar no texto. */}
       {cromado && !compacto && <Recartilhado raio={raio} largura="18%" />}
-      <Texto numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
+      <Text numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
         {titulo}
-      </Texto>
+      </Text>
     </Pressable>
   );
 }

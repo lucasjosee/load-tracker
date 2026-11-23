@@ -3,7 +3,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
@@ -13,7 +13,6 @@ import { ResumoDoTreino } from '@/components/ResumoDoTreino';
 import { estilosComuns, ListaEmPainel, Secao, Tela } from '@/components/Tela';
 import { TempoDoTreino } from '@/components/TempoDoTreino';
 import { cores } from '@/components/tema';
-import { Texto } from '@/components/Texto';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import {
   cancelarTreinoVazio,
@@ -187,8 +186,8 @@ export default function TelaSessao() {
         // Pausado, o exercício sai da frente: registrar agora contaria um
         // tempo que não foi de treino. Retomar devolve tudo como estava.
         <View style={[estilosComuns.cartao, styles.pausa]}>
-          <Texto style={styles.tituloDaPausa}>Treino pausado</Texto>
-          <Texto style={estilosComuns.textoSecundario}>O tempo está parado. O que você já registrou continua salvo.</Texto>
+          <Text style={styles.tituloDaPausa}>Treino pausado</Text>
+          <Text style={estilosComuns.textoSecundario}>O tempo está parado. O que você já registrou continua salvo.</Text>
           <Botao titulo="Retomar treino" onPress={alternarPausa} />
           <Botao titulo="Encerrar treino" variante="secundario" onPress={pedirParaEncerrar} />
         </View>

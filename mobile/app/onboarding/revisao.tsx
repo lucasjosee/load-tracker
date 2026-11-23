@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRef, useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { Opcoes } from '@/components/Opcoes';
 import { SeletorDeDias } from '@/components/SeletorDeDias';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { salvarDivisaoDoOnboarding } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
 import { formatarHorario, lerHorario } from '@/domain/horario';
@@ -87,9 +87,9 @@ export default function TelaRevisao() {
 
   return (
     <Tela>
-      <Texto style={estilosComuns.textoSecundario}>
+      <Text style={estilosComuns.textoSecundario}>
         Confira tudo. A carga de agora vira o ponto de partida, e o app calcula a primeira meta de cada exercício.
-      </Texto>
+      </Text>
 
       <Secao titulo="Sobre você (opcional)">
         <CampoDeTexto
@@ -100,17 +100,17 @@ export default function TelaRevisao() {
           autoCapitalize="words"
           style={estilosComuns.campo}
         />
-        <Texto style={styles.rotulo}>Objetivo</Texto>
+        <Text style={styles.rotulo}>Objetivo</Text>
         {/* Tocar na opção marcada desmarca: o perfil pode ficar em branco. */}
         <Opcoes
           opcoes={OPCOES_DE_OBJETIVO}
           selecionados={divisao.objetivo === null ? [] : [divisao.objetivo]}
           onAlternar={(objetivo) => setDivisao({ ...divisao, objetivo: objetivo === divisao.objetivo ? null : objetivo })}
         />
-        <Texto style={estilosComuns.textoSecundario}>
+        <Text style={estilosComuns.textoSecundario}>
           Seus exercícios progridem na faixa de {faixa.repsMin} a {faixa.repsMax} reps. Dá para mudar em cada exercício depois.
-        </Texto>
-        <Texto style={styles.rotulo}>Há quanto tempo treina</Texto>
+        </Text>
+        <Text style={styles.rotulo}>Há quanto tempo treina</Text>
         <Opcoes
           opcoes={OPCOES_DE_TEMPO}
           selecionados={divisao.tempoDeTreino === null ? [] : [divisao.tempoDeTreino]}
@@ -182,7 +182,7 @@ export default function TelaRevisao() {
                   onAlternar={(equipamento) => mudarExercicio(treino, exercicio.chave, { equipamento })}
                 />
                 <View style={styles.linha}>
-                  <Texto style={styles.rotulo}>{exercicio.porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Texto>
+                  <Text style={styles.rotulo}>{exercicio.porLado ? 'Carga (kg, um lado)' : 'Carga (kg)'}</Text>
                   <CampoDeTexto
                     value={exercicio.carga}
                     onChangeText={(carga) => mudarExercicio(treino, exercicio.chave, { carga })}
@@ -192,7 +192,7 @@ export default function TelaRevisao() {
                   />
                 </View>
                 <View style={styles.linha}>
-                  <Texto style={styles.rotulo}>Carga por lado</Texto>
+                  <Text style={styles.rotulo}>Carga por lado</Text>
                   <Switch
                     value={exercicio.porLado}
                     onValueChange={(porLado) => mudarExercicio(treino, exercicio.chave, { porLado })}
@@ -200,11 +200,11 @@ export default function TelaRevisao() {
                   />
                 </View>
                 <View style={styles.linha}>
-                  <Texto style={styles.rotulo}>Séries</Texto>
+                  <Text style={styles.rotulo}>Séries</Text>
                   <Stepper valor={exercicio.series} onMudar={(series) => mudarExercicio(treino, exercicio.chave, { series })} minimo={1} maximo={10} rotulo="séries" />
                 </View>
                 <View style={styles.linha}>
-                  <Texto style={styles.rotulo}>Reps</Texto>
+                  <Text style={styles.rotulo}>Reps</Text>
                   <Stepper valor={exercicio.reps} onMudar={(reps) => mudarExercicio(treino, exercicio.chave, { reps })} minimo={1} maximo={50} rotulo="reps" />
                 </View>
                 <Botao
@@ -236,7 +236,7 @@ export default function TelaRevisao() {
         variante="secundario"
         onPress={() => setDivisao({ ...divisao, treinos: [...divisao.treinos, treinoEmBranco(novaChave('treino'))] })}
       />
-      {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
+      {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
       <Botao titulo="Confirmar divisão" onPress={confirmar} />
     </Tela>
   );

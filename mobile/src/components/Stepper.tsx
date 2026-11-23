@@ -1,9 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { arredondarKg } from '@/domain/progressao';
 
 import { cores, relevo } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   valor: number;
@@ -37,9 +36,9 @@ export function Stepper({
         onPress={() => mudar(-passo)}
         style={({ pressed }) => [styles.botao, (pressed || valor <= minimo) && styles.apagado]}
       >
-        <Texto style={styles.sinal}>−</Texto>
+        <Text style={styles.sinal}>−</Text>
       </Pressable>
-      <Texto style={styles.valor}>{formatar(valor)}</Texto>
+      <Text style={styles.valor}>{formatar(valor)}</Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Aumentar ${rotulo ?? ''}`}
@@ -47,7 +46,7 @@ export function Stepper({
         onPress={() => mudar(passo)}
         style={({ pressed }) => [styles.botao, (pressed || valor >= maximo) && styles.apagado]}
       >
-        <Texto style={styles.sinal}>+</Texto>
+        <Text style={styles.sinal}>+</Text>
       </Pressable>
     </View>
   );

@@ -1,11 +1,10 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatarDescanso, restanteDoDescanso } from '@/domain/descanso';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   duracaoS: number; // configurada na aba Divisão
@@ -55,12 +54,12 @@ export function CronometroDeDescanso({ duracaoS }: Props) {
   if (terminaEm !== null) {
     return (
       <View style={styles.linha}>
-        <Texto style={styles.rotulo}>Descanso</Texto>
-        <Texto style={styles.contagem} accessibilityLiveRegion="polite">
+        <Text style={styles.rotulo}>Descanso</Text>
+        <Text style={styles.contagem} accessibilityLiveRegion="polite">
           {formatarDescanso(restanteDoDescanso(terminaEm, agora))}
-        </Texto>
+        </Text>
         <Pressable accessibilityRole="button" onPress={() => setTerminaEm(null)} hitSlop={8} style={styles.acao}>
-          <Texto style={styles.textoDaAcao}>Parar</Texto>
+          <Text style={styles.textoDaAcao}>Parar</Text>
         </Pressable>
       </View>
     );
@@ -68,10 +67,10 @@ export function CronometroDeDescanso({ duracaoS }: Props) {
 
   return (
     <Pressable accessibilityRole="button" onPress={comecar} hitSlop={6} style={styles.linha}>
-      <Texto style={[styles.rotulo, acabou && styles.acabou]}>
+      <Text style={[styles.rotulo, acabou && styles.acabou]}>
         {acabou ? 'Descanso acabou' : `Descanso · ${formatarDescanso(duracaoS)}`}
-      </Texto>
-      <Texto style={styles.textoDaAcao}>{acabou ? 'De novo' : 'Começar'}</Texto>
+      </Text>
+      <Text style={styles.textoDaAcao}>{acabou ? 'De novo' : 'Começar'}</Text>
     </Pressable>
   );
 }

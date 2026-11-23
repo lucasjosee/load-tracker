@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { BarraDeProgresso } from '@/components/BarraDeProgresso';
 import { Botao } from '@/components/Botao';
@@ -11,8 +11,7 @@ import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
 import { estilosComuns, ListaEmPainel, Secao, Tela } from '@/components/Tela';
-import { cores, fonte, raio } from '@/components/tema';
-import { Texto } from '@/components/Texto';
+import { cores, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
@@ -83,15 +82,15 @@ export default function TelaHoje() {
   if (conteudo.tipo === 'descanso') {
     return (
       <Tela>
-        <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
-        <Texto style={styles.tituloDoDia} accessibilityRole="header">
+        <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
+        <Text style={styles.tituloDoDia} accessibilityRole="header">
           Descanso
-        </Texto>
+        </Text>
         {aviso}
         {conteudo.proximo !== null && (
           <View style={estilosComuns.cartao}>
-            <Texto style={styles.rotuloDoProximo}>Próximo treino</Texto>
-            <Texto style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Texto>
+            <Text style={styles.rotuloDoProximo}>Próximo treino</Text>
+            <Text style={styles.proximo}>{textoProximoTreino(conteudo.proximo)}</Text>
           </View>
         )}
         {/* No descanso não há cartões de exercício, então a evolução geral
@@ -104,9 +103,9 @@ export default function TelaHoje() {
         />
         <View style={[estilosComuns.cartao, styles.semana]}>
           <FaixaDaSemana dias={conteudo.semana} />
-          <Texto style={estilosComuns.textoSecundario}>
+          <Text style={estilosComuns.textoSecundario}>
             {textoResumoDaSemana(conteudo.treinosNaSemana, conteudo.seriesNaSemana)}
-          </Texto>
+          </Text>
         </View>
         <Botao titulo="+ Registro rápido" variante="secundario" onPress={() => router.push('/registro')} />
       </Tela>
@@ -142,7 +141,7 @@ export default function TelaHoje() {
         {/* A data vem antes do nome, como numa ficha: o nome do treino é o
             título, grande e largo, e encolhe se não couber numa linha. */}
         <View style={styles.cabecalho}>
-          <Texto style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Texto>
+          <Text style={estilosComuns.textoSecundario}>{textoDoDia(data)}</Text>
           <Botao
             titulo="+ Registro rápido"
             variante="secundario"
@@ -155,9 +154,9 @@ export default function TelaHoje() {
             }
           />
         </View>
-        <Texto style={styles.tituloDoDia} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
+        <Text style={styles.tituloDoDia} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
           {treino.nome}
-        </Texto>
+        </Text>
         {aviso}
         {treinoDoDia !== null && (
           // A aba está em outro treino (ex.: o perdido de ontem): o do dia fica a um toque.
@@ -176,7 +175,7 @@ export default function TelaHoje() {
           />
         )}
         {itens.length === 0 && (
-          <Texto style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Texto>
+          <Text style={estilosComuns.textoSecundario}>Este treino não tem exercícios. Adicione na aba Divisão.</Text>
         )}
 
         {sessao !== null && sessao.finalizadaEm !== null && (
@@ -236,7 +235,7 @@ interface AvisoProps {
 function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
   return (
     <View style={styles.aviso}>
-      <Texto style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Texto>
+      <Text style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Text>
       <View style={styles.botoesAviso}>
         <Botao titulo={`Fazer ${treino.nome}`} compacto onPress={() => onFazer(treino.id)} />
         <Botao titulo="Agora não" variante="secundario" compacto onPress={onDispensar} />
@@ -253,10 +252,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  // O nome do treino (ou "Descanso") é o título da aba: o maior texto da tela,
-  // na Saira larga. A linha fica justa no tamanho da letra, como na meta.
+  // O nome do treino (ou "Descanso") é o título da aba: o maior texto da
+  // tela. A linha fica justa no tamanho da letra, como na meta.
   tituloDoDia: {
-    fontFamily: fonte.larga,
     fontSize: 64,
     lineHeight: 64,
     fontWeight: '800',

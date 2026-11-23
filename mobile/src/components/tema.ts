@@ -35,18 +35,6 @@ export const cores = {
   sulco: '#23272C', // o que é cavado no aço: o trilho da régua, a divisória do painel
 };
 
-// A fonte do app é a Saira (assets/fonte/, carregada em app/_layout.tsx). São
-// duas famílias: a normal, para tudo, e a larga, para os números grandes. O
-// peso continua vindo do `fontWeight`: cada família tem um arquivo por peso e
-// o iOS escolhe o arquivo mais próximo do peso pedido.
-//
-// Os nomes não são os nomes internos da fonte ("Saira") de propósito: assim o
-// iOS só enxerga os arquivos que nós registramos, na ordem que registramos.
-export const fonte = {
-  normal: 'SairaTexto',
-  larga: 'SairaLarga',
-};
-
 // O fundo escurece de leve para baixo, como metal iluminado de cima. Começa
 // no tom do cabeçalho (`cores.fundo`) para não aparecer emenda com ele.
 export const gradienteDoFundo = `linear-gradient(180deg, ${cores.fundo} 0%, #25292E 100%)`;
@@ -88,9 +76,10 @@ export const espaco = {
 export const raio = 12; // botões, campos e avisos
 export const raioDoCartao = 14;
 
-// Os tamanhos de texto que se repetem. A família vem do componente `Texto`.
-// A Saira tem algarismos de largura fixa, ligados com
-// `fontVariant: ['tabular-nums']` onde há número que muda.
+// Os tamanhos de texto que se repetem. A fonte é a do sistema (SF Pro no
+// iPhone): nenhum estilo põe `fontFamily`. Os algarismos dela têm larguras
+// diferentes; onde há número que muda (tempo, carga), o estilo liga os de
+// largura fixa com `fontVariant: ['tabular-nums']`, para o texto não tremer.
 export const tipografia = {
   titulo: { fontSize: 32, fontWeight: '800', letterSpacing: -0.5, color: cores.texto },
   tituloDeSecao: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario },

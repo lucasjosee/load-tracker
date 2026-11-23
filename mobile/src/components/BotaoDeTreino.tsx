@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { TemposDaSessao } from '@/domain/duracao';
@@ -6,7 +6,6 @@ import type { TemposDaSessao } from '@/domain/duracao';
 import { Recartilhado } from './Recartilhado';
 import { useTempoDoTreino } from './TempoDoTreino';
 import { cromo, raio } from './tema';
-import { Texto } from './Texto';
 
 // Espaço que a barra de abas do iOS ocupa acima da área segura de baixo. A
 // NativeTabs não informa a própria altura, então é uma medida fixa.
@@ -43,12 +42,12 @@ export function BotaoDeTreino({ titulo, detalhe, sessao, onPress }: Props) {
         {/* Mais estreito que no Botao: aqui o texto e o tempo dividem a linha. */}
         <Recartilhado raio={RAIO} largura="13%" />
         <View style={styles.textos}>
-          <Texto style={styles.titulo}>{titulo}</Texto>
-          <Texto style={styles.detalhe} numberOfLines={1}>
+          <Text style={styles.titulo}>{titulo}</Text>
+          <Text style={styles.detalhe} numberOfLines={1}>
             {detalhe}
-          </Texto>
+          </Text>
         </View>
-        {sessao === null ? <Texto style={styles.seta}>▶</Texto> : <Tempo sessao={sessao} />}
+        {sessao === null ? <Text style={styles.seta}>▶</Text> : <Tempo sessao={sessao} />}
       </Pressable>
     </View>
   );
@@ -56,7 +55,7 @@ export function BotaoDeTreino({ titulo, detalhe, sessao, onPress }: Props) {
 
 // Separado para o relógio só existir quando há treino em andamento.
 function Tempo({ sessao }: { sessao: TemposDaSessao }) {
-  return <Texto style={styles.tempo}>{useTempoDoTreino(sessao)}</Texto>;
+  return <Text style={styles.tempo}>{useTempoDoTreino(sessao)}</Text>;
 }
 
 const styles = StyleSheet.create({

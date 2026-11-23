@@ -1,5 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
 import { pedirPermissao } from '@/notificacoes/permissao';
@@ -7,7 +7,6 @@ import { pedirPermissao } from '@/notificacoes/permissao';
 import { Botao } from './Botao';
 import { estilosComuns } from './Tela';
 import { cores, espaco } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   onTerminar: () => void; // chamado depois de "Ativar" (qualquer resposta) ou "Agora não"
@@ -28,11 +27,11 @@ export function ConteudoPermissao({ onTerminar }: Props) {
 
   return (
     <View style={styles.tela}>
-      <Texto style={styles.titulo}>Pra te avisar no dia do treino o que fazer</Texto>
-      <Texto style={estilosComuns.textoSecundario}>
+      <Text style={styles.titulo}>Pra te avisar no dia do treino o que fazer</Text>
+      <Text style={estilosComuns.textoSecundario}>
         No dia do treino chega um aviso com as metas, e às 21h um lembrete se você ainda não registrou. Os avisos
         são agendados no próprio iPhone e funcionam sem internet.
-      </Texto>
+      </Text>
       <View style={styles.botoes}>
         <Botao titulo="Ativar avisos" onPress={ativar} />
         <Botao titulo="Agora não" variante="secundario" onPress={onTerminar} />

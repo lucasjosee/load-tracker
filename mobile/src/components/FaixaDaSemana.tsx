@@ -1,10 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { LETRAS_DOS_DIAS, NOMES_DOS_DIAS } from '@/domain/datas';
 import type { DiaDaFaixa, SituacaoDoDia } from '@/domain/hoje';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 const DESCRICAO: Record<SituacaoDoDia, string> = {
   treinado: 'treinou',
@@ -26,10 +25,10 @@ export function FaixaDaSemana({ dias }: { dias: readonly DiaDaFaixa[] }) {
           accessible
           accessibilityLabel={`${NOMES_DOS_DIAS[dia.diaSemana]}${dia.ehHoje ? ', hoje' : ''}: ${DESCRICAO[dia.situacao]}`}
         >
-          <Texto style={[styles.letra, dia.ehHoje && styles.letraDeHoje]}>{LETRAS_DOS_DIAS[dia.diaSemana]}</Texto>
+          <Text style={[styles.letra, dia.ehHoje && styles.letraDeHoje]}>{LETRAS_DOS_DIAS[dia.diaSemana]}</Text>
           <View style={[styles.circulo, styles[dia.situacao]]}>
-            {dia.situacao === 'treinado' && <Texto style={styles.feito}>✓</Texto>}
-            {dia.situacao === 'perdido' && <Texto style={styles.traco}>–</Texto>}
+            {dia.situacao === 'treinado' && <Text style={styles.feito}>✓</Text>}
+            {dia.situacao === 'perdido' && <Text style={styles.traco}>–</Text>}
             {dia.situacao === 'descanso' && <View style={styles.ponto} />}
           </View>
         </View>

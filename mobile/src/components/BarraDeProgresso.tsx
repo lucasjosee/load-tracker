@@ -1,9 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { progressoDoTreino } from '@/domain/regua';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 // Progresso do treino (§3.2): um segmento por exercício, na ordem do treino,
 // aceso quando ele já foi registrado. Dá para ver quantos e quais faltam.
@@ -19,9 +18,9 @@ export function BarraDeProgresso({ feitos }: { feitos: boolean[] }) {
           <View key={indice} style={[styles.segmento, feito && styles.segmentoFeito]} />
         ))}
       </View>
-      <Texto style={styles.texto}>
+      <Text style={styles.texto}>
         {progresso.feitos} de {progresso.total} {progresso.total === 1 ? 'exercício' : 'exercícios'}
-      </Texto>
+      </Text>
     </View>
   );
 }

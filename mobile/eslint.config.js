@@ -17,12 +17,12 @@ module.exports = defineConfig([
     },
   },
   {
-    // O React Native não tem fonte padrão global: um `Text` direto sai na fonte
-    // do sistema. `Texto` e `CampoDeTexto` põem a Saira (src/components/Texto.tsx,
-    // o único lugar que usa os originais). Vem antes do bloco do domínio, que
+    // Todo campo de texto passa pelo `CampoDeTexto`, que põe o teclado escuro e
+    // as cores do cursor e do placeholder (src/components/CampoDeTexto.tsx, o
+    // único lugar que usa o original). Vem antes do bloco do domínio, que
     // redefine `no-restricted-imports` para src/domain/.
     files: ['app/**', 'src/**'],
-    ignores: ['src/components/Texto.tsx'],
+    ignores: ['src/components/CampoDeTexto.tsx'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -30,8 +30,8 @@ module.exports = defineConfig([
           paths: [
             {
               name: 'react-native',
-              importNames: ['Text', 'TextInput'],
-              message: 'Use Texto e CampoDeTexto de @/components/Texto, que já vêm com a fonte do app.',
+              importNames: ['TextInput'],
+              message: 'Use o CampoDeTexto de @/components/CampoDeTexto, que já vem com o teclado escuro e as cores do app.',
             },
           ],
         },

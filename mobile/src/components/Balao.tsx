@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Animated, StyleSheet } from 'react-native';
+import { Animated, StyleSheet, Text } from 'react-native';
 
 import { cores, relevo } from './tema';
-import { Texto } from './Texto';
 
 type Papel = 'assistente' | 'usuario';
 
@@ -11,7 +10,7 @@ type Papel = 'assistente' | 'usuario';
 export function Balao({ papel, texto }: { papel: Papel; texto: string }) {
   return (
     <Entrada estilo={[styles.balao, papel === 'usuario' ? styles.usuario : styles.assistente]}>
-      <Texto style={[styles.texto, papel === 'usuario' && styles.textoDoUsuario]}>{texto}</Texto>
+      <Text style={[styles.texto, papel === 'usuario' && styles.textoDoUsuario]}>{texto}</Text>
     </Entrada>
   );
 }

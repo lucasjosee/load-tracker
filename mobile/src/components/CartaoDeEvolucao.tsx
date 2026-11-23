@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polygon, Polyline } from 'react-native-svg';
 
 import { formatarDiaMes } from '@/domain/datas';
@@ -8,8 +8,7 @@ import { formatarPercentual } from '@/domain/textos';
 
 import { escalarPontos, paraPolyline } from './escala';
 import { estilosComuns } from './Tela';
-import { cores, fonte } from './tema';
-import { Texto } from './Texto';
+import { cores } from './tema';
 
 const ALTURA_COMPACTA = 64;
 const ALTURA_GRANDE = 130;
@@ -32,8 +31,8 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
   if (ultimo === undefined || pontos.length < 2) {
     return (
       <View style={[estilosComuns.cartao, styles.cartao]}>
-        <Texto style={styles.rotulo}>{rotulo}</Texto>
-        <Texto style={estilosComuns.textoSecundario}>O gráfico aparece a partir do segundo treino.</Texto>
+        <Text style={styles.rotulo}>{rotulo}</Text>
+        <Text style={estilosComuns.textoSecundario}>O gráfico aparece a partir do segundo treino.</Text>
       </View>
     );
   }
@@ -52,17 +51,17 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
         accessibilityLabel={`${rotulo}: ${formatarPercentual(ultimo.variacao)} desde o início, ${periodo}`}
       >
         <View style={styles.textos}>
-          <Texto style={styles.rotulo}>{rotulo}</Texto>
-          <Texto style={styles.periodo}>desde o início, {periodo}</Texto>
+          <Text style={styles.rotulo}>{rotulo}</Text>
+          <Text style={styles.periodo}>desde o início, {periodo}</Text>
         </View>
-        <Texto style={[styles.percentual, grande && styles.percentualGrande, { color: cor }]}>
+        <Text style={[styles.percentual, grande && styles.percentualGrande, { color: cor }]}>
           {formatarPercentual(ultimo.variacao)}
-        </Texto>
+        </Text>
       </View>
       <Linha valores={pontos.map((ponto) => ponto.variacao)} altura={grande ? ALTURA_GRANDE : ALTURA_COMPACTA} cor={cor} />
       <View style={styles.eixo}>
-        <Texto style={styles.data}>{formatarDiaMes(pontos[0]?.data ?? ultimo.data)}</Texto>
-        <Texto style={styles.data}>{formatarDiaMes(ultimo.data)}</Texto>
+        <Text style={styles.data}>{formatarDiaMes(pontos[0]?.data ?? ultimo.data)}</Text>
+        <Text style={styles.data}>{formatarDiaMes(ultimo.data)}</Text>
       </View>
     </View>
   );
@@ -119,9 +118,8 @@ const styles = StyleSheet.create({
   textos: { flexShrink: 1 },
   rotulo: { fontSize: 15, fontWeight: '700', color: cores.texto },
   periodo: { fontSize: 14, color: cores.textoSecundario },
-  // Na Saira larga, como os outros números grandes, com a linha justa.
+  // Com a linha justa, como os outros números grandes.
   percentual: {
-    fontFamily: fonte.larga,
     fontSize: 40,
     lineHeight: 42,
     fontWeight: '800',

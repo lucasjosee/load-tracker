@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { ItemDoTreino } from '@/db/consultas';
 import { textoDuracao } from '@/domain/duracao';
@@ -8,7 +8,6 @@ import type { Evento } from '@/domain/tipos';
 
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   itens: ItemDoTreino[]; // todos os exercícios do treino, feitos ou não
@@ -43,14 +42,14 @@ export function ResumoDoTreino({ itens, tipos, duracaoS, compacto = false }: Pro
   return (
     <View style={styles.resumo}>
       <View style={[estilosComuns.cartao, styles.cartao]}>
-        <Texto style={styles.titulo}>Treino finalizado</Texto>
-        <Texto style={styles.batidas}>{textoMetasBatidas(batidas, itens.length)}</Texto>
-        <Texto style={styles.detalhes}>{detalhes.join(' · ')}</Texto>
+        <Text style={styles.titulo}>Treino finalizado</Text>
+        <Text style={styles.batidas}>{textoMetasBatidas(batidas, itens.length)}</Text>
+        <Text style={styles.detalhes}>{detalhes.join(' · ')}</Text>
       </View>
 
       {!compacto && (
         <View style={[estilosComuns.cartao, styles.cartao]}>
-          <Texto style={styles.titulo}>Próximo treino</Texto>
+          <Text style={styles.titulo}>Próximo treino</Text>
           {itens.map((item) => {
             const situacao = situacaoNoResumo(
               item.feitoHoje?.resultado ?? null,
@@ -60,15 +59,15 @@ export function ResumoDoTreino({ itens, tipos, duracaoS, compacto = false }: Pro
             return (
               <View key={item.exercicio.id} style={styles.linha}>
                 <View style={styles.textos}>
-                  <Texto style={styles.nome} numberOfLines={1}>
+                  <Text style={styles.nome} numberOfLines={1}>
                     {item.exercicio.nome}
-                  </Texto>
+                  </Text>
                   {/* Uma linha só por exercício: o que mudou embaixo do nome, a meta nova à direita. */}
-                  <Texto style={[styles.nota, melhorou && styles.notaDeMelhora, situacao === 'recuou' && styles.notaDeRecuo]}>
+                  <Text style={[styles.nota, melhorou && styles.notaDeMelhora, situacao === 'recuou' && styles.notaDeRecuo]}>
                     {situacao === 'melhorou' ? seloDaMeta(item.mudanca).texto : NOTA[situacao]}
-                  </Texto>
+                  </Text>
                 </View>
-                {item.estado !== null && <Texto style={styles.meta}>{textoMeta(item.estado, item.exercicio.porLado)}</Texto>}
+                {item.estado !== null && <Text style={styles.meta}>{textoMeta(item.estado, item.exercicio.porLado)}</Text>}
               </View>
             );
           })}

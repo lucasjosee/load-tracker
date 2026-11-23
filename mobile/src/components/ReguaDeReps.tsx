@@ -1,10 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { PontoDaRegua, Regua } from '@/domain/regua';
 import { formatarKg } from '@/domain/textos';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 interface Props {
   regua: Regua;
@@ -50,8 +49,8 @@ export function ReguaDeReps({ regua, recuo = false }: Props) {
         </View>
       </View>
       <View style={styles.depois}>
-        <Texto style={styles.rotuloDepois}>depois</Texto>
-        <Texto style={styles.cargaDepois}>{formatarKg(regua.proximaCargaKg)} kg</Texto>
+        <Text style={styles.rotuloDepois}>depois</Text>
+        <Text style={styles.cargaDepois}>{formatarKg(regua.proximaCargaKg)} kg</Text>
       </View>
     </View>
   );
@@ -65,7 +64,7 @@ function Coluna({ ponto, destaque }: { ponto: PontoDaRegua; destaque: string }) 
       <View style={styles.areaDasMarcas}>
         <View style={estiloDaMarca(ponto, destaque)} />
       </View>
-      <Texto style={estiloDoNumero(ponto, destaque)}>{ponto.reps}</Texto>
+      <Text style={estiloDoNumero(ponto, destaque)}>{ponto.reps}</Text>
     </View>
   );
 }

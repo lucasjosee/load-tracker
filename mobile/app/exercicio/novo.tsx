@@ -1,14 +1,14 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { Opcoes } from '@/components/Opcoes';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { adicionarExercicioExistente, cadastrarExercicio } from '@/db/operacoes';
 import { obterObjetivo } from '@/db/repositorios/config';
 import { listarExercicios, listarExerciciosDoTreino, type Exercicio } from '@/db/repositorios/exercicios';
@@ -171,10 +171,10 @@ export default function TelaNovoExercicio() {
         <Linha rotulo="Carga por lado">
           <Switch value={porLado} onValueChange={setPorLado} accessibilityLabel="carga por lado" />
         </Linha>
-        <Texto style={estilosComuns.textoSecundario}>
+        <Text style={estilosComuns.textoSecundario}>
           Ligue quando você anota o peso de um lado só da barra ou da máquina. O app mostra &quot;20 kg lado&quot; e não soma
           os dois; o incremento também é por lado.
-        </Texto>
+        </Text>
         <Linha rotulo="Reps por série">
           <Stepper valor={reps} onMudar={setReps} minimo={1} maximo={50} rotulo="reps atuais" />
         </Linha>
@@ -202,11 +202,11 @@ export default function TelaNovoExercicio() {
       </Secao>
 
       {primeiraMeta !== null && (
-        <Texto style={styles.previa}>
+        <Text style={styles.previa}>
           Primeira meta: {textoMeta(primeiraMeta, porLado)} × {series}
-        </Texto>
+        </Text>
       )}
-      {erro !== null && <Texto style={estilosComuns.erro}>{erro}</Texto>}
+      {erro !== null && <Text style={estilosComuns.erro}>{erro}</Text>}
       <Botao titulo="Salvar exercício" onPress={salvar} />
 
       {existentes.length > 0 && (
@@ -218,8 +218,8 @@ export default function TelaNovoExercicio() {
               onPress={() => usarExistente(exercicio)}
               style={({ pressed }) => [estilosComuns.cartao, pressed && styles.pressionado]}
             >
-              <Texto style={styles.nomeExistente}>{exercicio.nome}</Texto>
-              <Texto style={estilosComuns.textoSecundario}>{NOMES_DOS_GRUPOS[exercicio.grupoMuscular]}</Texto>
+              <Text style={styles.nomeExistente}>{exercicio.nome}</Text>
+              <Text style={estilosComuns.textoSecundario}>{NOMES_DOS_GRUPOS[exercicio.grupoMuscular]}</Text>
             </Pressable>
           ))}
         </Secao>
@@ -231,7 +231,7 @@ export default function TelaNovoExercicio() {
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <View style={styles.linha}>
-      <Texto style={styles.rotulo}>{rotulo}</Texto>
+      <Text style={styles.rotulo}>{rotulo}</Text>
       {children}
     </View>
   );

@@ -1,16 +1,16 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, Switch, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
+import { CampoDeTexto } from '@/components/CampoDeTexto';
 import { GraficoDeLinha } from '@/components/GraficoDeLinha';
 import { Opcoes } from '@/components/Opcoes';
 import { Selo } from '@/components/Selo';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
 import { cores } from '@/components/tema';
-import { CampoDeTexto, Texto } from '@/components/Texto';
 import { carregarDetalhe, type DetalheDoExercicio } from '@/db/consultas';
 import { configDoExercicio, salvarRegrasDoExercicio } from '@/db/operacoes';
 import { definirAtivo } from '@/db/repositorios/exercicios';
@@ -142,18 +142,18 @@ export default function TelaExercicio() {
       {estado !== null && (
         <View style={estilosComuns.cartao}>
           <View style={styles.topo}>
-            <Texto style={styles.meta}>
+            <Text style={styles.meta}>
               {textoMeta(estado, exercicio.porLado)}{' '}
-              <Texto style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Texto>
-            </Texto>
+              <Text style={styles.series}>· {textoSeries(exercicio.seriesAlvo)}</Text>
+            </Text>
             <Selo selo={seloDaMeta(ultimaMudanca)} />
           </View>
-          <Texto style={estilosComuns.textoSecundario}>
+          <Text style={estilosComuns.textoSecundario}>
             {motivoDaMeta(estado, ultimaMudanca, configDoExercicio(exercicio), exercicio.porLado)}
-          </Texto>
+          </Text>
         </View>
       )}
-      {!exercicio.ativo && <Texto style={styles.arquivado}>Exercício arquivado.</Texto>}
+      {!exercicio.ativo && <Text style={styles.arquivado}>Exercício arquivado.</Text>}
 
       <GraficoDeLinha
         titulo={pesoCorporal ? 'Total de reps por sessão' : 'Força estimada (e1RM)'}
@@ -171,11 +171,11 @@ export default function TelaExercicio() {
       )}
 
       <Secao titulo="Linha do tempo">
-        {eventos.length === 0 && <Texto style={estilosComuns.textoSecundario}>Nenhum evento ainda.</Texto>}
+        {eventos.length === 0 && <Text style={estilosComuns.textoSecundario}>Nenhum evento ainda.</Text>}
         {[...eventos].reverse().map((evento) => (
           <View key={evento.id} style={styles.evento}>
-            <Texto style={styles.dataDoEvento}>{formatarDiaMes(evento.data)}</Texto>
-            <Texto style={styles.textoDoEvento}>{textoDoEvento(evento, exercicio.porLado)}</Texto>
+            <Text style={styles.dataDoEvento}>{formatarDiaMes(evento.data)}</Text>
+            <Text style={styles.textoDoEvento}>{textoDoEvento(evento, exercicio.porLado)}</Text>
           </View>
         ))}
       </Secao>
@@ -205,7 +205,7 @@ export default function TelaExercicio() {
           onAlternar={(equipamento) => setFormulario({ ...formulario, equipamento })}
         />
         <View style={styles.linha}>
-          <Texto style={styles.rotulo}>Reps mínimas</Texto>
+          <Text style={styles.rotulo}>Reps mínimas</Text>
           <Stepper
             valor={formulario.repsMin}
             onMudar={(repsMin) => setFormulario({ ...formulario, repsMin })}
@@ -215,7 +215,7 @@ export default function TelaExercicio() {
           />
         </View>
         <View style={styles.linha}>
-          <Texto style={styles.rotulo}>Reps máximas</Texto>
+          <Text style={styles.rotulo}>Reps máximas</Text>
           <Stepper
             valor={formulario.repsMax}
             onMudar={(repsMax) => setFormulario({ ...formulario, repsMax })}
@@ -225,7 +225,7 @@ export default function TelaExercicio() {
           />
         </View>
         <View style={styles.linha}>
-          <Texto style={styles.rotulo}>Séries</Texto>
+          <Text style={styles.rotulo}>Séries</Text>
           <Stepper
             valor={formulario.seriesAlvo}
             onMudar={(seriesAlvo) => setFormulario({ ...formulario, seriesAlvo })}
@@ -235,7 +235,7 @@ export default function TelaExercicio() {
           />
         </View>
         <View style={styles.linha}>
-          <Texto style={styles.rotulo}>Incremento (kg)</Texto>
+          <Text style={styles.rotulo}>Incremento (kg)</Text>
           <CampoDeTexto
             value={formulario.incremento}
             onChangeText={(incremento) => setFormulario({ ...formulario, incremento })}
@@ -244,18 +244,18 @@ export default function TelaExercicio() {
           />
         </View>
         <View style={styles.linha}>
-          <Texto style={styles.rotulo}>Carga por lado</Texto>
+          <Text style={styles.rotulo}>Carga por lado</Text>
           <Switch
             value={formulario.porLado}
             onValueChange={(porLado) => setFormulario({ ...formulario, porLado })}
             accessibilityLabel="carga por lado"
           />
         </View>
-        <Texto style={estilosComuns.textoSecundario}>
+        <Text style={estilosComuns.textoSecundario}>
           Só muda o rótulo (&quot;20 kg lado&quot;). As cargas já registradas não são convertidas.
-        </Texto>
+        </Text>
         {mensagem !== null && (
-          <Texto style={mensagem.erro ? estilosComuns.erro : styles.salvo}>{mensagem.texto}</Texto>
+          <Text style={mensagem.erro ? estilosComuns.erro : styles.salvo}>{mensagem.texto}</Text>
         )}
         <Botao titulo="Salvar configuração" onPress={salvar} />
         <Botao

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { formatarCronometro, segundosDeTreino, type TemposDaSessao } from '@/domain/duracao';
 
 import { cores } from './tema';
-import { Texto } from './Texto';
 
 // O tempo de treino, atualizado a cada segundo (§3.2). A conta é sempre feita
 // a partir dos instantes gravados na sessão, e não de um contador da tela:
@@ -39,8 +38,8 @@ export function TempoDoTreino({ sessao }: { sessao: TemposDaSessao }) {
   const pausado = sessao.pausadaEm !== null;
   return (
     <View style={styles.linha} accessible accessibilityRole="timer" accessibilityLabel={`Tempo de treino: ${tempo}${pausado ? ', pausado' : ''}`}>
-      <Texto style={[styles.tempo, pausado && styles.tempoPausado]}>{tempo}</Texto>
-      <Texto style={styles.rotulo}>{pausado ? 'pausado' : 'de treino'}</Texto>
+      <Text style={[styles.tempo, pausado && styles.tempoPausado]}>{tempo}</Text>
+      <Text style={styles.rotulo}>{pausado ? 'pausado' : 'de treino'}</Text>
     </View>
   );
 }

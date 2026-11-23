@@ -1,7 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { cores, relevo } from './tema';
-import { Texto } from './Texto';
 
 export interface Opcao<T> {
   valor: T;
@@ -30,7 +29,7 @@ export function Opcoes<T extends string | number>({ opcoes, selecionados, onAlte
             onPress={() => onAlternar(opcao.valor)}
             style={[styles.chip, marcado && styles.chipMarcado]}
           >
-            <Texto style={[styles.texto, marcado && styles.textoMarcado]}>{opcao.rotulo}</Texto>
+            <Text style={[styles.texto, marcado && styles.textoMarcado]}>{opcao.rotulo}</Text>
           </Pressable>
         );
       })}
