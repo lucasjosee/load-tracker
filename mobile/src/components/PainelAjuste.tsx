@@ -6,6 +6,7 @@ import { formatarCarga } from '@/domain/textos';
 import { Botao } from './Botao';
 import { EditorDeSeries } from './EditorDeSeries';
 import { Stepper } from './Stepper';
+import { estilosComuns } from './Tela';
 import { cores } from './tema';
 
 interface Props {
@@ -19,13 +20,14 @@ interface Props {
 }
 
 // "Ajustar" (§3.2): steppers da carga e das reps de cada série, já
-// preenchidos com a meta, para mudar só o que foi diferente.
+// preenchidos com a meta, para mudar só o que foi diferente. Abre num painel
+// de vidro no lugar dos botões.
 export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, ultimaVez, onSalvar, onCancelar }: Props) {
   const [carga, setCarga] = useState(cargaInicial);
   const [reps, setReps] = useState(repsIniciais);
 
   return (
-    <View style={styles.painel}>
+    <View style={[estilosComuns.cartao, styles.painel]}>
       {/* Só aqui, e não no cartão: é a hora em que a pessoa decide o que digitar. */}
       {ultimaVez !== null && <Text style={styles.ultimaVez}>{ultimaVez}</Text>}
       <View style={styles.linha}>
@@ -36,17 +38,17 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, ult
       <EditorDeSeries reps={reps} onMudar={setReps} />
 
       <View style={styles.botoes}>
-        <Botao titulo="Cancelar" variante="secundario" compacto onPress={onCancelar} />
-        <Botao titulo="Salvar" compacto onPress={() => onSalvar(carga, reps)} />
+        <Botao titulo="Cancelar" variante="secundario" compacto peso={1} onPress={onCancelar} />
+        <Botao titulo="Salvar" compacto peso={1} onPress={() => onSalvar(carga, reps)} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  painel: { gap: 8, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderColor: cores.borda },
+  painel: { gap: 10, marginTop: 16 },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   ultimaVez: { fontSize: 14, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   rotulo: { fontSize: 16, color: cores.texto },
-  botoes: { flexDirection: 'row', gap: 8 },
+  botoes: { flexDirection: 'row', gap: 8, marginTop: 4 },
 });

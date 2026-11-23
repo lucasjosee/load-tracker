@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { PontoDaRegua, Regua } from '@/domain/regua';
 import { formatarKg } from '@/domain/textos';
 
-import { cores } from './tema';
+import { cores, gradienteAurora } from './tema';
 
 interface Props {
   regua: Regua;
@@ -13,24 +13,20 @@ interface Props {
 }
 
 // Medidas da régua, em pontos. Cada número de reps é uma coluna da largura do
-// número; o trilho passa pelo meio das marcas, de uma ponta à outra.
-const COLUNA = 22;
-const PONTEIRO = 10; // a altura do triângulo sobre a meta de hoje
-const MARCAS = 22; // a faixa onde ficam as marcas
-const TRILHO = 4;
+// ponto luminoso; o trilho vai do meio da primeira coluna ao meio da última.
+const COLUNA = 20;
+const TRILHO = 6;
+const PONTO = 20;
 
-// A faixa de reps como uma régua de medição gravada no aço: um trilho com uma
-// marca por número de reps. O trecho até onde a pessoa já chegou fica
-// preenchido; a meta de hoje tem o ponteiro; no fim, a carga que vem depois
-// do topo da faixa.
+// A faixa de reps como um trilho fino: o trecho até a meta de hoje fica
+// aceso (a aurora) e a meta tem um ponto branco que brilha. Embaixo, os
+// números; no fim, a carga que vem depois do topo da faixa.
 export function ReguaDeReps({ regua, recuo = false }: Props) {
-  const destaque = recuo ? cores.desce : cores.primaria;
   const { pontos } = regua;
-  const metaDeHoje = pontos.find((ponto) => ponto.situacao === 'alvo')?.reps;
-  // O preenchimento vai até a marca do último número já feito. A largura é
-  // uma fração do trilho, que tem uma marca em cada ponta.
-  const ultimoFeito = pontos.findLastIndex((ponto) => ponto.situacao === 'feito');
-  const preenchido = pontos.length > 1 && ultimoFeito >= 0 ? (ultimoFeito / (pontos.length - 1)) * 100 : 0;
+  const indiceDaMeta = pontos.findIndex((ponto) => ponto.situacao === 'alvo');
+  const metaDeHoje = pontos[indiceDaMeta]?.reps;
+  // Onde fica a meta no trilho, de 0 (primeira marca) a 100% (última).
+  const posicao = pontos.length > 1 && indiceDaMeta >= 0 ? (indiceDaMeta / (pontos.length - 1)) * 100 : 0;
 
   return (
     <View
@@ -40,11 +36,14 @@ export function ReguaDeReps({ regua, recuo = false }: Props) {
     >
       <View style={styles.escala}>
         <View style={styles.trilho}>
-          {preenchido > 0 && <View style={[styles.preenchido, { width: `${preenchido}%` }]} />}
+          {posicao > 0 && <View style={[styles.aceso, recuo && styles.acesoRecuo, { width: `${posicao}%` }]} />}
+          {indiceDaMeta >= 0 && <View style={[styles.ponto, recuo && styles.pontoRecuo, { left: `${posicao}%` }]} />}
         </View>
-        <View style={styles.colunas}>
+        <View style={styles.numeros}>
           {pontos.map((ponto) => (
-            <Coluna key={ponto.reps} ponto={ponto} destaque={destaque} />
+            <Text key={ponto.reps} style={[styles.numero, estiloDoNumero(ponto)]}>
+              {ponto.reps}
+            </Text>
           ))}
         </View>
       </View>
@@ -56,76 +55,47 @@ export function ReguaDeReps({ regua, recuo = false }: Props) {
   );
 }
 
-function Coluna({ ponto, destaque }: { ponto: PontoDaRegua; destaque: string }) {
-  const alvo = ponto.situacao === 'alvo';
-  return (
-    <View style={styles.coluna}>
-      <View style={styles.areaDoPonteiro}>{alvo && <View style={[styles.ponteiro, { borderTopColor: destaque }]} />}</View>
-      <View style={styles.areaDasMarcas}>
-        <View style={estiloDaMarca(ponto, destaque)} />
-      </View>
-      <Text style={estiloDoNumero(ponto, destaque)}>{ponto.reps}</Text>
-    </View>
-  );
-}
-
-function estiloDaMarca({ situacao }: PontoDaRegua, destaque: string) {
+function estiloDoNumero({ situacao }: PontoDaRegua) {
   switch (situacao) {
     case 'feito':
-      return [styles.marca, { backgroundColor: cores.texto }];
+      return styles.numeroFeito;
     case 'alvo':
-      return [styles.marcaDaMeta, { backgroundColor: destaque }];
+      return styles.numeroDaMeta;
     case 'falta':
-      return [styles.marca, styles.marcaQueFalta];
-  }
-}
-
-function estiloDoNumero({ situacao }: PontoDaRegua, destaque: string) {
-  switch (situacao) {
-    case 'feito':
-      return [styles.numero, styles.numeroFeito];
-    case 'alvo':
-      return [styles.numero, styles.numeroDaMeta, { color: destaque }];
-    case 'falta':
-      return [styles.numero, styles.numeroQueFalta];
+      return styles.numeroQueFalta;
   }
 }
 
 const styles = StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  escala: { flex: 1 },
+  linha: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  escala: { flex: 1, paddingTop: (PONTO - TRILHO) / 2 },
   trilho: {
-    position: 'absolute',
-    left: COLUNA / 2,
-    right: COLUNA / 2,
-    top: PONTEIRO + MARCAS / 2 - TRILHO / 2,
+    marginHorizontal: COLUNA / 2,
     height: TRILHO,
     borderRadius: TRILHO / 2,
     backgroundColor: cores.superficieAlta,
   },
-  preenchido: { height: TRILHO, borderRadius: TRILHO / 2, backgroundColor: cores.texto },
-  colunas: { flexDirection: 'row', justifyContent: 'space-between' },
-  coluna: { width: COLUNA, alignItems: 'center' },
-  areaDoPonteiro: { height: PONTEIRO, justifyContent: 'flex-end' },
-  // Um triângulo feito só de bordas: a de cima colorida, as dos lados
-  // transparentes, numa caixa de tamanho zero.
-  ponteiro: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 7,
-    borderRightWidth: 7,
-    borderTopWidth: PONTEIRO,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
+  aceso: { height: TRILHO, borderRadius: TRILHO / 2, backgroundColor: cores.primaria, backgroundImage: gradienteAurora },
+  acesoRecuo: { backgroundColor: cores.desce, backgroundImage: 'none' },
+  // O ponto fica centrado na meta: `left` em porcentagem põe a borda
+  // esquerda dele lá, e a margem negativa puxa metade da largura de volta.
+  // O brilho são duas sombras: um anel índigo colado e um halo ciano largo.
+  ponto: {
+    position: 'absolute',
+    top: (TRILHO - PONTO) / 2,
+    width: PONTO,
+    height: PONTO,
+    marginLeft: -PONTO / 2,
+    borderRadius: PONTO / 2,
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 0 0 5px rgba(123, 140, 255, 0.3), 0 0 18px rgba(92, 225, 230, 0.7)',
   },
-  areaDasMarcas: { height: MARCAS, alignItems: 'center', justifyContent: 'center' },
-  marca: { width: 2, height: 12 },
-  marcaQueFalta: { backgroundColor: cores.textoSecundario, opacity: 0.55 },
-  marcaDaMeta: { width: 4, height: MARCAS, borderRadius: 1 },
-  numero: { fontSize: 15, fontVariant: ['tabular-nums'], marginTop: 2 },
-  numeroFeito: { fontWeight: '700', color: cores.texto },
-  numeroDaMeta: { fontWeight: '800' },
-  numeroQueFalta: { fontWeight: '500', color: cores.textoSecundario },
+  pontoRecuo: { boxShadow: '0 0 0 5px rgba(255, 196, 107, 0.3), 0 0 18px rgba(255, 196, 107, 0.6)' },
+  numeros: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  numero: { width: COLUNA, textAlign: 'center', fontSize: 14, fontVariant: ['tabular-nums'] },
+  numeroFeito: { fontWeight: '600', color: cores.textoSecundario },
+  numeroDaMeta: { fontWeight: '800', color: cores.texto },
+  numeroQueFalta: { fontWeight: '400', color: cores.textoSecundario, opacity: 0.75 },
   depois: { alignItems: 'flex-end' },
   rotuloDepois: { fontSize: 13, color: cores.textoSecundario },
   cargaDepois: { fontSize: 17, fontWeight: '700', color: cores.texto, fontVariant: ['tabular-nums'] },

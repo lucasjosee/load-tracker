@@ -17,7 +17,7 @@ import { CampoDeTexto } from './CampoDeTexto';
 import { EditorDeSeries } from './EditorDeSeries';
 import { Opcoes } from './Opcoes';
 import { estilosComuns } from './Tela';
-import { cores, raio } from './tema';
+import { cores } from './tema';
 
 const NOVO = '__novo__'; // opção "Novo exercício" na lista de escolha
 
@@ -115,7 +115,7 @@ export function EditorDeItem({ item, exercicios, onMudar, onRemover }: Props) {
 
 const styles = StyleSheet.create({
   item: { gap: 10 },
-  revisar: { borderWidth: 2, borderColor: cores.desce, borderRadius: raio },
+  revisar: { borderWidth: 2, borderColor: cores.desce },
   aviso: { fontSize: 14, color: cores.desce, fontWeight: '600' },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   nome: { fontSize: 17, fontWeight: '600', flexShrink: 1, color: cores.texto },

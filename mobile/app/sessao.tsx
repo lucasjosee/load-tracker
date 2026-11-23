@@ -162,16 +162,15 @@ export default function TelaSessao() {
   return (
     <Tela>
       <Stack.Screen options={{ title: treino.treino.nome }} />
-      <View style={styles.topo}>
-        {/* Depois de encerrado o tempo para: a duração vai no resumo. */}
-        {!mostrarResumo && treino.sessao !== null && (
-          <View style={styles.tempo}>
-            <TempoDoTreino sessao={treino.sessao} />
-            {!pausado && <Botao titulo="Pausar" variante="secundario" compacto onPress={alternarPausa} />}
-          </View>
-        )}
-        <BarraDeProgresso feitos={itens.map((item) => item.feitoHoje !== null)} />
-      </View>
+      <BarraDeProgresso
+        feitos={itens.map((item) => item.feitoHoje !== null)}
+        atual={mostrarResumo || pausado ? null : itens.findIndex((item) => item.exercicio.id === atual?.exercicio.id)}
+        aoLado={
+          // Depois de encerrado o tempo para: a duração vai no resumo.
+          !mostrarResumo &&
+          treino.sessao !== null && <TempoDoTreino sessao={treino.sessao} onPausar={pausado ? null : alternarPausa} />
+        }
+      />
 
       {mostrarResumo ? (
         <>
@@ -229,8 +228,6 @@ export default function TelaSessao() {
 }
 
 const styles = StyleSheet.create({
-  topo: { gap: 10 },
-  tempo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   pausa: { padding: 20, gap: 12 },
   tituloDaPausa: { fontSize: 24, fontWeight: '700', color: cores.texto },
 });

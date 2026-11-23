@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatarCronometro, segundosDeTreino, type TemposDaSessao } from '@/domain/duracao';
 
 import { cores } from './tema';
+import { Vidro } from './Vidro';
 
 // O tempo de treino, atualizado a cada segundo (§3.2). A conta é sempre feita
 // a partir dos instantes gravados na sessão, e não de um contador da tela:
@@ -33,21 +34,60 @@ export function useTempoDoTreino(sessao: TemposDaSessao): string {
   return formatarCronometro(segundosDeTreino(sessao, agora));
 }
 
-export function TempoDoTreino({ sessao }: { sessao: TemposDaSessao }) {
+interface Props {
+  sessao: TemposDaSessao;
+  onPausar: (() => void) | null; // null = sem botão de pausar (já pausado)
+}
+
+// O tempo de treino numa pílula de vidro, com o botão redondo de pausar
+// colado nele: os dois falam do mesmo relógio.
+export function TempoDoTreino({ sessao, onPausar }: Props) {
   const tempo = useTempoDoTreino(sessao);
   const pausado = sessao.pausadaEm !== null;
   return (
-    <View style={styles.linha} accessible accessibilityRole="timer" accessibilityLabel={`Tempo de treino: ${tempo}${pausado ? ', pausado' : ''}`}>
-      <Text style={[styles.tempo, pausado && styles.tempoPausado]}>{tempo}</Text>
-      <Text style={styles.rotulo}>{pausado ? 'pausado' : 'de treino'}</Text>
-    </View>
+    <Vidro style={[styles.pilula, onPausar !== null && styles.pilulaComBotao]}>
+      <Text
+        accessibilityRole="timer"
+        accessibilityLabel={`Tempo de treino: ${tempo}${pausado ? ', pausado' : ''}`}
+        style={[styles.tempo, pausado && styles.tempoPausado]}
+      >
+        {tempo}
+        {pausado && <Text style={styles.rotulo}> pausado</Text>}
+      </Text>
+      {onPausar !== null && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Pausar o treino"
+          onPress={onPausar}
+          hitSlop={6}
+          style={({ pressed }) => [styles.pausar, pressed && styles.pausarApertado]}
+        >
+          {/* As duas barras do símbolo de pausa. */}
+          <View style={styles.barra} />
+          <View style={styles.barra} />
+        </Pressable>
+      )}
+    </Vidro>
   );
 }
 
 const styles = StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  pilula: { height: 40, borderRadius: 20, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  pilulaComBotao: { paddingRight: 4 },
   // Algarismos de largura fixa: o texto não treme a cada segundo.
-  tempo: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, color: cores.texto, fontVariant: ['tabular-nums'] },
+  tempo: { fontSize: 17, fontWeight: '600', letterSpacing: -0.2, color: cores.texto, fontVariant: ['tabular-nums'] },
   tempoPausado: { color: cores.desce },
-  rotulo: { fontSize: 14, color: cores.textoSecundario },
+  rotulo: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
+  pausar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    backgroundColor: cores.superficieAlta,
+  },
+  pausarApertado: { backgroundColor: cores.borda },
+  barra: { width: 3, height: 11, borderRadius: 1, backgroundColor: cores.texto },
 });
