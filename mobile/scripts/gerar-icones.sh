@@ -9,7 +9,7 @@ set -euo pipefail
 
 FONTE=assets/fonte/simbolo.svg
 SAIDA=assets/images
-FUNDO='#2B3036' # cores.fundo
+FUNDO='#0B1224' # cores.fundo
 TEMP=$(mktemp -d)
 trap 'rm -rf "$TEMP"' EXIT
 
@@ -27,7 +27,7 @@ rsvg-convert -w 590 -h 580 "$TEMP/rente.svg" -o "$SAIDA/splash-icon.png"
 # em 2/3 do tamanho, no meio. O monocromático é o mesmo desenho em branco.
 sed 's/viewBox="0 0 1024 1024"/viewBox="-256 -256 1536 1536"/' "$FONTE" > "$TEMP/reduzido.svg"
 rsvg-convert -w 512 -h 512 "$TEMP/reduzido.svg" -o "$SAIDA/android-icon-foreground.png"
-sed 's/#E3B86A/#FFFFFF/g' "$TEMP/reduzido.svg" > "$TEMP/branco.svg"
+sed 's/url(#aurora)/#FFFFFF/g' "$TEMP/reduzido.svg" > "$TEMP/branco.svg"
 rsvg-convert -w 432 -h 432 "$TEMP/branco.svg" -o "$SAIDA/android-icon-monochrome.png"
 magick -size 512x512 "xc:$FUNDO" "$SAIDA/android-icon-background.png"
 

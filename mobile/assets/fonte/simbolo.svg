@@ -1,7 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- Três barras subindo: a carga de uma sessão para a outra. A última, cheia,
-       é a cor de marca do app (cores.primaria em src/components/tema.ts). -->
-  <rect x="217" y="542" width="150" height="260" rx="40" fill="#E3B86A" fill-opacity="0.35"/>
-  <rect x="437" y="382" width="150" height="420" rx="40" fill="#E3B86A" fill-opacity="0.65"/>
-  <rect x="657" y="222" width="150" height="580" rx="40" fill="#E3B86A"/>
+  <!-- Três barras subindo: a carga de uma sessão para a outra. Pintadas com a
+       aurora, o gradiente de marca do app (`aurora` em src/components/tema.ts),
+       que vai do ciano, embaixo à esquerda, ao índigo, em cima à direita. -->
+  <defs>
+    <linearGradient id="aurora" gradientUnits="userSpaceOnUse" x1="217" y1="802" x2="807" y2="222">
+      <stop offset="0" stop-color="#5CE1E6"/>
+      <stop offset="1" stop-color="#7B8CFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="217" y="542" width="150" height="260" rx="40" fill="url(#aurora)" fill-opacity="0.4"/>
+  <rect x="437" y="382" width="150" height="420" rx="40" fill="url(#aurora)" fill-opacity="0.7"/>
+  <rect x="657" y="222" width="150" height="580" rx="40" fill="url(#aurora)"/>
 </svg>
