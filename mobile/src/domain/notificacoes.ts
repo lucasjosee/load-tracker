@@ -3,7 +3,7 @@
 
 import { diaDaSemana, somarDias } from './datas';
 import type { Horario } from './horario';
-import { seloDaMeta, textoMeta } from './textos';
+import { seloDaMeta, textoMeta, textoSeries } from './textos';
 import type { EstadoProgressao, MudancaDeMeta } from './tipos';
 
 export interface ItemDoAviso {
@@ -119,4 +119,36 @@ export function planejarNotificacoes(p: Planejamento): NotificacaoPlanejada[] {
     }
   }
   return plano;
+}
+
+// O treino em andamento, como a tela do treino mostra agora. Vira a
+// notificação que fica na central e na tela bloqueada durante o treino (§6).
+export interface TreinoEmAndamento {
+  nome: string; // "Push"
+  feitos: number; // exercícios já registrados (ou pulados) hoje
+  total: number;
+  // O exercício da vez; `estado` null = ainda sem meta (primeiro registro).
+  atual: {
+    nome: string;
+    porLado: boolean;
+    seriesAlvo: number;
+    estado: Pick<EstadoProgressao, 'cargaKg' | 'repsAlvo'> | null;
+  };
+  proximo: string | null; // o nome do que vem depois; null = é o último
+  pausado: boolean;
+}
+
+// Título: "Push · 2 de 6 exercícios" (ou "Push · pausado").
+// Corpo, uma informação por linha:
+//   "Agora: Supino reto, 22,5 kg lado × 9, 3 séries"
+//   "Depois: Elevação lateral"
+// É lido de relance na tela bloqueada, entre uma série e outra: o que fazer
+// agora vem primeiro e com a meta inteira; o seguinte, só o nome.
+export function textoDoTreinoEmAndamento(treino: TreinoEmAndamento): TextoDoAviso {
+  const andamento = treino.pausado ? 'pausado' : `${treino.feitos} de ${treino.total} ${treino.total === 1 ? 'exercício' : 'exercícios'}`;
+  const { atual } = treino;
+  const meta = atual.estado === null ? 'sem meta ainda' : `${textoMeta(atual.estado, atual.porLado)}, ${textoSeries(atual.seriesAlvo)}`;
+  const linhas = [`Agora: ${atual.nome}, ${meta}`];
+  linhas.push(treino.proximo === null ? 'É o último do treino' : `Depois: ${treino.proximo}`);
+  return { titulo: `${treino.nome} · ${andamento}`, corpo: linhas.join('\n') };
 }

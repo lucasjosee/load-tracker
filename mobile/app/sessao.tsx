@@ -30,6 +30,7 @@ import { adiarExercicio, filaDoTreino } from '@/domain/fila';
 import type { Realizado } from '@/domain/tipos';
 import { useGravacao } from '@/hooks/gravacao';
 import { reagendarNotificacoes } from '@/notificacoes/agendar';
+import { NotificacaoDoTreino, tirarTreinoEmAndamento } from '@/notificacoes/TreinoEmAndamento';
 
 // `Extract` tira da união `Hoje` só o caso de dia de treino.
 type TreinoDeHoje = Extract<Hoje, { tipo: 'treino' }>;
@@ -87,10 +88,12 @@ export default function TelaSessao() {
   const mostrarResumo = encerrado || atual === undefined;
 
   // Fecha a sessão e mostra o resumo. Reagendar com o treino finalizado tira
-  // o lembrete das 21h de hoje e atualiza os avisos com as metas novas (§6).
+  // o lembrete das 21h de hoje e atualiza os avisos com as metas novas (§6);
+  // a notificação do treino em andamento sai da central.
   async function encerrar(sessaoId: string) {
     await finalizarTreino(db, sessaoId);
     await reagendarNotificacoes(db);
+    await tirarTreinoEmAndamento();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await carregar();
     setEncerrado(true);
@@ -141,6 +144,7 @@ export default function TelaSessao() {
           onPress: () =>
             gravarComTrava(async () => {
               await cancelarTreinoVazio(db, sessao.id);
+              await tirarTreinoEmAndamento();
               router.back();
             }),
         },
@@ -162,6 +166,26 @@ export default function TelaSessao() {
   return (
     <Tela>
       <Stack.Screen options={{ title: treino.treino.nome }} />
+      {/* O treino aberto também fica na central de notificações e na tela
+          bloqueada, com o exercício da vez (§6). */}
+      {!mostrarResumo && atual !== undefined && treino.sessao !== null && treino.sessao.finalizadaEm === null && (
+        <NotificacaoDoTreino
+          treinoId={treino.treino.id}
+          treino={{
+            nome: treino.treino.nome,
+            feitos: feitos.length,
+            total: itens.length,
+            atual: {
+              nome: atual.exercicio.nome,
+              porLado: atual.exercicio.porLado,
+              seriesAlvo: atual.exercicio.seriesAlvo,
+              estado: atual.estado,
+            },
+            proximo: aSeguir[0]?.exercicio.nome ?? null,
+            pausado,
+          }}
+        />
+      )}
       <BarraDeProgresso
         feitos={itens.map((item) => item.feitoHoje !== null)}
         atual={mostrarResumo || pausado ? null : itens.findIndex((item) => item.exercicio.id === atual?.exercicio.id)}

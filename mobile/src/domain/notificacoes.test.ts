@@ -1,9 +1,11 @@
 import {
   planejarNotificacoes,
   textoDoAvisoDeTreino,
+  textoDoTreinoEmAndamento,
   treinoDoDiaFinalizado,
   type Planejamento,
   type TreinoDoAviso,
+  type TreinoEmAndamento,
 } from './notificacoes';
 
 const PUSH: TreinoDoAviso = {
@@ -112,5 +114,51 @@ describe('treinoDoDiaFinalizado', () => {
 
   it('dia de descanso: nada a finalizar', () => {
     expect(treinoDoDiaFinalizado(null, [{ treinoId: null, finalizada: true }])).toBe(false);
+  });
+});
+
+describe('textoDoTreinoEmAndamento (§6)', () => {
+  const emAndamento: TreinoEmAndamento = {
+    nome: 'Push',
+    feitos: 2,
+    total: 6,
+    atual: { nome: 'Supino reto', porLado: true, seriesAlvo: 3, estado: { cargaKg: 22.5, repsAlvo: 9 } },
+    proximo: 'Elevação lateral',
+    pausado: false,
+  };
+
+  it('título com o andamento; corpo com a meta da vez e o próximo, uma linha cada', () => {
+    expect(textoDoTreinoEmAndamento(emAndamento)).toEqual({
+      titulo: 'Push · 2 de 6 exercícios',
+      corpo: 'Agora: Supino reto, 22,5 kg lado × 9, 3 séries\nDepois: Elevação lateral',
+    });
+  });
+
+  it('pausado: o título diz, e a meta continua à vista', () => {
+    const texto = textoDoTreinoEmAndamento({ ...emAndamento, pausado: true });
+    expect(texto.titulo).toBe('Push · pausado');
+    expect(texto.corpo).toContain('Agora: Supino reto');
+  });
+
+  it('exercício sem meta ainda (primeiro registro)', () => {
+    const texto = textoDoTreinoEmAndamento({ ...emAndamento, atual: { ...emAndamento.atual, estado: null } });
+    expect(texto.corpo).toContain('Agora: Supino reto, sem meta ainda');
+  });
+
+  it('o último exercício avisa que é o último', () => {
+    const texto = textoDoTreinoEmAndamento({ ...emAndamento, feitos: 5, proximo: null });
+    expect(texto.corpo).toBe('Agora: Supino reto, 22,5 kg lado × 9, 3 séries\nÉ o último do treino');
+  });
+
+  it('peso corporal mostra só as reps; singular com um exercício', () => {
+    const texto = textoDoTreinoEmAndamento({
+      ...emAndamento,
+      feitos: 0,
+      total: 1,
+      atual: { nome: 'Russian twist', porLado: false, seriesAlvo: 1, estado: { cargaKg: 0, repsAlvo: 20 } },
+      proximo: null,
+    });
+    expect(texto.titulo).toBe('Push · 0 de 1 exercício');
+    expect(texto.corpo).toContain('Agora: Russian twist, 20 reps, 1 série');
   });
 });
