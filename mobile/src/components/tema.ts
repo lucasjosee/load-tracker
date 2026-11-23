@@ -73,7 +73,7 @@ export const fundoDeTela = {
 // então um branco translúcido com borda fica igual e não custa nada para
 // desenhar. A sombra tem duas partes: um filete de luz na borda de cima (o
 // `inset`, por dentro) e uma sombra larga por fora, que descola o painel do
-// fundo.
+// fundo. (O vidro de verdade do iOS 26 fica para os botões: Vidro.tsx.)
 export const vidro = {
   backgroundColor: cores.superficie,
   borderWidth: 1,
@@ -81,28 +81,15 @@ export const vidro = {
   boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 12px 32px rgba(0, 0, 0, 0.3)',
 } as const;
 
-// O mesmo vidro em peças pequenas que ficam em cima de um painel (chip,
-// botão do stepper): um tom mais claro, para não sumir no painel, e sem a
-// sombra larga.
+// O mesmo vidro em peças pequenas (chip, botão do stepper e os botões de
+// vidro antes do iOS 26): um tom mais claro, para não sumir quando fica em
+// cima de um painel, e sem a sombra larga.
 export const vidroDeControle = {
   backgroundColor: cores.superficieAlta,
   borderWidth: 1,
   borderColor: cores.borda,
   boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.14)',
 } as const;
-
-// O botão principal de cada tela ("Bati a meta", "Iniciar treino", "Salvar")
-// é cromado, com o recartilhado da barra nas pontas (Recartilhado.tsx).
-export const cromo = {
-  // A luz bate em cima e o metal escurece embaixo. Apertado, o gradiente
-  // inverte e o botão parece afundar.
-  fundo: 'linear-gradient(180deg, #E6EAEE 0%, #C9CFD5 100%)',
-  apertado: 'linear-gradient(180deg, #C3C9CF 0%, #DCE1E6 100%)',
-  cor: '#D5DADF', // o tom do meio, para quando o gradiente não é desenhado
-  texto: '#1F2328', // 10:1 sobre o tom mais escuro do cromo
-  sombra: 'inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 rgba(0, 0, 0, 0.35)',
-  sulco: 'rgba(31, 35, 40, 0.22)', // as linhas do recartilhado
-};
 
 export const espaco = {
   pequeno: 8,

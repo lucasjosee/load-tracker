@@ -27,11 +27,12 @@ export function EditorDeSeries({ reps, onMudar }: Props) {
           titulo="− Série"
           variante="secundario"
           compacto
+          peso={1}
           desabilitado={reps.length <= 1}
           onPress={() => onMudar(reps.slice(0, -1))}
         />
         {/* A série nova copia a última: quase sempre é o mesmo número. */}
-        <Botao titulo="+ Série" variante="secundario" compacto onPress={() => onMudar([...reps, reps[reps.length - 1] ?? 8])} />
+        <Botao titulo="+ Série" variante="secundario" compacto peso={1} onPress={() => onMudar([...reps, reps[reps.length - 1] ?? 8])} />
       </View>
     </View>
   );

@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Recartilhado } from './Recartilhado';
-import { cores, cromo, raio, vidroDeControle } from './tema';
+import { cores } from './tema';
+import { Vidro } from './Vidro';
 
 type Variante = 'primario' | 'secundario' | 'perigo';
 
@@ -12,66 +12,70 @@ interface Props {
   desabilitado?: boolean;
   compacto?: boolean;
   // Numa linha de botões, quanto da largura este ocupa em relação aos
-  // vizinhos (vira `flex`). Ex.: "Bati" com peso 2 ao lado de dois com peso 1.
+  // vizinhos (vira `flex`). Ex.: "Ajustar" e "Depois" com peso 1 cada,
+  // dividindo a linha ao meio.
   peso?: number;
 }
 
-// O primário é o botão cromado da tela (`cromo` em tema.ts); secundário e
-// perigo são de vidro, no tom de cima do cartão.
+// Todos os botões são pílulas. O primário é branco e cheio: é o mais claro
+// da tela, então é o primeiro que o olho acha. Secundário e perigo são de
+// vidro (Vidro.tsx); o perigo só muda a cor do texto.
+//
+// A altura é mínima, e não fixa: com o texto do iPhone em tamanho grande, o
+// botão cresce em vez de cortar o texto. O raio é a metade da altura mínima.
 export function Botao({ titulo, onPress, variante = 'primario', desabilitado = false, compacto = false, peso }: Props) {
-  const cromado = variante === 'primario';
+  const forma = compacto ? styles.formaCompacta : variante === 'primario' ? styles.formaPrincipal : styles.formaSecundaria;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: desabilitado }}
       disabled={desabilitado}
       onPress={onPress}
-      // `pressed` vem do Pressable: enquanto o dedo está no botão, o cromado
-      // afunda (gradiente invertido) e os outros escurecem.
-      style={({ pressed }) => [
-        styles.base,
-        compacto && styles.compacto,
-        peso !== undefined && [styles.comPeso, { flex: peso }],
-        styles[variante],
-        pressed && (cromado ? styles.cromoApertado : styles.apagado),
-        desabilitado && styles.apagado,
-      ]}
+      style={peso !== undefined && { flex: peso }}
     >
-      {/* No compacto não sobra largura para a textura sem encostar no texto. */}
-      {cromado && !compacto && <Recartilhado raio={raio} largura="18%" />}
-      <Text numberOfLines={1} style={[styles.texto, styles[`texto_${variante}`]]}>
-        {titulo}
-      </Text>
+      {/* `pressed` vem do Pressable: é verdadeiro enquanto o dedo está no botão. */}
+      {({ pressed }) => {
+        const texto = (
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.texto,
+              styles[`texto_${variante}`],
+              compacto && styles.textoCompacto,
+              // No primário quem apaga é o fundo (`principalApagado`).
+              desabilitado && variante !== 'primario' && styles.textoApagado,
+            ]}
+          >
+            {titulo}
+          </Text>
+        );
+        return variante === 'primario' ? (
+          <View style={[styles.forma, forma, styles.principal, pressed && styles.principalApertado, desabilitado && styles.principalApagado]}>
+            {texto}
+          </View>
+        ) : (
+          <Vidro apertado={pressed} style={[styles.forma, forma]}>
+            {texto}
+          </Vidro>
+        );
+      }}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: raio,
-    alignItems: 'center',
-  },
-  compacto: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexGrow: 1,
-  },
-  // Dividindo a linha, a largura já vem do `flex`: margem interna pequena
-  // para "Ajustar" caber num quarto do cartão.
-  comPeso: { paddingHorizontal: 6 },
-  // `backgroundColor` fica por baixo do gradiente: se ele não for desenhado,
-  // o botão continua cromado, só que liso.
-  primario: { backgroundColor: cromo.cor, backgroundImage: cromo.fundo, boxShadow: cromo.sombra },
-  cromoApertado: { backgroundImage: cromo.apertado },
-  // `superficieAlta` e não `superficie`: muitos botões ficam dentro de um
-  // cartão, e com a cor do cartão eles sumiriam.
-  secundario: vidroDeControle,
-  perigo: vidroDeControle,
-  apagado: { opacity: 0.5 },
-  texto: { fontSize: 16, fontWeight: '600' },
-  texto_primario: { color: cromo.texto, fontWeight: '700' },
+  forma: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  formaPrincipal: { minHeight: 56, borderRadius: 28 },
+  formaSecundaria: { minHeight: 50, borderRadius: 25 },
+  // Dividindo a linha com outros, a largura já vem do `flex`.
+  formaCompacta: { minHeight: 36, borderRadius: 18, paddingHorizontal: 14 },
+  principal: { backgroundColor: '#FFFFFF', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' },
+  principalApertado: { backgroundColor: '#D9E0EC' },
+  principalApagado: { backgroundColor: 'rgba(255, 255, 255, 0.35)', boxShadow: 'none' },
+  texto: { fontSize: 16, fontWeight: '600', paddingVertical: 8 },
+  textoCompacto: { fontSize: 15, paddingVertical: 6 },
+  texto_primario: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2, color: cores.textoSobrePrimaria },
   texto_secundario: { color: cores.texto },
   texto_perigo: { color: cores.perigo },
+  textoApagado: { opacity: 0.4 },
 });

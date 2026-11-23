@@ -237,8 +237,8 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
     <View style={styles.aviso}>
       <Text style={styles.textoAviso}>{textoTreinoPerdido(treino.nome)}</Text>
       <View style={styles.botoesAviso}>
-        <Botao titulo={`Fazer ${treino.nome}`} compacto onPress={() => onFazer(treino.id)} />
-        <Botao titulo="Agora não" variante="secundario" compacto onPress={onDispensar} />
+        <Botao titulo={`Fazer ${treino.nome}`} compacto peso={1} onPress={() => onFazer(treino.id)} />
+        <Botao titulo="Agora não" variante="secundario" compacto peso={1} onPress={onDispensar} />
       </View>
     </View>
   );
