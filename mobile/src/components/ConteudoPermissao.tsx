@@ -6,7 +6,7 @@ import { pedirPermissao } from '@/notificacoes/permissao';
 
 import { Botao } from './Botao';
 import { estilosComuns } from './Tela';
-import { cores, espaco } from './tema';
+import { cores, espaco, fundoDeTela } from './tema';
 
 interface Props {
   onTerminar: () => void; // chamado depois de "Ativar" (qualquer resposta) ou "Agora não"
@@ -41,7 +41,7 @@ export function ConteudoPermissao({ onTerminar }: Props) {
 }
 
 const styles = StyleSheet.create({
-  tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', backgroundColor: cores.fundo },
+  tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', ...fundoDeTela },
   titulo: { fontSize: 28, fontWeight: '700', color: cores.texto },
   botoes: { gap: espaco.pequeno },
 });

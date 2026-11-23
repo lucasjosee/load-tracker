@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { apiConfigurada } from '@/api/cliente';
 import { Botao } from '@/components/Botao';
 import { estilosComuns } from '@/components/Tela';
-import { cores, espaco } from '@/components/tema';
+import { cores, espaco, fundoDeTela } from '@/components/tema';
 import { useRascunho } from '@/hooks/onboarding';
 
 // Boas-vindas (§3.1, passo 1).
@@ -32,7 +32,7 @@ export default function TelaBoasVindas() {
 }
 
 const styles = StyleSheet.create({
-  tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', backgroundColor: cores.fundo },
+  tela: { flex: 1, padding: espaco.grande, gap: espaco.grande, justifyContent: 'center', ...fundoDeTela },
   titulo: { fontSize: 34, fontWeight: '800', color: cores.texto },
   frase: { fontSize: 22, fontWeight: '600', color: cores.texto },
   botoes: { gap: espaco.pequeno, marginTop: espaco.grande },

@@ -9,7 +9,7 @@ import { Opcoes } from '@/components/Opcoes';
 import { SeletorDeDias } from '@/components/SeletorDeDias';
 import { Stepper } from '@/components/Stepper';
 import { estilosComuns, Secao, Tela } from '@/components/Tela';
-import { cores } from '@/components/tema';
+import { cores, raio } from '@/components/tema';
 import { salvarDivisaoDoOnboarding } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
 import { formatarHorario, lerHorario } from '@/domain/horario';
@@ -244,8 +244,8 @@ export default function TelaRevisao() {
 
 const styles = StyleSheet.create({
   treino: { gap: 12 },
-  nomeTreino: { fontWeight: '600', backgroundColor: cores.fundo },
-  exercicio: { gap: 8, padding: 12, borderRadius: 10, backgroundColor: cores.fundo },
+  nomeTreino: { fontWeight: '600' },
+  exercicio: { gap: 8, padding: 12, borderRadius: raio, backgroundColor: cores.campo },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   rotulo: { fontSize: 16, color: cores.texto },
   campoCurto: { minWidth: 96, textAlign: 'right' },

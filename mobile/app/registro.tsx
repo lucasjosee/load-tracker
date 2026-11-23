@@ -142,5 +142,14 @@ export default function TelaRegistro() {
 
 const styles = StyleSheet.create({
   texto: { minHeight: 100, textAlignVertical: 'top' },
-  aviso: { backgroundColor: cores.aviso, borderRadius: raio, padding: 12, fontSize: 15, color: cores.texto },
+  aviso: {
+    backgroundColor: cores.aviso,
+    borderWidth: 1,
+    borderColor: cores.desceFundo,
+    borderRadius: raio,
+    overflow: 'hidden', // sem isto o iOS não arredonda o fundo de um Text
+    padding: 12,
+    fontSize: 15,
+    color: cores.texto,
+  },
 });

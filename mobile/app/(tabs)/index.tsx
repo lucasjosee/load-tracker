@@ -11,7 +11,7 @@ import { LinhaDoExercicio } from '@/components/LinhaDoExercicio';
 import { FaixaDaSemana } from '@/components/FaixaDaSemana';
 import { ResumoDoTreino } from '@/components/ResumoDoTreino';
 import { estilosComuns, ListaEmPainel, Secao, Tela } from '@/components/Tela';
-import { cores, raio } from '@/components/tema';
+import { cores, fundoDeTela, raio } from '@/components/tema';
 import { carregarHoje, type Hoje, type ItemDoTreino } from '@/db/consultas';
 import { desfazerRegistro, iniciarTreino } from '@/db/operacoes';
 import { paraDataLocal } from '@/domain/datas';
@@ -245,7 +245,7 @@ function AvisoTreinoPerdido({ treino, onFazer, onDispensar }: AvisoProps) {
 }
 
 const styles = StyleSheet.create({
-  tela: { flex: 1, backgroundColor: cores.fundo },
+  tela: { flex: 1, ...fundoDeTela },
   cabecalho: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,6 +272,8 @@ const styles = StyleSheet.create({
   semana: { padding: 18, gap: 16 },
   aviso: {
     backgroundColor: cores.aviso,
+    borderWidth: 1,
+    borderColor: cores.desceFundo,
     borderRadius: raio,
     padding: 16,
     gap: 10,

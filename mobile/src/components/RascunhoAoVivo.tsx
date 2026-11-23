@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DIAS_A_PARTIR_DE_SEGUNDA, LETRAS_DOS_DIAS } from '@/domain/datas';
 import { textoDoResumoDoRascunho, textoDoTreinoNoResumo, type ResumoDoRascunho } from '@/domain/onboarding';
 
-import { cores, relevo } from './tema';
+import { cores } from './tema';
 
 // O que a conversa do onboarding já montou, fixo no topo da tela: a semana
 // (um círculo por dia, aceso quando o dia já tem treino) e uma linha de
@@ -54,8 +54,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     backgroundColor: cores.superficie,
-    // Em relevo, e não com uma linha embaixo: a conversa passa por baixo dele.
-    boxShadow: relevo.painel,
+    // Uma borda embaixo e uma sombra: a conversa passa por baixo dele.
+    borderBottomWidth: 1,
+    borderBottomColor: cores.borda,
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
   },
   semana: { flexDirection: 'row', justifyContent: 'space-between' },
   dia: {

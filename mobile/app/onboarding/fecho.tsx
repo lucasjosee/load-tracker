@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Botao } from '@/components/Botao';
 import { estilosComuns, Tela } from '@/components/Tela';
-import { cores, espaco } from '@/components/tema';
+import { cores, espaco, fundoDeTela } from '@/components/tema';
 import { carregarPrimeiraMeta, type PrimeiraMeta } from '@/db/consultas';
 import { paraDataLocal } from '@/domain/datas';
 import { textoDoFecho, textoMeta, textoPrimeiroTreino, textoSeries } from '@/domain/textos';
@@ -60,7 +60,7 @@ export default function TelaFecho() {
 }
 
 const styles = StyleSheet.create({
-  carregando: { flex: 1, backgroundColor: cores.fundo },
+  carregando: { flex: 1, ...fundoDeTela },
   cartao: { gap: espaco.medio, marginVertical: espaco.pequeno },
   treino: { fontSize: 17, fontWeight: '700', color: cores.texto },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: espaco.medio },

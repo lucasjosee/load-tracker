@@ -37,7 +37,7 @@ interface Props {
 // O exercício da vez, na tela do treino (§3.2): um só, grande, com tudo o que
 // a pessoa precisa entre uma série e outra. A meta é o herói: número enorme,
 // sozinho na linha, para ser lido de relance num lugar de luz ruim. Ela e a
-// régua ficam no único painel em relevo; o resto fica direto no fundo.
+// régua ficam no único painel de vidro; o resto fica direto no fundo.
 export function ExercicioEmFoco({ item, onCheckin, onAdiar, onAbrir, descansoS }: Props) {
   const { exercicio, estado, mudanca, estagnacao, ultimaSessao } = item;
   const [ajustando, setAjustando] = useState(false);
@@ -205,16 +205,8 @@ const styles = StyleSheet.create({
   vezes: { fontSize: 34, fontWeight: '400', letterSpacing: 0, color: cores.textoSecundario },
   detalheDaMeta: { fontSize: 17, fontWeight: '500', color: cores.textoSecundario },
   lado: { fontWeight: '700', color: cores.texto },
-  // Divisória cavada entre a meta e a régua: escura em cima, com luz embaixo.
-  sulco: {
-    height: 2,
-    marginTop: 14,
-    marginBottom: 12,
-    borderTopWidth: 1,
-    borderTopColor: cores.sulco,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
+  // A linha entre a meta e a régua.
+  sulco: { height: 1, marginTop: 14, marginBottom: 12, backgroundColor: cores.divisoria },
   motivo: { fontSize: 15, lineHeight: 21, color: cores.textoSecundario, marginTop: 12 },
   alerta: { fontSize: 15, lineHeight: 21, color: cores.desce, marginTop: 4 },
   botoes: { gap: 8, marginTop: 20 },

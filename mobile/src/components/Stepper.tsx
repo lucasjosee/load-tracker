@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { arredondarKg } from '@/domain/progressao';
 
-import { cores, relevo } from './tema';
+import { cores, vidroDeControle } from './tema';
 
 interface Props {
   valor: number;
@@ -58,8 +58,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: cores.superficieAlta,
-    boxShadow: relevo.botao,
+    ...vidroDeControle,
     alignItems: 'center',
     justifyContent: 'center',
   },

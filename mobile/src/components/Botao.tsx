@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { Recartilhado } from './Recartilhado';
-import { cores, cromo, raio, relevo } from './tema';
+import { cores, cromo, raio, vidroDeControle } from './tema';
 
 type Variante = 'primario' | 'secundario' | 'perigo';
 
@@ -17,7 +17,7 @@ interface Props {
 }
 
 // O primário é o botão cromado da tela (`cromo` em tema.ts); secundário e
-// perigo são peças de aço em relevo, no tom de cima do cartão.
+// perigo são de vidro, no tom de cima do cartão.
 export function Botao({ titulo, onPress, variante = 'primario', desabilitado = false, compacto = false, peso }: Props) {
   const cromado = variante === 'primario';
   return (
@@ -67,8 +67,8 @@ const styles = StyleSheet.create({
   cromoApertado: { backgroundImage: cromo.apertado },
   // `superficieAlta` e não `superficie`: muitos botões ficam dentro de um
   // cartão, e com a cor do cartão eles sumiriam.
-  secundario: { backgroundColor: cores.superficieAlta, boxShadow: relevo.botao },
-  perigo: { backgroundColor: cores.superficieAlta, boxShadow: relevo.botao },
+  secundario: vidroDeControle,
+  perigo: vidroDeControle,
   apagado: { opacity: 0.5 },
   texto: { fontSize: 16, fontWeight: '600' },
   texto_primario: { color: cromo.texto, fontWeight: '700' },

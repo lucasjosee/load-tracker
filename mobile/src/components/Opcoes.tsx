@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { cores, relevo } from './tema';
+import { cores, vidroDeControle } from './tema';
 
 export interface Opcao<T> {
   valor: T;
@@ -43,10 +43,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 999,
-    backgroundColor: cores.superficieAlta,
-    boxShadow: relevo.botao,
+    ...vidroDeControle,
   },
-  chipMarcado: { backgroundColor: cores.primaria },
+  chipMarcado: { backgroundColor: cores.primaria, borderColor: cores.primaria },
   texto: { fontSize: 15, color: cores.texto },
   textoMarcado: { color: cores.textoSobrePrimaria, fontWeight: '600' },
 });

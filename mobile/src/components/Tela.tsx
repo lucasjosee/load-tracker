@@ -1,7 +1,7 @@
 import { Children, isValidElement, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { cores, espaco, gradienteDoFundo, raio, raioDoCartao, relevo, tipografia } from './tema';
+import { cores, espaco, fundoDeTela, raio, raioDoCartao, tipografia, vidro } from './tema';
 
 interface Props {
   titulo?: string;
@@ -46,14 +46,15 @@ export function Secao({ titulo, children }: SecaoProps) {
   );
 }
 
-// Várias linhas num painel só, separadas por sulcos: a lista de exercícios da
-// aba Hoje e as listas da tela do treino. Um cartão por linha repetiria borda
-// e sombra a cada item; num painel só, a lista se lê como uma peça.
+// Várias linhas num painel de vidro só, separadas por uma linha fina: a lista
+// de exercícios da aba Hoje e as listas da tela do treino. Um cartão por linha
+// repetiria borda e sombra a cada item; num painel só, a lista se lê como uma
+// peça.
 export function ListaEmPainel({ children }: { children: ReactNode }) {
   return (
     <View style={[estilosComuns.cartao, styles.painelDeLista]}>
       {Children.toArray(children).map((linha, indice) => (
-        <View key={isValidElement(linha) && linha.key !== null ? linha.key : indice} style={indice > 0 && styles.comSulco}>
+        <View key={isValidElement(linha) && linha.key !== null ? linha.key : indice} style={indice > 0 && styles.comDivisoria}>
           {linha}
         </View>
       ))}
@@ -62,24 +63,22 @@ export function ListaEmPainel({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  // A cor fica por baixo do gradiente: é o que aparece se ele não for desenhado.
-  fundo: { backgroundColor: cores.fundo, backgroundImage: gradienteDoFundo },
+  fundo: fundoDeTela,
   conteudo: { padding: espaco.grande, gap: espaco.medio, paddingBottom: 48 },
   titulo: { ...tipografia.titulo, marginBottom: espaco.pequeno },
   secao: { gap: espaco.pequeno, marginTop: espaco.pequeno },
-  tituloSecao: { ...tipografia.tituloDeSecao, textTransform: 'uppercase', letterSpacing: 0.5 },
+  // Um pouco para dentro, alinhado com o texto de dentro dos painéis.
+  tituloSecao: { ...tipografia.tituloDeSecao, marginHorizontal: 4 },
   // Sem margem de cima e de baixo: cada linha já tem a dela.
   painelDeLista: { paddingVertical: 0, gap: 0 },
-  // O sulco entre duas linhas: escuro, com um filete de luz logo abaixo.
-  comSulco: { borderTopWidth: 1, borderTopColor: cores.sulco, boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)' },
+  comDivisoria: { borderTopWidth: 1, borderTopColor: cores.divisoria },
 });
 
 export const estilosComuns = StyleSheet.create({
   cartao: {
+    ...vidro,
     padding: 16,
     borderRadius: raioDoCartao,
-    backgroundColor: cores.superficie,
-    boxShadow: relevo.painel,
     gap: 4,
   },
   textoSecundario: tipografia.secundario,
@@ -88,8 +87,9 @@ export const estilosComuns = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: raio,
-    backgroundColor: cores.superficie,
-    boxShadow: relevo.afundado, // o campo é um sulco: é onde se escreve
+    borderWidth: 1,
+    borderColor: cores.divisoria,
+    backgroundColor: cores.campo, // mais escuro que o vidro: é onde se escreve
   },
   erro: { fontSize: 15, color: cores.perigo },
 });

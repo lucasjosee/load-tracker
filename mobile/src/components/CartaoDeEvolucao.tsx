@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polygon, Polyline } from 'react-native-svg';
 
@@ -83,14 +83,9 @@ function Linha({ valores, altura, cor }: { valores: readonly number[]; altura: n
     >
       {largura > 0 && primeiro !== undefined && ultimo !== undefined && (
         <Svg width={largura} height={altura}>
-          {/* Três guias gravadas no painel (em cima, no meio e embaixo), como
-              as marcas de uma escala: cada uma é um risco escuro com um
-              filete de luz logo abaixo. */}
+          {/* Três guias (em cima, no meio e embaixo), como as marcas de uma escala. */}
           {guias(altura).map((y) => (
-            <Fragment key={y}>
-              <Line x1={0} y1={y} x2={largura} y2={y} stroke={cores.sulco} strokeWidth={1} />
-              <Line x1={0} y1={y + 1} x2={largura} y2={y + 1} stroke="rgba(255, 255, 255, 0.05)" strokeWidth={1} />
-            </Fragment>
+            <Line key={y} x1={0} y1={y} x2={largura} y2={y} stroke={cores.divisoria} strokeWidth={1} />
           ))}
           {/* A área embaixo da linha, bem apagada: a linha fechada até a base. */}
           <Polygon

@@ -94,7 +94,6 @@ function estiloDoNumero({ situacao }: PontoDaRegua, destaque: string) {
 const styles = StyleSheet.create({
   linha: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   escala: { flex: 1 },
-  // Cavado no painel: escuro por dentro, com um filete de luz embaixo.
   trilho: {
     position: 'absolute',
     left: COLUNA / 2,
@@ -102,8 +101,7 @@ const styles = StyleSheet.create({
     top: PONTEIRO + MARCAS / 2 - TRILHO / 2,
     height: TRILHO,
     borderRadius: TRILHO / 2,
-    backgroundColor: cores.sulco,
-    boxShadow: '0 1px 0 rgba(255, 255, 255, 0.06)',
+    backgroundColor: cores.superficieAlta,
   },
   preenchido: { height: TRILHO, borderRadius: TRILHO / 2, backgroundColor: cores.texto },
   colunas: { flexDirection: 'row', justifyContent: 'space-between' },

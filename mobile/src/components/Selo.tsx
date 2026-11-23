@@ -4,13 +4,13 @@ import type { DirecaoDoSelo, Selo as DadosDoSelo } from '@/domain/textos';
 
 import { cores } from './tema';
 
-// Selo preenchido: lê melhor de longe do que só o contorno. Só "sobe" usa a
-// cor de marca cheia; os outros ficam discretos para ela se destacar.
+// Uma pílula com a cor da direção no texto e a mesma cor, bem apagada, no
+// fundo: hortelã para subir, âmbar para recuar, cinza para manter.
 const COR: Record<DirecaoDoSelo, { fundo: string; texto: string }> = {
-  sobe: { fundo: cores.sobe, texto: cores.textoSobrePrimaria },
-  desce: { fundo: cores.aviso, texto: cores.desce },
-  mantem: { fundo: cores.superficieAlta, texto: cores.mantem },
-  inicio: { fundo: cores.superficieAlta, texto: cores.texto },
+  sobe: { fundo: cores.sobeFundo, texto: cores.sobe },
+  desce: { fundo: cores.desceFundo, texto: cores.desce },
+  mantem: { fundo: cores.divisoria, texto: cores.mantem },
+  inicio: { fundo: cores.divisoria, texto: cores.texto },
 };
 
 // O selo de mudança do cartão: "↑ +1 rep", "↓ deload", "= mantém".
@@ -25,9 +25,9 @@ export function Selo({ selo }: { selo: DadosDoSelo }) {
 const styles = StyleSheet.create({
   selo: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     paddingVertical: 3,
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     borderRadius: 999,
     overflow: 'hidden', // sem isto o iOS não arredonda o fundo de um Text
   },

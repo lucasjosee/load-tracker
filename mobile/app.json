@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "loadtracker",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#2B3036",
+    "backgroundColor": "#0B1224",
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#2B3036",

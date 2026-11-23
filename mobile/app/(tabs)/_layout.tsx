@@ -6,9 +6,10 @@ import { cores } from '@/components/tema';
 // comportamento são os mesmos dos apps da Apple. Os ícones são SF Symbols,
 // que já vêm no sistema: não precisamos guardar imagens de ícone no projeto.
 // O `name` de cada Trigger é o nome do arquivo da rota nesta pasta.
+// A aba ativa fica em branco, como no vidro do iOS 26.
 export default function TabsLayout() {
   return (
-    <NativeTabs tintColor={cores.primaria}>
+    <NativeTabs tintColor={cores.texto}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Hoje</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'dumbbell', selected: 'dumbbell.fill' }} />
