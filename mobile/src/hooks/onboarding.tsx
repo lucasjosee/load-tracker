@@ -7,24 +7,17 @@ import type { Rascunho } from '@/api/contrato';
 // estado global, só o recurso que já vem no React.
 
 // Quem decide se o app mostra o onboarding ou as abas é app/_layout.tsx; as
-// telas só avisam. `concluir` é chamado pela última tela do onboarding, e
-// `refazer` pelo botão de desenvolvimento da aba Divisão.
+// telas só avisam. `concluir` é chamado pela última tela do onboarding.
 export interface PassagemDoOnboarding {
   concluir: () => void;
-  refazer: () => void;
 }
 
 export const ContextoFimDoOnboarding = createContext<PassagemDoOnboarding>({
   concluir: () => undefined,
-  refazer: () => undefined,
 });
 
 export function useConcluirOnboarding(): () => void {
   return useContext(ContextoFimDoOnboarding).concluir;
-}
-
-export function useRefazerOnboarding(): () => void {
-  return useContext(ContextoFimDoOnboarding).refazer;
 }
 
 // O rascunho da divisão, compartilhado entre a conversa e a revisão.

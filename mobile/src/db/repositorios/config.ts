@@ -10,7 +10,7 @@ export type ChaveDeConfig =
   | 'horario_notificacao' // 'HH:MM' do aviso do treino
   | 'onboarding_concluido' // '1' depois do onboarding
   | 'descanso_segundos' // duração do cronômetro de descanso (domain/descanso.ts)
-  | 'seed_dispensado' // '1' = o seed de desenvolvimento não regrava a divisão (dadosFicticios.ts)
+  | 'seed_aplicado' // '1' = a divisão do seed já entrou; ele não apaga o banco de novo (banco.ts)
   // Perfil do onboarding (§3.1). Cada chave só existe se a pessoa informou.
   | 'nome'
   | 'objetivo' // 'forca' | 'hipertrofia': escolhe a faixa de reps padrão (§5.1)

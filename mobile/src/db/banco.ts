@@ -1,13 +1,12 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { paraDataLocal } from '@/domain/datas';
+import { TABELAS_DO_BACKUP } from '@/domain/backup';
 
 import { MIGRACOES, migracoesPendentes } from './migracoes';
-import { gravarExercicioNovo } from './operacoes';
 import { obterConfig, salvarConfig } from './repositorios/config';
-import { proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
+import { inserirExercicio, proximaOrdem, vincularExercicioAoTreino } from './repositorios/exercicios';
 import { definirTreinoDoDia, inserirTreino } from './repositorios/treinos';
-import { deveAplicarSeed, DIVISAO_SEED, type TreinoSeed } from './seed';
+import { DIVISAO_SEED, type TreinoSeed } from './seed';
 import { emTransacao, PRAGMAS_DA_CONEXAO } from './transacao';
 
 export const NOME_DO_BANCO = 'load-tracker.db';
@@ -25,7 +24,7 @@ export async function inicializarBanco(db: SQLiteDatabase): Promise<void> {
   // No Expo Go o app sempre roda em modo dev. Num build de produção o seed
   // nunca roda (os dados dele continuam no bundle, só não são gravados).
   if (__DEV__) {
-    await aplicarSeedSeBancoVazio(db);
+    await aplicarSeedUmaVez(db);
   }
 }
 
@@ -46,40 +45,52 @@ async function aplicarMigracoes(db: SQLiteDatabase): Promise<void> {
   }
 }
 
-async function aplicarSeedSeBancoVazio(db: SQLiteDatabase): Promise<void> {
-  const linha = await db.getFirstAsync<{ treinos: number; exercicios: number }>(
-    'SELECT (SELECT COUNT(*) FROM treino) AS treinos, (SELECT COUNT(*) FROM exercicio) AS exercicios',
-  );
-  const dispensado = (await obterConfig(db, 'seed_dispensado')) === '1';
-  if (!deveAplicarSeed(linha?.treinos ?? 0, linha?.exercicios ?? 0, dispensado)) {
+// O seed é a divisão real do Lucas (seed.ts). Ele entra uma vez só, e troca
+// tudo o que o aparelho tiver de antes (os dados de teste do desenvolvimento)
+// pela divisão, sem histórico. A marca `seed_aplicado` é o que impede de
+// acontecer de novo: depois dela, nada aqui apaga o banco. Vale também para
+// quem exclui todos os treinos para refazer a divisão: o seed não volta.
+async function aplicarSeedUmaVez(db: SQLiteDatabase): Promise<void> {
+  if ((await obterConfig(db, 'seed_aplicado')) === '1') {
     return;
   }
-  // Tudo ou nada: um seed pela metade deixaria o banco "não vazio" e o seed
-  // nunca mais rodaria para completar.
-  await emTransacao(db, (txn) => gravarDivisao(txn, DIVISAO_SEED, paraDataLocal(new Date())));
+  // Tudo ou nada: se algo falhar no meio, os dados de antes ficam e a troca
+  // é tentada de novo na próxima abertura.
+  await emTransacao(db, async (txn) => {
+    await apagarDivisaoEHistorico(txn);
+    await gravarDivisao(txn, DIVISAO_SEED);
+    await salvarConfig(txn, 'seed_aplicado', '1');
+  });
 }
 
-// `data` é o dia em que a divisão "começou": hoje no seed normal, semanas
-// atrás quando o histórico fictício é gerado (dadosFicticios.ts).
-export async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[], data: string): Promise<void> {
+// Dos filhos para os pais, como no restaurar backup. A config (horário do
+// aviso, descanso, perfil) fica: não tem a ver com a divisão nem com o
+// histórico.
+async function apagarDivisaoEHistorico(txn: SQLiteDatabase): Promise<void> {
+  for (const tabela of [...TABELAS_DO_BACKUP].reverse()) {
+    if (tabela !== 'config') {
+      await txn.execAsync(`DELETE FROM ${tabela}`);
+    }
+  }
+}
+
+// Os exercícios entram sem carga: sem registro de onboarding e, portanto,
+// sem meta. No primeiro treino a pessoa registra pelo Ajustar o que fez, e a
+// meta sai do motor a partir daí (§5.3, passo 2).
+async function gravarDivisao(txn: SQLiteDatabase, divisao: readonly TreinoSeed[]): Promise<void> {
   // Exercício com o mesmo nome em dois treinos é gravado uma vez só.
   const idPorNome = new Map<string, string>();
 
   for (const treinoSeed of divisao) {
     const treino = await inserirTreino(txn, treinoSeed.nome);
-    await definirTreinoDoDia(txn, treinoSeed.diaSemana, treino.id);
+    for (const dia of treinoSeed.dias) {
+      await definirTreinoDoDia(txn, dia, treino.id);
+    }
 
     for (const exercicioSeed of treinoSeed.exercicios) {
-      const existente = idPorNome.get(exercicioSeed.nome);
-      if (existente !== undefined) {
-        await vincularExercicioAoTreino(txn, treino.id, existente, await proximaOrdem(txn, treino.id));
-        continue;
-      }
-      // O mesmo caminho do formulário da Divisão: registro de onboarding e
-      // primeira meta pelo motor, para o estado ser recalculável (§9).
-      const { cargaKg, repsAtuais, ...novo } = exercicioSeed;
-      const exercicio = await gravarExercicioNovo(txn, treino.id, { ...novo, nota: null }, { cargaKg, reps: repsAtuais }, data);
-      idPorNome.set(exercicio.nome, exercicio.id);
+      const id = idPorNome.get(exercicioSeed.nome) ?? (await inserirExercicio(txn, exercicioSeed)).id;
+      idPorNome.set(exercicioSeed.nome, id);
+      await vincularExercicioAoTreino(txn, treino.id, id, await proximaOrdem(txn, treino.id));
     }
   }
   // A divisão do seed já faz o papel do onboarding.

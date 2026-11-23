@@ -12,6 +12,7 @@ import {
 } from '@/domain/backup';
 
 import { MIGRACOES } from './migracoes';
+import { salvarConfig } from './repositorios/config';
 import { emTransacao } from './transacao';
 
 // Os nomes das tabelas entram no SQL por interpolação porque SQLite não
@@ -59,6 +60,10 @@ export async function escolherArquivoDeBackup(): Promise<string | null> {
 // Troca TUDO o que está no banco pelo conteúdo do backup, já conferido por
 // `lerBackup` (domínio). Uma transação só: se uma linha for recusada pelo
 // banco (CHECK ou chave estrangeira), nada muda e os dados de antes ficam.
+//
+// No fim, a marca `seed_aplicado`: um backup antigo não a tem, e sem ela o
+// seed de desenvolvimento (banco.ts) apagaria os dados restaurados na
+// próxima abertura do app.
 export async function restaurarBackup(db: SQLiteDatabase, backup: BackupLido): Promise<void> {
   await emTransacao(db, async (txn) => {
     // Apaga dos filhos para os pais; insere dos pais para os filhos.
@@ -80,5 +85,6 @@ export async function restaurarBackup(db: SQLiteDatabase, backup: BackupLido): P
         );
       }
     }
+    await salvarConfig(txn, 'seed_aplicado', '1');
   });
 }

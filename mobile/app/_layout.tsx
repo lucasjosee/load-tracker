@@ -38,9 +38,7 @@ function Navegacao() {
   }
 
   return (
-    <ContextoFimDoOnboarding.Provider
-      value={{ concluir: () => setEmOnboarding(false), refazer: () => setEmOnboarding(true) }}
-    >
+    <ContextoFimDoOnboarding.Provider value={{ concluir: () => setEmOnboarding(false) }}>
       <Stack screenOptions={OPCOES_DE_NAVEGACAO}>
         <Stack.Protected guard={!emOnboarding}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
