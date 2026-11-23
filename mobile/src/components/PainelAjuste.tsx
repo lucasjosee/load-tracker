@@ -32,7 +32,16 @@ export function PainelAjuste({ cargaInicial, repsIniciais, passoKg, porLado, ult
       {ultimaVez !== null && <Text style={styles.ultimaVez}>{ultimaVez}</Text>}
       <View style={styles.linha}>
         <Text style={styles.rotulo}>Carga</Text>
-        <Stepper valor={carga} onMudar={setCarga} passo={passoKg} formatar={(kg) => formatarCarga(kg, porLado)} rotulo="carga" />
+        {/* A carga também dá para digitar: no primeiro registro ela começa em 0. */}
+        <Stepper
+          valor={carga}
+          onMudar={setCarga}
+          passo={passoKg}
+          formatar={(kg) => formatarCarga(kg, porLado)}
+          rotulo="carga"
+          digitavel
+          unidade={porLado ? 'kg lado' : 'kg'}
+        />
       </View>
 
       <EditorDeSeries reps={reps} onMudar={setReps} />

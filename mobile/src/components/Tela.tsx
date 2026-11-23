@@ -21,6 +21,9 @@ export function Tela({ titulo, folgaNoFim = 0, children }: Props) {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={[styles.conteudo, folgaNoFim > 0 && { paddingBottom: 48 + folgaNoFim }]}
       keyboardShouldPersistTaps="handled"
+      // Quando o teclado abre, a rolagem ganha espaço embaixo e sobe até o
+      // campo que está sendo digitado, para ele não ficar escondido.
+      automaticallyAdjustKeyboardInsets
     >
       {titulo !== undefined && (
         <Text style={styles.titulo} accessibilityRole="header">
