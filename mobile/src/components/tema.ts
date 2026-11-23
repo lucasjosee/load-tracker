@@ -44,12 +44,15 @@ export const cores = {
 };
 
 // O gradiente de marca, de ciano para índigo. Fica no que mostra avanço: o
-// trecho já feito da régua, a barra de progresso e a linha dos gráficos.
+// trecho já feito da régua, a barra de progresso e a linha dos gráficos. Na
+// horizontal nas peças compridas; na diagonal nas redondas (o círculo do
+// botão de iniciar, o "feito" da lista e da semana).
 export const aurora = {
   inicio: '#5CE1E6',
   fim: '#7B8CFF',
 };
 export const gradienteAurora = `linear-gradient(90deg, ${aurora.inicio} 0%, ${aurora.fim} 100%)`;
+export const gradienteAuroraDiagonal = `linear-gradient(135deg, ${aurora.inicio} 0%, ${aurora.fim} 100%)`;
 
 // O fundo das telas: azul-noite, com três manchas de cor bem suaves (azul no
 // canto de cima, verde-água à direita, violeta embaixo). São elas que fazem

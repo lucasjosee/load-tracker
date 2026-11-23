@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { LETRAS_DOS_DIAS, NOMES_DOS_DIAS } from '@/domain/datas';
 import type { DiaDaFaixa, SituacaoDoDia } from '@/domain/hoje';
 
-import { cores } from './tema';
+import { cores, gradienteAuroraDiagonal } from './tema';
 
 const DESCRICAO: Record<SituacaoDoDia, string> = {
   treinado: 'treinou',
@@ -43,11 +43,13 @@ const styles = StyleSheet.create({
   letra: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario },
   letraDeHoje: { color: cores.texto, fontWeight: '800' },
   circulo: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  treinado: { backgroundColor: cores.primaria },
-  perdido: { backgroundColor: cores.superficieAlta },
-  planejado: { borderWidth: 2, borderColor: cores.borda },
+  treinado: { backgroundColor: cores.primaria, backgroundImage: gradienteAuroraDiagonal },
+  perdido: { backgroundColor: cores.desceFundo },
+  // O contorno precisa aparecer tanto quanto um círculo cheio: na cor do
+  // texto secundário, e não na borda translúcida do vidro.
+  planejado: { borderWidth: 2, borderColor: cores.textoSecundario },
   descanso: {},
   feito: { fontSize: 16, fontWeight: '800', color: cores.textoSobrePrimaria },
-  traco: { fontSize: 16, fontWeight: '800', color: cores.textoSecundario },
-  ponto: { width: 6, height: 6, borderRadius: 3, backgroundColor: cores.borda },
+  traco: { fontSize: 16, fontWeight: '800', color: cores.desce },
+  ponto: { width: 6, height: 6, borderRadius: 3, backgroundColor: cores.superficieAlta },
 });

@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Polygon, Polyline } from 'react-native-svg';
 
 import { formatarDiaMes } from '@/domain/datas';
 import type { PontoDeEvolucao } from '@/domain/metricas';
 import { formatarPercentual } from '@/domain/textos';
 
-import { escalarPontos, paraPolyline } from './escala';
+import { CurvaAurora } from './CurvaAurora';
+import { escalarPontos } from './escala';
 import { estilosComuns } from './Tela';
 import { cores } from './tema';
 
-const ALTURA_COMPACTA = 64;
+const ALTURA_COMPACTA = 70;
 const ALTURA_GRANDE = 130;
-const MARGEM = 5;
+const MARGEM = 10; // cabe o halo do último ponto sem ele ser cortado na borda
 
 interface Props {
   rotulo: string; // "Força no Push", "Força geral"
@@ -37,7 +37,9 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
     );
   }
 
-  // A cor segue o número que a pessoa lê, já arredondado: "0%" nunca fica na cor de subir.
+  // A cor do percentual segue o número que a pessoa lê, já arredondado: "0%"
+  // nunca fica na cor de subir. A linha fica sempre na aurora (a marca): a
+  // direção já está no número e no desenho dela.
   const pontosPercentuais = Math.round(ultimo.variacao * 100);
   const cor = pontosPercentuais > 0 ? cores.sobe : pontosPercentuais < 0 ? cores.desce : cores.mantem;
 
@@ -58,7 +60,7 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
           {formatarPercentual(ultimo.variacao)}
         </Text>
       </View>
-      <Linha valores={pontos.map((ponto) => ponto.variacao)} altura={grande ? ALTURA_GRANDE : ALTURA_COMPACTA} cor={cor} />
+      <Linha valores={pontos.map((ponto) => ponto.variacao)} altura={grande ? ALTURA_GRANDE : ALTURA_COMPACTA} />
       <View style={styles.eixo}>
         <Text style={styles.data}>{formatarDiaMes(pontos[0]?.data ?? ultimo.data)}</Text>
         <Text style={styles.data}>{formatarDiaMes(ultimo.data)}</Text>
@@ -67,12 +69,10 @@ export function CartaoDeEvolucao({ rotulo, periodo, pontos, grande = false }: Pr
   );
 }
 
-function Linha({ valores, altura, cor }: { valores: readonly number[]; altura: number; cor: string }) {
+function Linha({ valores, altura }: { valores: readonly number[]; altura: number }) {
   // A largura só é conhecida depois que a tela é desenhada (onLayout).
   const [largura, setLargura] = useState(0);
   const pontos = escalarPontos(valores, { largura, altura, margem: MARGEM });
-  const primeiro = pontos[0];
-  const ultimo = pontos[pontos.length - 1];
 
   return (
     <View
@@ -81,47 +81,26 @@ function Linha({ valores, altura, cor }: { valores: readonly number[]; altura: n
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      {largura > 0 && primeiro !== undefined && ultimo !== undefined && (
-        <Svg width={largura} height={altura}>
-          {/* Três guias (em cima, no meio e embaixo), como as marcas de uma escala. */}
-          {guias(altura).map((y) => (
-            <Line key={y} x1={0} y1={y} x2={largura} y2={y} stroke={cores.divisoria} strokeWidth={1} />
-          ))}
-          {/* A área embaixo da linha, bem apagada: a linha fechada até a base. */}
-          <Polygon
-            points={`${paraPolyline(pontos)} ${ultimo.x},${altura} ${primeiro.x},${altura}`}
-            fill={cor}
-            opacity={0.12}
-          />
-          <Polyline points={paraPolyline(pontos)} fill="none" stroke={cor} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-          <Circle cx={ultimo.x} cy={ultimo.y} r={4} fill={cor} />
-        </Svg>
-      )}
+      {largura > 0 && <CurvaAurora pontos={pontos} largura={largura} altura={altura} />}
     </View>
   );
 }
 
-// As alturas das três guias: as bordas e o meio da área onde a linha corre.
-function guias(altura: number): number[] {
-  const meio = altura / 2;
-  return [MARGEM, meio, altura - MARGEM].map(Math.round);
-}
-
 const styles = StyleSheet.create({
-  cartao: { padding: 16, gap: 10 },
+  cartao: { padding: 16, paddingBottom: 12, gap: 10 },
   topo: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   textos: { flexShrink: 1 },
-  rotulo: { fontSize: 15, fontWeight: '700', color: cores.texto },
-  periodo: { fontSize: 14, color: cores.textoSecundario },
+  rotulo: { fontSize: 15, fontWeight: '600', color: cores.texto },
+  periodo: { fontSize: 13, color: cores.textoSecundario },
   // Com a linha justa, como os outros números grandes.
   percentual: {
     fontSize: 40,
     lineHeight: 42,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontWeight: '700',
+    letterSpacing: -1.5,
     fontVariant: ['tabular-nums'],
   },
-  percentualGrande: { fontSize: 52, lineHeight: 54 },
+  percentualGrande: { fontSize: 52, lineHeight: 54, letterSpacing: -2 },
   eixo: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 },
-  data: { fontSize: 13, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
+  data: { fontSize: 12, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
 });

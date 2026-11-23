@@ -72,7 +72,7 @@ export function CalendarioDeTreinos({ calendario }: { calendario: Calendario }) 
         </ScrollView>
 
         <View style={[styles.legenda, styles.margem]}>
-          <View style={[styles.amostra, { backgroundColor: cores.superficieAlta }]} />
+          <View style={[styles.amostra, { backgroundColor: cores.divisoria }]} />
           <Text style={styles.textoDaLegenda}>descanso</Text>
           <View style={[styles.amostra, styles.faltou]} />
           <Text style={styles.textoDaLegenda}>faltou</Text>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   cartao: { paddingVertical: 18, paddingHorizontal: 0, gap: 16 },
   margem: { paddingHorizontal: 18 },
   cabecalho: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  titulo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
+  titulo: { fontSize: 15, fontWeight: '600', color: cores.textoSecundario },
   periodo: { fontSize: 13, color: cores.textoSecundario },
   numeros: { flexDirection: 'row', gap: 12 },
   numero: { flex: 1, gap: 2 },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   mes: { position: 'absolute', width: 40, fontSize: 10, color: cores.textoSecundario },
   semanas: { flexDirection: 'row', gap: VAO },
   semana: { gap: VAO },
-  dia: { width: LADO, height: LADO, borderRadius: 3, backgroundColor: cores.superficieAlta },
+  dia: { width: LADO, height: LADO, borderRadius: 3, backgroundColor: cores.divisoria },
   faltou: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: cores.desce },
   hoje: { borderWidth: 1.5, borderColor: cores.textoSecundario },
   futuro: { backgroundColor: 'transparent' },

@@ -4,7 +4,7 @@ import type { ItemDoTreino } from '@/db/consultas';
 import { seloDaMeta, textoMeta, textoRealizado, textoSeries } from '@/domain/textos';
 
 import { Selo } from './Selo';
-import { cores } from './tema';
+import { cores, gradienteAuroraDiagonal } from './tema';
 
 interface Props {
   item: ItemDoTreino;
@@ -53,20 +53,22 @@ export function LinhaDoExercicio({ item, onAbrir, onDesfazer }: Props) {
 }
 
 const styles = StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, minHeight: 58 },
+  // O feito leva a aurora, como os segmentos acesos da barra de progresso.
   marca: {
     width: 28,
     height: 28,
     borderRadius: 14,
     backgroundColor: cores.primaria,
+    backgroundImage: gradienteAuroraDiagonal,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  marcaPulado: { backgroundColor: cores.superficieAlta },
+  marcaPulado: { backgroundColor: cores.superficieAlta, backgroundImage: 'none' },
   simbolo: { fontSize: 15, fontWeight: '800', color: cores.textoSobrePrimaria },
   simboloPulado: { color: cores.textoSecundario },
   textos: { flex: 1, gap: 2 },
-  nome: { fontSize: 16, fontWeight: '600', color: cores.texto },
+  nome: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: cores.texto },
   detalhe: { fontSize: 14, lineHeight: 20, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   desfazer: { paddingVertical: 10, paddingHorizontal: 4 },
   textoDesfazer: { fontSize: 14, fontWeight: '600', color: cores.textoSecundario },

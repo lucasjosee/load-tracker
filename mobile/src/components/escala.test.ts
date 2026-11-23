@@ -1,4 +1,4 @@
-import { escalarPontos, paraPolyline } from './escala';
+import { escalarPontos, paraCurvaSuave } from './escala';
 
 const AREA = { largura: 120, altura: 60, margem: 10 };
 
@@ -24,8 +24,40 @@ describe('escalarPontos', () => {
   });
 });
 
-describe('paraPolyline', () => {
-  it('monta o atributo points do SVG', () => {
-    expect(paraPolyline([{ x: 1, y: 2 }, { x: 3, y: 4 }])).toBe('1,2 3,4');
+
+describe('paraCurvaSuave', () => {
+  it('sem pontos, caminho vazio', () => {
+    expect(paraCurvaSuave([])).toBe('');
+  });
+
+  it('um ponto só é o ponto de partida', () => {
+    expect(paraCurvaSuave([{ x: 10, y: 20 }])).toBe('M10 20');
+  });
+
+  it('dois pontos: os controles ficam sobre a reta, a um sexto de cada ponta', () => {
+    expect(paraCurvaSuave([{ x: 0, y: 0 }, { x: 60, y: 30 }])).toBe('M0 0 C10 5 50 25 60 30');
+  });
+
+  it('passa por todos os pontos, um trecho por par', () => {
+    const caminho = paraCurvaSuave([
+      { x: 0, y: 0 },
+      { x: 30, y: 30 },
+      { x: 60, y: 60 },
+    ]);
+    expect(caminho).toBe('M0 0 C5 5 20 20 30 30 C40 40 55 55 60 60');
+  });
+
+  it('no ponto do meio, chega e sai na mesma direção (sem bico)', () => {
+    // Pico em (30, 0): a direção ali é a de (0, 30) para (60, 30), horizontal.
+    const caminho = paraCurvaSuave([
+      { x: 0, y: 30 },
+      { x: 30, y: 0 },
+      { x: 60, y: 30 },
+    ]);
+    expect(caminho).toBe('M0 30 C5 25 20 0 30 0 C40 0 55 25 60 30');
+  });
+
+  it('arredonda para uma casa decimal', () => {
+    expect(paraCurvaSuave([{ x: 0.04, y: 1 / 3 }])).toBe('M0 0.3');
   });
 });

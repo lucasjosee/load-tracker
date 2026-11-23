@@ -31,7 +31,36 @@ export function escalarPontos(valores: readonly number[], area: Area): Ponto[] {
   }));
 }
 
-// Formato do atributo `points` de uma <Polyline> do SVG: "x1,y1 x2,y2 ...".
-export function paraPolyline(pontos: readonly Ponto[]): string {
-  return pontos.map(({ x, y }) => `${x},${y}`).join(' ');
+// A linha que passa por todos os pontos, mas em curva, sem as quinas de uma
+// linha reta de ponto a ponto: o atributo `d` de um <Path> do SVG
+// ("M x y C ...").
+//
+// Cada trecho entre dois pontos vira uma curva de Bézier cúbica (o comando
+// `C`, que pede dois pontos de controle). O controle que sai de um ponto
+// aponta na direção que vai do ponto anterior ao seguinte (o método de
+// Catmull-Rom): assim a curva chega e sai de cada ponto na mesma direção e
+// não faz bico. Nas pontas, o "anterior" e o "seguinte" que faltam são o
+// próprio ponto. Dividir por 6 é o que faz a curva de Bézier ser igual à de
+// Catmull-Rom.
+export function paraCurvaSuave(pontos: readonly Ponto[]): string {
+  const [primeiro] = pontos;
+  if (primeiro === undefined) {
+    return '';
+  }
+  let caminho = `M${numero(primeiro.x)} ${numero(primeiro.y)}`;
+  for (let i = 0; i < pontos.length - 1; i++) {
+    const anterior = pontos[Math.max(i - 1, 0)] ?? primeiro;
+    const atual = pontos[i] ?? primeiro;
+    const proximo = pontos[i + 1] ?? atual;
+    const depois = pontos[Math.min(i + 2, pontos.length - 1)] ?? proximo;
+    const saida = { x: atual.x + (proximo.x - anterior.x) / 6, y: atual.y + (proximo.y - anterior.y) / 6 };
+    const chegada = { x: proximo.x - (depois.x - atual.x) / 6, y: proximo.y - (depois.y - atual.y) / 6 };
+    caminho += ` C${numero(saida.x)} ${numero(saida.y)} ${numero(chegada.x)} ${numero(chegada.y)} ${numero(proximo.x)} ${numero(proximo.y)}`;
+  }
+  return caminho;
+}
+
+// Uma casa decimal basta para a tela e deixa o caminho legível.
+function numero(valor: number): string {
+  return String(Math.round(valor * 10) / 10);
 }

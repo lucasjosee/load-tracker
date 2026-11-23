@@ -5,7 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 import type { TemposDaSessao } from '@/domain/duracao';
 
 import { useTempoDoTreino } from './TempoDoTreino';
-import { aurora, cores } from './tema';
+import { aurora, cores, gradienteAuroraDiagonal } from './tema';
 
 // Espaço que a barra de abas do iOS ocupa acima da área segura de baixo. A
 // NativeTabs não informa a própria altura, então é uma medida fixa.
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: aurora.fim, // por baixo do gradiente, se ele não for desenhado
-    backgroundImage: `linear-gradient(135deg, ${aurora.inicio} 0%, ${aurora.fim} 100%)`,
+    backgroundImage: gradienteAuroraDiagonal,
   },
   play: { marginLeft: 2 },
   textos: { flex: 1, gap: 1 },

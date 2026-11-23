@@ -255,19 +255,13 @@ const styles = StyleSheet.create({
   // O nome do treino (ou "Descanso") é o título da aba: o maior texto da
   // tela. A linha fica justa no tamanho da letra, como na meta.
   tituloDoDia: {
-    fontSize: 64,
-    lineHeight: 64,
+    fontSize: 52,
+    lineHeight: 58,
     fontWeight: '800',
-    letterSpacing: -1,
+    letterSpacing: -2,
     color: cores.texto,
   },
-  rotuloDoProximo: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: cores.textoSecundario,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  rotuloDoProximo: { fontSize: 15, fontWeight: '600', color: cores.textoSecundario },
   proximo: { fontSize: 22, fontWeight: '700', color: cores.texto },
   semana: { padding: 18, gap: 16 },
   aviso: {

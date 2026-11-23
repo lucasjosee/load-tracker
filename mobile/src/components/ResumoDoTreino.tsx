@@ -80,7 +80,7 @@ export function ResumoDoTreino({ itens, tipos, duracaoS, compacto = false }: Pro
 const styles = StyleSheet.create({
   resumo: { gap: 12 },
   cartao: { padding: 18, gap: 10 },
-  titulo: { fontSize: 13, fontWeight: '600', color: cores.textoSecundario, textTransform: 'uppercase', letterSpacing: 0.5 },
+  titulo: { fontSize: 15, fontWeight: '600', color: cores.textoSecundario },
   batidas: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5, color: cores.texto, fontVariant: ['tabular-nums'] },
   detalhes: { fontSize: 15, color: cores.textoSecundario, fontVariant: ['tabular-nums'] },
   linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },

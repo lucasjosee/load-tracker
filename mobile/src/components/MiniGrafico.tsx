@@ -1,14 +1,14 @@
-import Svg, { Circle, Polyline } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-import { escalarPontos, paraPolyline } from './escala';
+import { escalarPontos, paraCurvaSuave } from './escala';
 import { cores } from './tema';
 
 const LARGURA = 72;
 const ALTURA = 28;
 
 // A linha da força estimada em miniatura, sem eixo nem número: serve só para
-// ver a direção de relance numa lista. Cor de marca se a última sessão está
-// acima da primeira; cinza se não.
+// ver a direção de relance numa lista. Hortelã se a última sessão está acima
+// da primeira; cinza se não.
 export function MiniGrafico({ valores }: { valores: readonly number[] }) {
   if (valores.length < 2) {
     return null; // com uma sessão só não existe direção
@@ -20,7 +20,7 @@ export function MiniGrafico({ valores }: { valores: readonly number[] }) {
 
   return (
     <Svg width={LARGURA} height={ALTURA} accessibilityElementsHidden importantForAccessibility="no">
-      <Polyline points={paraPolyline(pontos)} fill="none" stroke={cor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      <Path d={paraCurvaSuave(pontos)} fill="none" stroke={cor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       {ultimo !== undefined && <Circle cx={ultimo.x} cy={ultimo.y} r={3} fill={cor} />}
     </Svg>
   );

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Polyline } from 'react-native-svg';
 
-import { escalarPontos, paraPolyline } from './escala';
+import { CurvaAurora } from './CurvaAurora';
+import { escalarPontos } from './escala';
 import { cores, raioDoCartao, vidro } from './tema';
 
 const ALTURA = 140;
-const MARGEM = 8;
+const MARGEM = 10; // cabe o halo do último ponto sem ele ser cortado na borda
 
 interface Props {
   titulo: string;
@@ -15,8 +15,9 @@ interface Props {
   formatar: (valor: number) => string;
 }
 
-// Gráfico de linha simples em SVG: uma bolinha por sessão. Feito à mão em
-// vez de uma biblioteca de gráficos: é pouco código e roda no Expo Go.
+// Gráfico de linha simples em SVG: a curva da aurora com uma bolinha por
+// sessão. Feito à mão em vez de uma biblioteca de gráficos: é pouco código e
+// roda no Expo Go.
 export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
   // A largura só é conhecida depois que a tela é desenhada (onLayout).
   const [largura, setLargura] = useState(0);
@@ -33,14 +34,7 @@ export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
         <Text style={styles.vazio}>O gráfico aparece a partir de duas sessões.</Text>
       ) : (
         <View onLayout={(e) => setLargura(e.nativeEvent.layout.width)} accessibilityLabel={`${titulo}: de ${formatar(valores[0] ?? 0)} para ${formatar(ultimo ?? 0)}`}>
-          {largura > 0 && (
-            <Svg width={largura} height={ALTURA}>
-              <Polyline points={paraPolyline(pontos)} fill="none" stroke={cores.primaria} strokeWidth={2} />
-              {pontos.map((ponto, i) => (
-                <Circle key={i} cx={ponto.x} cy={ponto.y} r={3} fill={cores.primaria} />
-              ))}
-            </Svg>
-          )}
+          {largura > 0 && <CurvaAurora pontos={pontos} largura={largura} altura={ALTURA} marcarSessoes />}
           <View style={styles.eixo}>
             <Text style={styles.rotulo}>{rotulos[0]}</Text>
             <Text style={styles.rotulo}>
@@ -55,10 +49,10 @@ export function GraficoDeLinha({ titulo, valores, rotulos, formatar }: Props) {
 }
 
 const styles = StyleSheet.create({
-  caixa: { ...vidro, gap: 6, padding: 16, borderRadius: raioDoCartao },
+  caixa: { ...vidro, gap: 8, padding: 16, borderRadius: raioDoCartao },
   topo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   titulo: { fontSize: 15, fontWeight: '600', color: cores.textoSecundario },
-  atual: { fontSize: 20, fontWeight: '700', color: cores.texto },
+  atual: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5, color: cores.texto, fontVariant: ['tabular-nums'] },
   vazio: { fontSize: 15, color: cores.textoSecundario },
   eixo: { flexDirection: 'row', justifyContent: 'space-between' },
   rotulo: { fontSize: 12, color: cores.textoSecundario },
